@@ -4,6 +4,7 @@
  */
 import com.lbg.workflow.sandbox.BuildContext
 import com.lbg.workflow.sandbox.BuildHandlers
+import com.lbg.workflow.sandbox.CWABuildHandlers
 
 def call(BuildContext context, BuildHandlers handlers, String targetBranch) {
 	def unitTests = []
@@ -25,13 +26,26 @@ def call(BuildContext context, BuildHandlers handlers, String targetBranch) {
 		echo "TARGET_BRANCH: ${targetBranch}"
 		epoch =	sh(returnStdout: true, script: 'date +%d%m%Y%H%M').trim()
 		checkout scm
+		
+		echo "Loading all handlers"
+		echo "Loading Builder: ${handlers.builder}"
+		builder = load("${handlers.builder}")
 
-		builder = load(handlers.builder)
+		echo "Loading Deployer: ${handlers.deployer}"
 		appDeployer = load(handlers.deployer)
 
-		for (String test: handlers.unitTests) unitTests.add( load(test))
-		for (String test: handlers.staticAnalysis) sanityTests.add( load(test))
-		for (String test: handlers.integrationTests) integrationTests.add( load(test))
+		for (String test: handlers.getUnitTests()) {
+			echo "Loading ${test}"
+			unitTests.add( load("${test}"))
+		}
+		for (String test: handlers.getStaticAnalysis()) {
+			echo "Loading ${test}"
+			sanityTests.add( load("${test}"))
+		}
+		for (String test: handlers.getIntegrationTests()) {
+			echo "Loading ${test}"
+			integrationTests.add( load("${test}"))
+		}
 
 
 		allTests.addAll(unitTests)

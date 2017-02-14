@@ -8,11 +8,11 @@ package com.lbg.workflow.sandbox
 class CWABuildHandlers implements Serializable,BuildHandlers{
 
 
-	def builder
-	def deployer 
-	def unitTests = []
-	def staticAnalysis = []
-	def integrationTests = []
+	String builder
+	String deployer 
+	List<String> unitTests 
+	List<String> staticAnalysis 
+	List<String> integrationTests 
 
 
 	public CWABuildHandlers() {
@@ -20,21 +20,23 @@ class CWABuildHandlers implements Serializable,BuildHandlers{
 		deployer = 'pipelines/deploy/application.groovy'
 		builder = 'pipelines/build/package.groovy'
 
-		unitTests.add( 'pipelines/tests/unit.groovy')
+		unitTests = ['pipelines/tests/unit.groovy'] 
 
-		staticAnalysis.add( 'pipelines/tests/sonar.groovy')
-		staticAnalysis.add( 'pipelines/tests/checkstyle.groovy')
+		staticAnalysis =  [	'pipelines/tests/sonar.groovy', 
+							'pipelines/tests/checkstyle.groovy'] 
 
-		integrationTests.add( 'pipelines/tests/performance.groovy')
-		integrationTests.add( 'pipelines/tests/accessibility.groovy')
-		integrationTests.add( 'pipelines/tests/bdd.groovy')
+		integrationTests = [ 	'pipelines/tests/performance.groovy',
+								'pipelines/tests/accessibility.groovy',
+								'pipelines/tests/bdd.groovy'] 
 	}
+/* Do not implement these methods. Accessors are xpected to be auto generated. 
+ * If we implement them, the build hangs
 
-	public getBuilder() { return builder}
-	public getDeployer() {return deployer}
-	public getUnitTests() {return unitTests}
-	public getStaticAnalysis() {return staticAnalysis}
-	public getIntegrationTests() {return integrationTests}
-
+	public String getBuilder() { return builder}
+	public String getDeployer() {return deployer}
+	public List<String> getUnitTests() {return this.unitTests}
+	public List<String> getStaticAnalysis() {return staticAnalysis}
+	public List<String> getIntegrationTests() {return integrationTests}
+*/
 }
 

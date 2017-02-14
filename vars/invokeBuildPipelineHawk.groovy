@@ -5,9 +5,10 @@
 
 import com.lbg.workflow.sandbox.BuildContext
 import com.lbg.workflow.sandbox.BuildHandlers
+import com.lbg.workflow.sandbox.CWABuildHandlers
 import com.lbg.workflow.sandbox.Utils
 
-def call(String application, BuildHandlers handlers, String configuration){
+def call(String application, handlers, String configuration){
 	def targetCommit
 	BuildContext context
 	BuildHandlers initializer

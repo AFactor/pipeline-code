@@ -29,104 +29,117 @@ def call(BuildContext context, BuildHandlers handlers, String targetCommit) {
 
 		checkout scm
 
-		builder = load(handlers.builder)
+		echo "Loading all handlers"
+		echo "Loading Builder: ${handlers.builder}"
+		builder = load("${handlers.builder}")
+
+		echo "Loading Deployer: ${handlers.deployer}"
 		appDeployer = load(handlers.deployer)
 
-		for (String test: handlers.unitTests) unitTests.add( load(test))
-		for (String test: handlers.staticAnalysis) sanityTests.add( load(test))
-		for (String test: handlers.integrationTests) { 
-			if (!test.contains("bdd")) integrationTests.add( load(test))
+		for (String test: handlers.getUnitTests()) {
+			echo "Loading ${test}"
+			unitTests.add( load("${test}"))
+		}
+		for (String test: handlers.getStaticAnalysis()) {
+			echo "Loading ${test}"
+			sanityTests.add( load("${test}"))
+		}
+		for (String test: handlers.getIntegrationTests()) {
+			if (!test.contains("bdd")) {
+				echo "Loading ${test}"
+				integrationTests.add( load("${test}"))
+			}
 		}
 
 		gerritHandler.buildStarted(changeID,revision)
 	}
 	milestone (label: 'Ready')
 	try{
-			// Basic Qualification -----------------------------------//
-			stage("Unit Tests"){
-				try {
-					for (Object testClass: unitTests) {
-						def currentTest = testClass
-						currentTest.runTest(targetBranch, context)
-					}
-				}catch(error){
-					gerritHandler.failTests(changeID, revision)
-					throw error
-				}finally{
-					//Nada
-				}
-			}
-			milestone (label: 'UnitTests')
-
-
-			// Sonar/Checkstyle etal -----------------------------------//
-			stage("Static Analysis"){
-				def codeSanitySchedule = [:]
-				for (Object testClass: sanityTests) {
+		// Basic Qualification -----------------------------------//
+		stage("Unit Tests"){
+			try {
+				for (Object testClass: unitTests) {
 					def currentTest = testClass
-					codeSanitySchedule[currentTest.name()] = { currentTest.runTest(targetBranch, context) }
+					currentTest.runTest(targetBranch, context)
 				}
-				try{
-					parallel codeSanitySchedule
-				} catch(error) {
-					gerritHandler.failCodeReview(changeID, revision)
-				} finally {
-					//Make a decision
-				}
+			}catch(error){
+				gerritHandler.failTests(changeID, revision)
+				throw error
+			}finally{
+				//Nada
 			}
-			milestone (label: 'StaticAnalysis')
+		}
+		milestone (label: 'UnitTests')
+
+
+		// Sonar/Checkstyle etal -----------------------------------//
+		stage("Static Analysis"){
+			def codeSanitySchedule = [:]
+			for (Object testClass: sanityTests) {
+				def currentTest = testClass
+				codeSanitySchedule[currentTest.name()] = { currentTest.runTest(targetBranch, context) }
+			}
+			try{
+				parallel codeSanitySchedule
+			} catch(error) {
+				gerritHandler.failCodeReview(changeID, revision)
+			} finally {
+				//Make a decision
+			}
+		}
+		milestone (label: 'StaticAnalysis')
 
 
 
-			// Build--------------------------------------------------//
-			stage("Build"){
-				try {
-					builder.pack(targetBranch, targetEnv, context)
-				} catch(error){
+		// Build--------------------------------------------------//
+		stage("Build"){
+			try {
+				builder.pack(targetBranch, targetEnv, context)
+			} catch(error){
+				gerritHandler.failTests(changeID, revision)
+				echo "BUilding Distribution failed"
+				throw error
+			} finally{
+			}
+		}
+		milestone (label: 'Build')
+
+
+
+		// Concurrency Controlled Deploy/IntegrationTest Cycle-----------------//
+		lock(inversePrecedence: true, quantity: 1, resource: integrationEnvironment ) {
+			// Integration Tests--------------------------------------//
+			stage("Deploy"){
+				try{
+					appDeployer.deploy(targetBranch, context)  //Hardcoded to DEV as current practice
+				} catch(error) {
 					gerritHandler.failTests(changeID, revision)
-					echo "BUilding Distribution failed"
+					echo "Deployment failed"
 					throw error
 				} finally{
 				}
 			}
-			milestone (label: 'Build')
+			// Integration Tests--------------------------------------//
+			stage("Integration Tests"){
+				def integrationTestSchedule = [:]
 
-
-
-			// Concurrency Controlled Deploy/IntegrationTest Cycle-----------------//
-			lock(inversePrecedence: true, quantity: 1, resource: integrationEnvironment ) {
-				// Integration Tests--------------------------------------//
-				stage("Deploy"){
-					try{
-						appDeployer.deploy(targetBranch, context)  //Hardcoded to DEV as current practice
-					} catch(error) {
-						gerritHandler.failTests(changeID, revision)
-						echo "Deployment failed"
-						throw error
-					} finally{
-					}
+				for (Object testClass: integrationTests) {
+					def currentTest = testClass
+					integrationTestSchedule[currentTest.name()] = { currentTest.runTest(targetBranch, context) }
 				}
-				// Integration Tests--------------------------------------//
-				stage("Integration Tests"){
-					def integrationTestSchedule = [:]
-
-					for (Object testClass: integrationTests) {
-						def currentTest = testClass
-						integrationTestSchedule[currentTest.name()] = { currentTest.runTest(targetBranch, context) }
-					}
-					try{
-						parallel integrationTestSchedule
-					} catch(error) {
-						gerritHandler.failTests(changeID, revision)
-						echo "Integration tests failed"
-						throw error
-					} finally {
-						//Make a decision
-					}
+				try{
+					parallel integrationTestSchedule
+				} catch(error) {
+					gerritHandler.failTests(changeID, revision)
+					echo "Integration tests failed"
+					throw error
+				} finally {
+					//Make a decision
 				}
-				milestone (label: 'IntegrationTests')
-
 			}
+			milestone (label: 'IntegrationTests')
+
+		}
 
 
 	} catch(error) {
@@ -140,7 +153,7 @@ def call(BuildContext context, BuildHandlers handlers, String targetCommit) {
 		}
 
 		stage("End"){ echo "Phew!. Finaly Finished" }
-	}	
+	}
 
 }
 return this;

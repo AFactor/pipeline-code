@@ -7,10 +7,10 @@ package com.lbg.workflow.sandbox
 
 public interface BuildHandlers {
 
-	def getBuilder()
-	def getDeployer()
-	def getUnitTests()
-	def getStaticAnalysis()
-	def getIntegrationTests()
+	String getBuilder()
+	String getDeployer()
+	List<String> getUnitTests()
+	List<String> getStaticAnalysis()
+	List<String> getIntegrationTests()
 }
 

@@ -8,17 +8,17 @@ package com.lbg.workflow.sandbox
 class ConfigurableBuildHandlers implements Serializable,BuildHandlers{
 
 
-	def builder
-	def deployer 
-	def unitTests = []
-	def staticAnalysis = []
-	def integrationTests = []
+	String builder
+	String deployer 
+	List<String> unitTests
+	List<String> staticAnalysis 
+	List<String> integrationTests 
 
 	public BuildHandlers(String builder, 
 						String deployer, 
-						String[] unitTests, 
-						String[] staticAnalysis, 
-						String[] integrationTests) { 
+						List<String> unitTests, 
+						List<String> staticAnalysis, 
+						List<String> integrationTests) { 
 
 		this.builder = builder
 		this.deployer = deployer
@@ -26,12 +26,15 @@ class ConfigurableBuildHandlers implements Serializable,BuildHandlers{
 		this.staticAnalysis = staticAnalysis
 		this.integrationTests = integrationTests
 	}
+/* Do not implement these methods. Accessors are xpected to be auto generated. 
+ * If we implement them, the build hangs
 
-	public getBuilder() { return builder}
-	public getDeployer() {return deployer}
-	public getUnitTests() {return unitTests}
-	public getStaticAnalysis() {return staticAnalysis}
-	public getIntegrationTests() {return integrationTests}
+	public String getBuilder() { return builder}
+	public String getDeployer() {return deployer}
+	public List<String> getUnitTests() {return this.unitTests}
+	public List<String> getStaticAnalysis() {return staticAnalysis}
+	public List<String> getIntegrationTests() {return integrationTests}
+*/
 
 }
 
