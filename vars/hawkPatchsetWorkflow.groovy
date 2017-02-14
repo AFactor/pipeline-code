@@ -5,7 +5,7 @@
 import com.lbg.workflow.sandbox.BuildContext
 import com.lbg.workflow.sandbox.BuildHandlers
 
-def call(BuildContext context, BuildHandlers handlers, String targetCommit) {
+def call(BuildContext context, handlers, String targetCommit) {
 	def branchID = env.BRANCH_NAME.split('/')
 	def revision = branchID[3]
 	def changeID = branchID[2]

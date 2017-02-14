@@ -6,7 +6,7 @@ import com.lbg.workflow.sandbox.BuildContext
 import com.lbg.workflow.sandbox.BuildHandlers
 import com.lbg.workflow.sandbox.CWABuildHandlers
 
-def call(BuildContext context, BuildHandlers handlers, String targetBranch) {
+def call(BuildContext context, handlers, String targetBranch) {
 	def unitTests = []
 	def sanityTests = []
 	def integrationTests = []
