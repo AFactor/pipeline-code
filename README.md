@@ -3,6 +3,8 @@
 ### designed to run within the groovy sandbox
 
 ## Usage:
+
+#### Sample 1 
 ```
 @Library('workflowlib-sandbox@v1.0.0')
 import com.lbg.workflow.sandbox.*
@@ -14,6 +16,31 @@ invokeBuildPipelineHawk( 'pca-sales-cwa', handlers, configuration )
 
 ```
 
+#### Sample 2 
+```
+@Library('workflowlib-sandbox@v1.0.1')
+import com.lbg.workflow.sandbox.*
+
+def builder = 'pipelines/build/package.groovy'
+def deployer = 'pipelines/deploy/application.groovy'
+def unitTests = 	  [	'pipelines/tests/unit.groovy']
+
+def staticAnalyses =  [	'pipelines/tests/sonar.groovy', 
+						'pipelines/tests/checkstyle.groovy' ]
+						
+def integratonTests = [	'pipelines/tests/performance.groovy',
+						'pipelines/tests/accessibility.groovy',
+						'pipelines/tests/bdd.groovy']					
+
+def configuration = "pipelines/conf/job-configuration.json"
+BuildHandlers handlers = new ConfigurableBuildHandlers(	builder, 
+														deployer, 
+														unitTests, 
+														staticAnalyses, 
+														integrationTests) as BuildHandlers
+	
+invokeBuildPipelineHawk( 'your-api-codebase', handlers, configuration )
+```
 
 ## Provides: 
 
@@ -49,8 +76,11 @@ invokeBuildPipelineHawk( 'pca-sales-cwa', handlers, configuration )
 			credentialsID = "Jenkins Credentials to use"
 	}
 ```
-### sonarTest
-	Provides custom step to run a sonar test against a Jenkins define Server
+
+
+### sonarTest 
+###(DEPRECATED)
+	Provides custom step to run a sonar test against a Jenkins defined Server
 ```
 	sonarTest {
 			sonarServer = 
@@ -64,6 +94,17 @@ invokeBuildPipelineHawk( 'pca-sales-cwa', handlers, configuration )
 		}
 ```
 
+### sonarRunner 
+#### (Preferred method to run SonarQube Scanner )
+	Provides custom step to run a soarQube runner/scanner test against a Jenkins defined Server. 
+	Credentials are automatically injected.
+```
+	sonarTest {
+			sonarServer = 'SonarServerID on Jenkins'
+			preRun = '~/.bashrc'
+			javaOptions = ['-Dsonar.sources: 'somefodler', '-Dappname': 'somename', ...]
+		}
+```
 
 ### splunkPublisher
 	Provides custom step, that makes a callback to publishSplunk() method of supplied testScenarios. 

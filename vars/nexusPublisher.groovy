@@ -16,7 +16,7 @@ def call(Closure body) {
 	def credentialsID = config.credentials
 
 	withCredentials([
-		usernameColonPassword(	credentialsId: credentialID,
+		usernameColonPassword(	credentialsId: credentialsID,
 		variable: 'NEXUS_CREDS')
 	]) { sh 	"""curl 	-sS \
 							-u $NEXUS_CREDS \

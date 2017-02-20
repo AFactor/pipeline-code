@@ -18,12 +18,20 @@ def call(body) {
 		def sonarServer = config.sonarServer
 		def sonarProject = config.sonarProject
 		def targetBranch = config.targetBranch
+		def sources 	= config.sources?: '.'
 		def qualityGate = config.qualityGate
 		def exclusions = config.exclusions
 		def coverageExclusions = config.coverageExclusions
 		def coverageReportFile = config.coverageReportFile
 		def coverageStash = config.coverageStash
+		def javaOptions = config.javaOptions?: [:]
 		//PCA-CWA-QP
+		
+		def javaOptionOverrides = ' '
+		
+		for (def entry: javaOptions){
+			javaOptionOverrides = javaOptionOverrides + "${entry.key}=${entry.value} "
+		}
 
 		withSonarQubeEnv("${sonarServer}") {
 			sh " rm -f ${coverageReportFile} "
@@ -43,14 +51,14 @@ def call(body) {
 							-Dappname=${sonarProject} \\
 							-DbranchName=${targetBranch} \\
 							-Dsonar.projectVersion=${env.BUILD_NUMBER} \\
-							-Dsonar.sources=. \\
+							-Dsonar.sources=${sources} \\
 							-Dsonar.exclusions=\'${exclusions}\' \\
 							-Dsonar.coverage.exclusions=\'${coverageExclusions}\' \\
 				-Dsonar.javascript.lcov.reportPath=${coverageReportFile} \\
 				-Dsonar.sourceEncoding=UTF-8 \\
 				-Dsonar.qualitygate=${qualityGate}\\
-				-Dsonar.scm.enabled=true
-
+				-Dsonar.scm.enabled=true \\
+				${javaOptionOverrides}
 		"""
 		}
 

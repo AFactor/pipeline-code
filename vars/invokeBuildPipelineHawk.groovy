@@ -35,6 +35,8 @@ def call(String application, handlers, String configuration){
 		hawkIntegrationWorkflow( context, handlers, 'master')
 	}  else if (env.BRANCH_NAME =~ /^hotfixes.*$/ )  {
 		hawkIntegrationWorkflow( context, handlers, 'hotfixes')
+	}  else if (env.BRANCH_NAME =~ /^develop$/ )  {
+			hawkIntegrationWorkflow( context, handlers, 'develop')
 	} else {
 		echo "We dont know how to build this branch. Stopping"
 	}

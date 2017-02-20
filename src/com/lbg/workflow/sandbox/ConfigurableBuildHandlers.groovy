@@ -14,7 +14,7 @@ class ConfigurableBuildHandlers implements Serializable,BuildHandlers{
 	List<String> staticAnalysis 
 	List<String> integrationTests 
 
-	public BuildHandlers(String builder, 
+	public ConfigurableBuildHandlers(String builder, 
 						String deployer, 
 						List<String> unitTests, 
 						List<String> staticAnalysis, 
