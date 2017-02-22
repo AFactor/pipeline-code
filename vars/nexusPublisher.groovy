@@ -13,7 +13,7 @@ def call(Closure body) {
 
 	def nexusURL = config.nexusURL
 	def artifact = config.artifact
-	def credentialsID = config.credentials
+	def credentialsID = config.credentials ?: 'nexus-uploader'
 
 	withCredentials([
 		usernameColonPassword(	credentialsId: credentialsID,

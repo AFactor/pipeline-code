@@ -74,7 +74,8 @@ def call(BuildContext context, handlers, String targetBranch) {
 			try{
 				parallel codeSanitySchedule
 			} catch(error) {
-				//Make a decision
+				echo "Static Analysis has failed."
+				throw error
 			} finally {
 				//Make a decision
 			}
@@ -122,9 +123,12 @@ def call(BuildContext context, handlers, String targetBranch) {
 	} finally {
 		// Clean up environments/workspaces ----------------------//
 		stage("Cleanup"){
-			appDeployer.purge(targetBranch, context)
+			try {
+				appDeployer.purge(targetBranch, context)
+			} catch(error) {
+				echo "Notice: Cleanup failed. Onwards!"
+			} finally{}
 		}
-
 		stage("End"){ echo "Phew!. Finaly Finished" }
 	}
 

@@ -50,7 +50,7 @@ def buildStarted(String changeID, String revision){
 }
 
 def failCodeReview (String changeID, String revision ) {
-	setCodeReview (changeID, revision, "Code Quality Failed", '-1')
+	setCodeReview (changeID, revision, "Code Quality Failed", '-2')
 }
 def failTests (String changeID, String revision) {
 	setVerified (changeID, revision, "Tests Failed", '-1')

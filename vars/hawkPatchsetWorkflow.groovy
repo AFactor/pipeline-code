@@ -81,8 +81,11 @@ def call(BuildContext context, handlers, String targetCommit) {
 			}
 			try{
 				parallel codeSanitySchedule
+				gerritHandler.passCodeReview(changeID, revision)
 			} catch(error) {
+				echo "Static Analysis has failed."
 				gerritHandler.failCodeReview(changeID, revision)
+				throw error
 			} finally {
 				//Make a decision
 			}
@@ -138,18 +141,21 @@ def call(BuildContext context, handlers, String targetCommit) {
 				}
 			}
 			milestone (label: 'IntegrationTests')
-
 		}
 
+		gerritHandler.passTests(changeID, revision)
 
 	} catch(error) {
-		echo "Mandatory Tests have failed. Aborting"
+		echo "Mandatory Steps have failed. Aborting"
 		throw error
 	} finally {
 		// Clean up environments/workspaces ----------------------//
 		stage("Cleanup"){
-			gerritHandler.passTests(changeID, revision)
-			appDeployer.purge(targetBranch, context)
+			try {
+				appDeployer.purge(targetBranch, context)
+			}catch(error) {
+				echo "Notice: Cleanup failed. Onwards!"
+			} finally{}
 		}
 
 		stage("End"){ echo "Phew!. Finaly Finished" }
