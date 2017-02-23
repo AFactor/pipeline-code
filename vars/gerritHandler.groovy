@@ -81,10 +81,16 @@ String findTargetBranch(String targetCommit) {
 	}
 
 	switch (targetBranch) {
+		/*
+		 * This started with the idea of returning well known identifiers
+		 * example release-prod for release-prod-* so on and so forth.
+		 * But there is no longer any need for that. Leave this block in 
+		 * place should that requirement return 
+		 */
 		case "master": return "master" ; break
 		case "release-prod": return "release-prod" ; break
 		case "hotfixes": return "hotfixes" ; break
-		default: return "ignore" ; break
+		default: return targetBranch ; break
 	}
 }
 

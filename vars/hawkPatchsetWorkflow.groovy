@@ -4,14 +4,27 @@
  */
 import com.lbg.workflow.sandbox.BuildContext
 import com.lbg.workflow.sandbox.BuildHandlers
+import com.lbg.workflow.sandbox.Utils
 
 def call(BuildContext context, handlers, String targetCommit) {
 	def branchID = env.BRANCH_NAME.split('/')
 	def revision = branchID[3]
 	def changeID = branchID[2]
 
+	// Target Branch Construction
+	Utils  utils = new Utils()
 	def gerritBranch = gerritHandler.findTargetBranch(targetCommit)
-	def targetBranch = "patchset-${gerritBranch}"
+	
+	def discriminator = ''
+	if (gerritBranch.startsWith('sprint')){
+		discriminator = 'ft-'
+	}
+	
+	def friendlyGerritBranch = utils.friendlyName(gerritBranch)
+	
+	def targetBranch = "patchset-${discriminator}${friendlyGerritBranch}"
+	// End Target Branch Construction
+	
 	def targetEnv="patchset"
 
 	def unitTests = []

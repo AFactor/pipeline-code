@@ -7,7 +7,7 @@ package com.lbg.workflow.sandbox
 
 @NonCPS
 def friendlyName(String branchName){
-	return branchName.trim().split('/').last()
+	return branchName.trim().split('/').last().trim()
 }
 
 @NonCPS
