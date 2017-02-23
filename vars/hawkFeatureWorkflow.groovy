@@ -21,7 +21,7 @@ def call(BuildContext context, handlers, String targetBranch) {
 	String integrationEnvironment = "${context.application}-${targetBranch}"
 
 
-	node(){
+	node('framework'){
 		echo "TARGET_BRANCH: ${targetBranch}"
 		epoch =	sh(returnStdout: true, script: 'date +%d%m%Y%H%M').trim()
 		checkout scm

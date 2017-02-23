@@ -14,7 +14,7 @@ def call(String application, handlers, String configuration){
 	BuildHandlers initializer
 	Utils  utils = new Utils()
 
-	node (){
+	node ('framework'){
 		checkout scm
 		targetCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
 

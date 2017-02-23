@@ -5,7 +5,7 @@
 
 def setStatus (String changeID, String revision, String message, String codereview, String verified) {
 
-	node(){
+	node('framework'){
 		def command = """
 			ssh -p 29418 -o StrictHostKeyChecking=no jenkins@gerrit.sandbox.extranet.group \\
 				gerrit review ${changeID},${revision} \\
@@ -20,7 +20,7 @@ def setStatus (String changeID, String revision, String message, String coderevi
 
 def setCodeReview (String changeID, String revision, String message, String codereview) {
 
-	node(){
+	node('framework'){
 		def command = """
 			ssh -p 29418 -o StrictHostKeyChecking=no jenkins@gerrit.sandbox.extranet.group \\
 				gerrit review ${changeID},${revision} \\
@@ -33,7 +33,7 @@ def setCodeReview (String changeID, String revision, String message, String code
 }
 def setVerified (String changeID, String revision, String message, String verified) {
 
-	node(){
+	node('framework'){
 		def command = """
 			ssh -p 29418 -o StrictHostKeyChecking=no jenkins@gerrit.sandbox.extranet.group \\
 				gerrit review ${changeID},${revision} \\
@@ -74,7 +74,7 @@ String findTargetBranch(String targetCommit) {
 				${targetCommit} \\
 		| awk '/^([ ]+branch:)(.*)/{print \$2}'
        """
-	node(){
+	node('framework'){
 		sshagent(['gerrit-updater']) {
 			targetBranch = sh(returnStdout: true, script: command).trim()
 		}

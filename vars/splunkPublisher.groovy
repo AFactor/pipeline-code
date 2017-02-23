@@ -16,7 +16,7 @@ def call(Closure body) {
 	def context = config.context
 	def targetBranch = targetBranch
 
-	node(){
+	node('framework'){
 
 		for (Object testClass: allTests) {
 			def currentTest = testClass

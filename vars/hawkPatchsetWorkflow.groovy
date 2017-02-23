@@ -24,7 +24,7 @@ def call(BuildContext context, handlers, String targetCommit) {
 	String integrationEnvironment = "${context.application}-${targetBranch}"
 
 
-	node(){
+	node('framework'){
 		echo "TARGET_BRANCH: ${targetBranch}"
 
 		checkout scm
