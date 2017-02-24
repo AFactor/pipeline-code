@@ -85,7 +85,7 @@ def call(BuildContext context, handlers, String targetBranch) {
 
 
 		// Build--------------------------------------------------//
-		stage("Build"){
+		stage("Package"){
 			builder.pack(targetBranch, targetEnv, context)
 		}
 		milestone (label: 'Build')

@@ -108,7 +108,7 @@ def call(BuildContext context, handlers, String targetCommit) {
 
 
 		// Build--------------------------------------------------//
-		stage("Build"){
+		stage("Package"){
 			try {
 				builder.pack(targetBranch, targetEnv, context)
 			} catch(error){
