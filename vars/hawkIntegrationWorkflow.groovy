@@ -15,6 +15,8 @@ def call(BuildContext context, handlers, String targetBranch) {
 	def builder
 	def appDeployer
 
+	def success = false
+
 	def targetEnv="integration"
 
 	def epoch
@@ -118,6 +120,7 @@ def call(BuildContext context, handlers, String targetBranch) {
 				}
 			}
 			milestone (label: 'IntegrationTests')
+			success = true
 		}
 
 	} catch(error) {
@@ -138,13 +141,18 @@ def call(BuildContext context, handlers, String targetBranch) {
 
 		// Publish to 3rd Party Stacks----------------------------//
 		stage("Publish"){
-			try{
-				builder.publishNexus(targetBranch, targetEnv, context)
-			}catch(error){
-				echo "Nexus publication did not complete normally. Continuing"
-			} finally{
+			if (success){
+				try{
+					builder.publishNexus(targetBranch, targetEnv, context)
+				}catch(error){
+					echo "Nexus publication did not complete normally. Continuing"
+				} finally{
 
+				}
+			} else {
+				echo "Build has failed. Not publishing to nexus"
 			}
+			//Publish what you can to splunk regardless of success.
 			try {
 				splunkPublisher{
 					allTests = allTests
