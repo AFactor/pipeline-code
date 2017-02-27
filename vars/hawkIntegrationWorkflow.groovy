@@ -114,7 +114,7 @@ def call(BuildContext context, handlers, String targetBranch) {
 					parallel integrationTestSchedule
 				} catch(error) {
 					echo "Integration tests failed"
-					throw error
+					//throw error
 				} finally {
 					//Make a decision
 				}
@@ -145,6 +145,7 @@ def call(BuildContext context, handlers, String targetBranch) {
 				try{
 					builder.publishNexus(targetBranch, targetEnv, context)
 				}catch(error){
+					echo error.message
 					echo "Nexus publication did not complete normally. Continuing"
 				} finally{
 
@@ -155,13 +156,16 @@ def call(BuildContext context, handlers, String targetBranch) {
 			//Publish what you can to splunk regardless of success.
 			try {
 				splunkPublisher{
-					allTests = allTests
-					epoch = epoch
-					context = context
-					targetBranch = targetBranch
+					tests = allTests
+					timestamp = epoch
+					buildContext = context
+					branch = targetBranch
 				}
 			} catch(error){
+				echo error.message
 				echo "Splunk report publication did not complete normally. Continuing"
+				throw error
+				
 			} finally{
 
 			}

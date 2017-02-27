@@ -11,18 +11,22 @@ def call(Closure body) {
 	body.delegate = config
 	body()
 	
-	def allTests = config.allTests
-	def epoch = config.epoch
-	def context = config.context
-	def targetBranch = targetBranch
+	def allTests = config.tests
+	def epoch = config.timestamp
+	def context = config.buildContext
+	def targetBranch = config.branch
 
 	node('framework'){
 
 		for (Object testClass: allTests) {
 			def currentTest = testClass
+			echo "TRYING: Splunk publication for ${testClass.name()} "
 			try{
 				currentTest.publishSplunk(targetBranch, epoch, context, this)
+				echo "SUCCESS: Splunk publication for ${testClass.name()} "
 			} catch(error){
+				echo error.message
+				echo "FAILURE: Splunk publication for ${testClass.name()} "
 			} finally {
 			}
 		}
@@ -30,6 +34,7 @@ def call(Closure body) {
 }
 
 def SCP(String source, String destination) {
+	echo "TRYING:  scp ${source}  splunk:${destination} "
 	sshagent([this.credentialsID()]) { sh """scp 	-r \\
 					-o StrictHostKeyChecking=no \\
 					${source} \\
@@ -37,6 +42,7 @@ def SCP(String source, String destination) {
 }
 
 def RSYNC(String source, String destination) {
+	echo "TRYING:  rsync ${source}  splunk:${destination} "
 	sshagent([this.credentialsID()]) { sh """rsync -avz \\
 					-e 'ssh -o StrictHostKeyChecking=no' \\
 					${source} \\
