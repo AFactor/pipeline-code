@@ -1,6 +1,32 @@
 # Jenkins/Pipeline workflow-cps-global-lib libraries
 
-### designed to run within the groovy sandbox
+##### designed to run within the groovy sandbox
+
+### invokeBuildPipelineHawk 
+
+#### Full Workflow
+
+	Pipeline Template: Hawk
+	Unit ->
+	Static Analysis (checkstyle/sonar/...) ->
+	Build ->
+	Deploy ->
+	Integration Tests (BDD/accessibility/performance/...) ->
+	Cleanup ->
+	Publish (nexus/splunk)
+	
+#### Integration Workflow
+	branches : `develop, master, hotfixes(.*), release-prod(.*)`
+	Full workflow
+
+#### Feature Workflow
+	branches : `sprint[0-9]+/.+`
+	Full Workflow sans Splunk/Nexus Publications
+
+#### Patchset Workflow
+	branches : auto-detected
+	Full Workflow sans BDD and Splunk/Nexus Publications
+
 
 ## Usage:
 
@@ -42,17 +68,9 @@ BuildHandlers handlers = new ConfigurableBuildHandlers(	builder,
 invokeBuildPipelineHawk( 'your-api-codebase', handlers, configuration )
 ```
 
-## Provides: 
+## Also Provides: 
 
-### invokeBuildPipelineHawk
-	Pipeline Template: Hawk
-	Unit ->
-	Static Analysis (checkstyle/sonar) ->
-	Build ->
-	Deploy ->
-	Integration Tests (BDD/accessibility/performance) ->
-	Cleanup ->
-	Publish (nexus/splunk)
+
 ### appName
 	Utility method to construct an appname which is used consistently across tasks for synchronization
 
@@ -71,31 +89,14 @@ invokeBuildPipelineHawk( 'your-api-codebase', handlers, configuration )
 	Provides custom step to publish nexus artifacts as per Lloyds practice
 ```
 	nexusPublisher {
-			nexusURL = "Target URL"
-			artifact = "Artifact File Name"
-			credentialsID = "Jenkins Credentials to use"
+			targetURL = "Target URL"
+			tarball = "Artifact File Name"
+
 	}
 ```
 
 
-### sonarTest 
-###(DEPRECATED)
-	Provides custom step to run a sonar test against a Jenkins defined Server
-```
-	sonarTest {
-			sonarServer = 
-			sonarProject = 
-			targetBranch = 
-			qualityGate = 
-			exclusions = 
-			coverageExclusions =
-			coverageReportFile = 
-			coverageStash = 
-		}
-```
-
 ### sonarRunner 
-#### (Preferred method to run SonarQube Scanner )
 	Provides custom step to run a soarQube runner/scanner test against a Jenkins defined Server. 
 	Credentials are automatically injected.
 ```
@@ -109,6 +110,7 @@ invokeBuildPipelineHawk( 'your-api-codebase', handlers, configuration )
 ### splunkPublisher
 	Provides custom step, that makes a callback to publishSplunk() method of supplied testScenarios. 
 	Also provides utility methods that understand how to interact with the target splunk instance, thus abstracting those details from the end user.
-		SCP(String source, String destination) 
+		
+#####		SCP(String source, String destination) 
 
-		RSYNC(String source, String destination) 
+#####		RSYNC(String source, String destination) 
