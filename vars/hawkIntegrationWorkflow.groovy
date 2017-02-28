@@ -77,6 +77,7 @@ def call(BuildContext context, handlers, String targetBranch) {
 			}
 			try{
 				parallel codeSanitySchedule
+				milestone (label: 'StaticAnalysis')
 			} catch(error) {
 				echo "Static Analysis has failed."
 				throw error
@@ -84,7 +85,7 @@ def call(BuildContext context, handlers, String targetBranch) {
 				//Make a decision
 			}
 		}
-		milestone (label: 'StaticAnalysis')
+
 
 
 
@@ -112,6 +113,7 @@ def call(BuildContext context, handlers, String targetBranch) {
 				}
 				try{
 					parallel integrationTestSchedule
+					milestone (label: 'IntegrationTests')
 				} catch(error) {
 					echo "Integration tests failed"
 					throw error
@@ -119,7 +121,7 @@ def call(BuildContext context, handlers, String targetBranch) {
 					//Make a decision
 				}
 			}
-			milestone (label: 'IntegrationTests')
+
 			success = true
 		}
 

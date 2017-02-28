@@ -14,17 +14,17 @@ def call(BuildContext context, handlers, String targetCommit) {
 	// Target Branch Construction
 	Utils  utils = new Utils()
 	def gerritBranch = gerritHandler.findTargetBranch(targetCommit)
-	
+
 	def discriminator = ''
 	if (gerritBranch.startsWith('sprint')){
 		discriminator = 'ft-'
 	}
-	
+
 	def friendlyGerritBranch = utils.friendlyName(gerritBranch)
-	
+
 	def targetBranch = "patchset-${discriminator}${friendlyGerritBranch}"
 	// End Target Branch Construction
-	
+
 	def targetEnv="patchset"
 
 	def unitTests = []
@@ -76,6 +76,7 @@ def call(BuildContext context, handlers, String targetCommit) {
 					def currentTest = testClass
 					currentTest.runTest(targetBranch, context)
 				}
+				milestone (label: 'UnitTests')
 			}catch(error){
 				gerritHandler.failTests(changeID, revision)
 				throw error
@@ -83,7 +84,7 @@ def call(BuildContext context, handlers, String targetCommit) {
 				//Nada
 			}
 		}
-		milestone (label: 'UnitTests')
+
 
 
 		// Sonar/Checkstyle etal -----------------------------------//
@@ -96,6 +97,7 @@ def call(BuildContext context, handlers, String targetCommit) {
 			try{
 				parallel codeSanitySchedule
 				gerritHandler.passCodeReview(changeID, revision)
+				milestone (label: 'StaticAnalysis')
 			} catch(error) {
 				echo "Static Analysis has failed."
 				gerritHandler.failCodeReview(changeID, revision)
@@ -104,7 +106,7 @@ def call(BuildContext context, handlers, String targetCommit) {
 				//Make a decision
 			}
 		}
-		milestone (label: 'StaticAnalysis')
+
 
 
 
@@ -112,6 +114,7 @@ def call(BuildContext context, handlers, String targetCommit) {
 		stage("Package"){
 			try {
 				builder.pack(targetBranch, targetEnv, context)
+				milestone (label: 'Build')
 			} catch(error){
 				gerritHandler.failTests(changeID, revision)
 				echo "BUilding Distribution failed"
@@ -119,7 +122,7 @@ def call(BuildContext context, handlers, String targetCommit) {
 			} finally{
 			}
 		}
-		milestone (label: 'Build')
+
 
 
 
@@ -146,6 +149,7 @@ def call(BuildContext context, handlers, String targetCommit) {
 				}
 				try{
 					parallel integrationTestSchedule
+					milestone (label: 'IntegrationTests')
 				} catch(error) {
 					gerritHandler.failTests(changeID, revision)
 					echo "Integration tests failed"
@@ -154,7 +158,6 @@ def call(BuildContext context, handlers, String targetCommit) {
 					//Make a decision
 				}
 			}
-			milestone (label: 'IntegrationTests')
 		}
 
 		gerritHandler.passTests(changeID, revision)
