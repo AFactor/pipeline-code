@@ -114,7 +114,7 @@ def call(BuildContext context, handlers, String targetBranch) {
 					parallel integrationTestSchedule
 				} catch(error) {
 					echo "Integration tests failed"
-					//throw error
+					throw error
 				} finally {
 					//Make a decision
 				}
@@ -159,13 +159,11 @@ def call(BuildContext context, handlers, String targetBranch) {
 					tests = allTests
 					timestamp = epoch
 					buildContext = context
-					branch = targetBranch
+					branchName = targetBranch
 				}
 			} catch(error){
 				echo error.message
 				echo "Splunk report publication did not complete normally. Continuing"
-				throw error
-				
 			} finally{
 
 			}

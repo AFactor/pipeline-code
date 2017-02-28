@@ -14,7 +14,8 @@ def call(Closure body) {
 	def allTests = config.tests
 	def epoch = config.timestamp
 	def context = config.buildContext
-	def targetBranch = config.branch
+	def targetBranch = config.branchName
+	def success = true
 
 	node('framework'){
 
@@ -27,8 +28,12 @@ def call(Closure body) {
 			} catch(error){
 				echo error.message
 				echo "FAILURE: Splunk publication for ${testClass.name()} "
+				success = false
 			} finally {
 			}
+		}
+		if (!success) {
+			error "ERROR: Some parts of splunk publication failed"
 		}
 	}
 }

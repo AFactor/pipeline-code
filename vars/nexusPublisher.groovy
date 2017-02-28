@@ -11,8 +11,8 @@ def call(Closure body) {
 	body.delegate = config
 	body()
 
-	def nexusURL = config.nexusURL
-	def artifact = config.artifact
+	def nexusURL = config.targetURL
+	def artifact = config.tarball
 	def credentialsID = 'nexus-uploader'
 
 	withCredentials([

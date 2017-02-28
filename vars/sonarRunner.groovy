@@ -3,7 +3,7 @@
  * Contributing HOWTO: TODO
  */
 
-def call(body) {
+def call(Closure body) {
 
 	def config = [:]
 
