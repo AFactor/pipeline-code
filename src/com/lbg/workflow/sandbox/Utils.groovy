@@ -29,12 +29,7 @@ def snapshotStatus(String imagefile){
 
 	def code = libraryResource 'com/lbg/workflow/sandbox/js/snapshot.js'
 	writeFile file: 'snapshot.js', text: code
-	sh "cat snapshot.js"
 	def buildPath = env.BUILD_URL.replace(env.JENKINS_URL, '')
-	echo buildPath
-	echo env.BUILD_URL
-	echo env.JENKINS_URL
-	echo "gooooooooooooooooooooooooooooooooooooooooooooo"
 	withCredentials([
 		usernamePassword(credentialsId: 'bluemix-global-deployer',
 		passwordVariable: 'JENKINS_PASS',
