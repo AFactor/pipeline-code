@@ -9,6 +9,36 @@ import com.lbg.workflow.sandbox.CWABuildHandlers
 import com.lbg.workflow.sandbox.Utils
 
 def call(String application, handlers, String configuration){
+	this.call(application, handlers, configuration,	'lloydscjtdevops@sapient.com', 120 )
+}
+
+def call(String application, handlers, String configuration,String notifyList){
+	this.call(application, handlers, configuration,	notifyList,	120 )
+}
+
+def call(String application, handlers, String configuration, Integer timeoutInMinutes){
+	this.call(application, handlers, configuration,	'lloydscjtdevops@sapient.com', timeoutInMinutes)
+}
+
+def call(String application,
+		handlers,
+		String configuration,
+		String notifyList,
+		Integer timeoutInMinutes){
+	try {
+		timeout(timeoutInMinutes){
+			this.callHandler(application, handlers, configuration)
+			currentBuild.result = 'SUCCESS'
+		}
+	} catch(error) {
+		currentBuild.result = 'FAILURE'
+		throw error
+	}finally {
+		emailNotify { to = notifylist }
+	}
+}
+
+def callHandler(String application, handlers, String configuration) {
 	def targetCommit
 	BuildContext context
 	BuildHandlers initializer
@@ -21,7 +51,6 @@ def call(String application, handlers, String configuration){
 		stash  name: 'pipelines', includes: 'pipelines/**'
 
 		context = new BuildContext(application, readFile(configuration))
-
 	}
 
 
@@ -36,7 +65,7 @@ def call(String application, handlers, String configuration){
 	}  else if (env.BRANCH_NAME =~ /^hotfixes.*$/ )  {
 		hawkIntegrationWorkflow( context, handlers, 'hotfixes')
 	}  else if (env.BRANCH_NAME =~ /^develop$/ )  {
-			hawkIntegrationWorkflow( context, handlers, 'develop')
+		hawkIntegrationWorkflow( context, handlers, 'develop')
 	} else {
 		echo "We dont know how to build this branch. Stopping"
 	}

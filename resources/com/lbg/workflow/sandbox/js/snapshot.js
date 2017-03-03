@@ -15,7 +15,7 @@ var jenkinsuser = env['JENKINS_USER']
 var jenkinspass = env['JENKINS_PASS']
 var imagefile = env['IMAGEFILE']
 console.log('buildPath: ' + buildPath)
-var postBody = 'j_username='+ jenkinsuser  +'&j_password='+ jenkinspass +'&remember_me=on&json=init&from=/' + buildPath + 'display/redirect'
+var postBody = 'j_username='+ jenkinsuser  +'&j_password='+ jenkinspass +'&remember_me=on&json=init&from=/' + buildPath
 
 
 page.viewportSize = { width: 1024, height : 50000 };

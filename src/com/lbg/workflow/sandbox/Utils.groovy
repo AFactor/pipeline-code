@@ -29,9 +29,9 @@ def snapshotStatus(String imagefile){
 
 	def code = libraryResource 'com/lbg/workflow/sandbox/js/snapshot.js'
 	writeFile file: 'snapshot.js', text: code
-	def buildPath = env.BUILD_URL.replace(env.JENKINS_URL, '')
+	def buildPath = blueoceanJobURL().replace(env.JENKINS_URL, '')
 	withCredentials([
-		usernamePassword(credentialsId: 'bluemix-global-deployer',
+		usernamePassword(credentialsId: 'jenkins-read-all',
 		passwordVariable: 'JENKINS_PASS',
 		usernameVariable: 'JENKINS_USER')
 	]) {

@@ -6,6 +6,7 @@
 import com.lbg.workflow.global.EmailManager
 
 import com.lbg.workflow.sandbox.Utils
+import com.lbg.workflow.global.GlobalUtils
 
 def call(Closure body) {
 
@@ -17,21 +18,28 @@ def call(Closure body) {
 
 	def recipients = config.to?: 'lloydscjtdevops@sapient.com'
 	try{
-		node('master') {
-			def utils = new Utils()
-			def emailSender = new EmailManager()
-			def imagefile = 'j2-' + env.JOB_BASE_NAME + env.BUILD_NUMBER + '.png'
-			def branchName = env.BRANCH_NAME?: ''
-			def headline = "J2:${env.JOB_BASE_NAME}:${branchName}:${env.BUILD_NUMBER}-> ${currentBuild.result}"
+		timeout(5){
+			node('master') {
+				def utils = new Utils()
+				def globalUtils = new GlobalUtils()
+				def emailSender = new EmailManager()
+				def imagefile = 'j2-result-' + env.BUILD_NUMBER + '.png'
 
-			utils.snapshotStatus(imagefile)
-			emailSender.sendImage(	env.WORKSPACE + '/'+ imagefile,
-					recipients,
-					headline)
-			echo "Sent Email Notification to ${recipients}"
+				def headline = globalUtils.urlDecode(
+						"J2:${env.JOB_NAME}:${env.BUILD_NUMBER}-> ${currentBuild.result}")
+
+				utils.snapshotStatus(imagefile)
+				echo "TRYING: Email Notification to ${recipients}"
+				emailSender.sendImage(	env.WORKSPACE + '/'+ imagefile,
+						recipients,
+						headline,
+						blueoceanJobURL())
+				echo "SUCCESS: Email Notification to ${recipients}"
+			}
 		}
 	}catch(error) {
-		echo "Email Notification failed"
+		echo error.message
+		echo "ERROR: Email Notification to ${recipients}. Not fatal, Onwards!"
 	}
 }
 return this;
