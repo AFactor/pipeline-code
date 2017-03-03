@@ -10,23 +10,24 @@ var page          = require('webpage').create(),
     forcedRenderTimeout,
     transitions	  = 0,
     renderTimeout;
-var jobURL = env.jobURLPath
-var jenkinsuser = env.JENKINS_USER
-var jenkinspass = env.JENKINS_PASS
-console.log('jobURL: ' + jobURL)
-var postBody = 'j_username='+ jenkinsuser  +'&j_password='+ jenkinspass +'&remember_me=on&json=init&from=' + jobURL + 'display/redirect'
+var buildPath = env['BUILD_PATH']
+var jenkinsuser = env['JENKINS_USER']
+var jenkinspass = env['JENKINS_PASS']
+var imagefile = env['IMAGEFILE']
+console.log('buildPath: ' + buildPath)
+var postBody = 'j_username='+ jenkinsuser  +'&j_password='+ jenkinspass +'&remember_me=on&json=init&from=/' + buildPath + 'display/redirect'
 
 
-page.viewportSize = { width: 875, height : 50000 };
+page.viewportSize = { width: 1024, height : 50000 };
 function doRender(filename) {
 	console.log('rendering png ' + filename);
 
-	page.zoomFactor = 0.75;
+	page.zoomFactor = 1;
 	page.clipRect = {
 		top: 8,
 		left: 0,
-		width: 875,
-		height: 480
+		width: 1024,
+		height: 600
 	};
     page.render(filename, {format: 'png', quality: '100'});
 };
@@ -48,7 +49,7 @@ page.onResourceReceived = function (res) {
         count -= 1;
         console.log(res.id + ' ' + res.status + ' - ' + res.url);
         if (count === 0) {
-            renderTimeout = setTimeout(doRender('jenkins_temp.png'), resourceWait);
+            renderTimeout = setTimeout(doRender('onReceived_' + imagefile), resourceWait);
         }
     }
 };
@@ -60,16 +61,15 @@ page.onResourceReceived = function (res) {
         phantom.exit();
      } else if (transitions === 0){
     	console.log('Remaining Transitions ' + transitions);
-     	doRender('jenkins_finished.png');
-    	phantom.exit();
+     	doRender('onLoaded_' + imagefile);
+    	//phantom.exit();
      } else { 
      	console.log('Remaining Transitions ' + transitions);
      	transitions -= 1;
      }
 };
  page.onPageReady = function(status){
-       	doRender('jenkins_golden.png');
-      	phantom.exit();
+       	doRender('onReady_' + imagefile);
 };   
 
 page.open(url, 'POST', postBody, function (status) {
@@ -79,7 +79,8 @@ page.open(url, 'POST', postBody, function (status) {
     } else {
    	 console.log('success');
         forcedRenderTimeout = setTimeout(function () {
-           doRender('jenkins_timeout.png');      
+           doRender(imagefile);    
+           phantom.exit();  
         }, maxRenderWait);
     }
 });
