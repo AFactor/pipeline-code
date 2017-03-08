@@ -2,11 +2,15 @@
  * Author: Abhay Chrungoo <achrungoo@sapient.com>
  * Contributing HOWTO: TODO
  */
-import groovy.json.internal.LazyMap
+import com.lbg.workflow.sandbox.ServiceDiscovery
 
 def call(Map<String,String> mapping, Closure body) {
 
+	if (! env.VAULT_TOKEN) {
+		error "withGenericVaultSecrets: Cannot inject vault secrets without VAULT_TOKEN."
+	}
 
+	def locator = new ServiceDiscovery()
 	def secretList = []
 
 	for( item in mapping){
@@ -34,8 +38,6 @@ def call(Map<String,String> mapping, Closure body) {
 	wrap( [$class: 'VaultBuildWrapper',
 		vaultSecrets: secretList,
 		authToken: env.VAULT_TOKEN,
-		vaultUrl: 'http://10.113.140.168:8200'
-	]) {
-		body()
-	}
+		vaultUrl: locator.locate('vault')
+	]) { body() }
 }

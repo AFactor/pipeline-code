@@ -114,3 +114,35 @@ invokeBuildPipelineHawk( 'your-api-codebase', handlers, configuration )
 #####		SCP(String source, String destination) 
 
 #####		RSYNC(String source, String destination) 
+
+### Utils  
+	utility methods for usage within the sandbox
+
+##### snapshotStatus(String imagefile)
+	Pretty Snapshot for the current bluild status rendered to imagefile
+
+### ServiceDiscovery
+	Beta implementation of Service Discovery. 
+	Currently only provides  `(new ServiceDiscovery).locate('vault')`
+	
+### withGenericVaultSecrets
+	Build wrapper for injecting secrets dynamically into your build from hashicorp Vault.
+	Uses ServiceDiscovery to locate the vault service, recovers the secrets and injects into the build.
+	Requires VAULT_TOKEN to be available in env. 
+	Note: WHile this may work for other secret types, its only tested for the generic secret backend
+```
+        withGenericVaultSecrets ( [  'SAUCE_USER': 'CI/users/PAO/SAUCE_USER_DAY/user',
+                                    'SAUCE_KEY': 'CI/users/PAO/SAUCE_USER_DAY/key']) {
+                   /*
+                   * Your BODY of work
+                   */
+        }
+
+```
+	You should typically invoke this within a credentials block
+```
+	withCredentials([string(credentialsId: 'pao-vault-token', variable: 'VAULT_TOKEN')]) {
+		withGenericVaultSecrets ...
+	}
+```  
+
