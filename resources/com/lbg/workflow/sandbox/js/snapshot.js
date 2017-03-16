@@ -14,7 +14,7 @@ var buildPath = env['BUILD_PATH']
 var jenkinsuser = env['JENKINS_USER']
 var jenkinspass = env['JENKINS_PASS']
 var imagefile = env['IMAGEFILE']
-console.log('buildPath: ' + buildPath)
+//console.log('buildPath: ' + buildPath)
 var postBody = 'j_username='+ jenkinsuser  +'&j_password='+ jenkinspass +'&remember_me=on&json=init&from=/' + buildPath
 
 
@@ -40,14 +40,14 @@ page.onInitialized = function() {
 
 page.onResourceRequested = function (req) {
    count += 1;
-   console.log('> ' + req.id + ' - ' + req.url);
+  // console.log('> ' + req.id + ' - ' + req.url);
    clearTimeout(renderTimeout);
 };
 
 page.onResourceReceived = function (res) {
     if (!res.stage || res.stage === 'end') {
         count -= 1;
-        console.log(res.id + ' ' + res.status + ' - ' + res.url);
+      //  console.log(res.id + ' ' + res.status + ' - ' + res.url);
         if (count === 0) {
             renderTimeout = setTimeout(doRender('onReceived_' + imagefile), resourceWait);
         }
@@ -60,11 +60,11 @@ page.onResourceReceived = function (res) {
         console.log('Unable to load url');
         phantom.exit();
      } else if (transitions === 0){
-    	console.log('Remaining Transitions ' + transitions);
+    //	console.log('Remaining Transitions ' + transitions);
      	doRender('onLoaded_' + imagefile);
     	//phantom.exit();
      } else { 
-     	console.log('Remaining Transitions ' + transitions);
+     //	console.log('Remaining Transitions ' + transitions);
      	transitions -= 1;
      }
 };

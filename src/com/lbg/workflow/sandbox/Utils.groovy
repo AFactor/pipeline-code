@@ -38,8 +38,8 @@ def snapshotStatus(String imagefile){
 		withEnv([
 			"BUILD_PATH=${buildPath}",
 			"IMAGEFILE=${imagefile}"
-		]) { sh """npm install phantomjs@2.1.7  babel-polyfill@6.23.0 && \
-                   node_modules/.bin/phantomjs snapshot.js
+		]) { sh """npm install phantomjs@2.1.7  babel-polyfill@6.23.0 &>/dev/null && \
+                   node_modules/.bin/phantomjs snapshot.js 
                 """  }
 	}
 
