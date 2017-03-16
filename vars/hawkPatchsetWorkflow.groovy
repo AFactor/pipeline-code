@@ -59,7 +59,7 @@ def call(BuildContext context, handlers, String targetCommit) {
 		}
 		for (String test: handlers.getIntegrationTests()) {
 			def testClass = load("${test}")
-			if (!test.toLowerCase().contains("bdd") && !testClass.name().toLowerCase().contains('bdd')) {
+			if (!test.toLowerCase().contains("fullbdd") && !testClass.name().toLowerCase().contains('fullbdd')) {
 				echo "Loading ${test}"
 				integrationTests.add(testClass)
 			}
