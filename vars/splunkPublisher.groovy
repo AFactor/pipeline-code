@@ -18,7 +18,7 @@ def call(Closure body) {
 	def success = true
 
 	node('framework'){
-
+		unstash 'pipelines'
 		for (Object testClass: allTests) {
 			def currentTest = testClass
 			echo "TRYING: Splunk publication for ${testClass.name()} "
