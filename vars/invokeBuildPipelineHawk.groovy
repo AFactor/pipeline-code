@@ -34,7 +34,7 @@ def call(String application,
 		currentBuild.result = 'FAILURE'
 		throw error
 	}finally {
-		emailNotify { to = notifylist }
+		emailNotify { to = notifyList }
 	}
 }
 
