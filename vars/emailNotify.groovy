@@ -33,7 +33,7 @@ def call(Closure body) {
 				emailSender.sendImage(	env.WORKSPACE + '/'+ imagefile,
 						recipients,
 						headline,
-						blueoceanJobURL())
+						env.BUILD_URL)
 				echo "SUCCESS: Email Notification to ${recipients}"
 			}
 		}
