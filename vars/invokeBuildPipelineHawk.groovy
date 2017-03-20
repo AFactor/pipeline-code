@@ -34,7 +34,9 @@ def call(String application,
 		currentBuild.result = 'FAILURE'
 		throw error
 	}finally {
-		emailNotify { to = notifyList }
+		if(notifyList?.trim()){
+			emailNotify { to = notifyList }
+		}
 	}
 }
 
