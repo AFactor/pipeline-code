@@ -3,6 +3,22 @@
  * Contributing HOWTO: TODO
  */
 
+def createRepo(args) {
+
+	node('framework'){
+		def command = '''
+			
+		# Your gerrit create repo shell script
+		# 
+		# End multiline shell script	
+				'''
+		withEnv(["asd=asd"]) {
+			sshagent(['gerrit-updater']) {  sh command }
+		}
+	}
+}
+
+
 def setStatus (String changeID, String revision, String message, String codereview, String verified) {
 
 	node('framework'){
