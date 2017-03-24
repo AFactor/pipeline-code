@@ -1,4 +1,4 @@
-var system = require('system');
+	var system = require('system');
 var env = system.env;
 
 var resourceWait  = 300,
@@ -18,7 +18,7 @@ var imagefile = env['IMAGEFILE']
 var postBody = 'j_username='+ jenkinsuser  +'&j_password='+ jenkinspass +'&remember_me=on&json=init&from=/' + buildPath
 
 
-page.viewportSize = { width: 1024, height : 50000 };
+page.viewportSize = { width: 1200, height : 50000 };
 function doRender(filename) {
 	console.log('rendering png ' + filename);
 
@@ -26,8 +26,8 @@ function doRender(filename) {
 	page.clipRect = {
 		top: 8,
 		left: 0,
-		width: 1024,
-		height: 600
+		width: 1200,
+		height: 800
 	};
     page.render(filename, {format: 'png', quality: '100'});
 };
