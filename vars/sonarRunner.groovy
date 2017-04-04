@@ -17,6 +17,9 @@ def call(Closure body) {
 
 	def javaOptionString = ' '
 
+
+
+
 	for (def entry: javaOptions){
 		javaOptionString = javaOptionString + "${entry.key}=${entry.value} "
 	}
