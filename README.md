@@ -110,6 +110,32 @@ invokeBuildPipelineHawk( 'your-api-codebase', handlers, configuration )
 ### splunkPublisher
 	Provides custom step, that makes a callback to publishSplunk() method of supplied testScenarios. 
 	Also provides utility methods that understand how to interact with the target splunk instance, thus abstracting those details from the end user.
+
+### stormRunner
+
+    Can be used to deploy a storm jar from jenkins node (master or slave) pushing to stormNode and
+    invoking ssh to run 'storm kill <topology name>' then 'storm jar <jarfile> <classname>'
+```
+stormRunner {
+    node = stormNode
+    remoteUser = stormRemoteUser
+    sshUser = stormSSHUSer
+    stormTopClass = stormTopologyClass
+    stormTopName = stormTopologyName
+ 
+}
+```
+sample job-configuration.json
+
+```
+"storm": {
+  "deploy_node": "shared-pas-01.sandbox.local",
+  "remote_user": "pasuser",
+  "ssh_user": "cslave",
+  "topology_class": "com.lbg.pas.alerts.bigdata.audit.topology.TopologyMain",
+  "topology_name": "CommsMgrAudit"
+}
+```
 		
 #####		SCP(String source, String destination) 
 
