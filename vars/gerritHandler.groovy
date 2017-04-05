@@ -85,8 +85,8 @@ Created/modified on: $curr_date'"
 				echo -e "$journey_reviewer_id				$journey-reviewer" >> groups
 				echo -e "$journey_admin_id				$journey-admin" >> groups
 			fi
-			git config --global user.name "bluemixdeploy"
-			git config --global user.email "bluemixdeploy@sandbox.local"
+			git config --global user.name "bluemixdeploy" || echo ""
+			git config --global user.email "bluemixdeploy@sandbox.local" || echo ""
 			git add *
 			git commit -am "Changes for refs modification"
 			git push origin meta/config:meta/config
@@ -108,7 +108,7 @@ Created/modified on: $curr_date'"
 					echo error.message
 					throw error
 				}finally{
-					step([$class: 'WsCleanup', notFailBuild: true])
+					//step([$class: 'WsCleanup', notFailBuild: true])
 				}
 			}
 		}
