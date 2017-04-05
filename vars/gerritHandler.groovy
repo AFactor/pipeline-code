@@ -108,7 +108,7 @@ Created/modified on: $curr_date'"
 					echo error.message
 					throw error
 				}finally{
-					//step([$class: 'WsCleanup', notFailBuild: true])
+					step([$class: 'WsCleanup', notFailBuild: true])
 				}
 			}
 		}
