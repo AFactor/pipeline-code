@@ -130,6 +130,17 @@ def setStatus (String changeID, String revision, String message, String coderevi
 		sshagent(['gerrit-updater']) { sh command }
 	}
 }
+def sendmessage (String changeID, String revision, String message) {
+	
+		node('framework'){
+			def command = """
+			ssh -p 29418 -o StrictHostKeyChecking=no jenkins@gerrit.sandbox.extranet.group \\
+				gerrit review ${changeID},${revision} \\
+				-m '\"${message} \"' 
+				"""
+			sshagent(['gerrit-updater']) { sh command }
+		}
+	}
 
 def setCodeReview (String changeID, String revision, String message, String codereview) {
 
