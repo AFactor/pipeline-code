@@ -130,7 +130,7 @@ def setStatus (String changeID, String revision, String message, String coderevi
 		sshagent(['gerrit-updater']) { sh command }
 	}
 }
-def sendmessage (String changeID, String revision, String message) {
+def sendMessage (String changeID, String revision, String message) {
 	
 		node('framework'){
 			def command = """
