@@ -10,7 +10,7 @@ def call(Closure body) {
 	body.resolveStrategy = Closure.DELEGATE_FIRST
 	body.delegate = config
 	body()
-	
+
 	def allTests = config.tests
 	def epoch = config.timestamp
 	def context = config.buildContext
@@ -35,6 +35,7 @@ def call(Closure body) {
 		if (!success) {
 			error "ERROR: Some parts of splunk publication failed"
 		}
+		step([$class: 'WsCleanup', notFailBuild: true])
 	}
 }
 

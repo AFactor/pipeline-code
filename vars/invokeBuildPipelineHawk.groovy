@@ -53,6 +53,7 @@ def callHandler(String application, handlers, String configuration) {
 		stash  name: 'pipelines', includes: 'pipelines/**'
 
 		context = new BuildContext(application, readFile(configuration))
+		step([$class: 'WsCleanup', notFailBuild: true])
 	}
 
 
