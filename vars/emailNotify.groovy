@@ -17,9 +17,10 @@ def call(Closure body) {
 	body()
 
 	def recipients = config.to?: 'lloydscjtdevops@sapient.com'
-	try{
-		timeout(5){
-			node('master') {
+	node('master') {
+		try{
+			timeout(5){
+
 				def utils = new Utils()
 				def globalUtils = new GlobalUtils()
 				def emailSender = new EmailManager()
@@ -36,10 +37,12 @@ def call(Closure body) {
 						env.BUILD_URL)
 				echo "SUCCESS: Email Notification to ${recipients}"
 			}
+		}catch(error) {
+			echo error.message
+			echo "ERROR: Email Notification to ${recipients}. Not fatal, Onwards!"
+		} finally {
+			step([$class: 'WsCleanup', notFailBuild: true])
 		}
-	}catch(error) {
-		echo error.message
-		echo "ERROR: Email Notification to ${recipients}. Not fatal, Onwards!"
 	}
 }
 return this;

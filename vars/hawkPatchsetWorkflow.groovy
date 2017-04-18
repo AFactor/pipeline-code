@@ -38,35 +38,41 @@ def call(BuildContext context, handlers, String targetCommit) {
 
 	stage("Initialize"){
 		node('framework'){
-			echo "TARGET_BRANCH: ${targetBranch}"
+			try {
+				echo "TARGET_BRANCH: ${targetBranch}"
 
-			checkout scm
+				checkout scm
 
-			echo "Loading all handlers"
-			echo "Loading Builder: ${handlers.builder}"
-			builder = load("${handlers.builder}")
+				echo "Loading all handlers"
+				echo "Loading Builder: ${handlers.builder}"
+				builder = load("${handlers.builder}")
 
-			echo "Loading Deployer: ${handlers.deployer}"
-			appDeployer = load(handlers.deployer)
+				echo "Loading Deployer: ${handlers.deployer}"
+				appDeployer = load(handlers.deployer)
 
-			for (String test: handlers.getUnitTests()) {
-				echo "Loading ${test}"
-				unitTests.add( load("${test}"))
-			}
-			for (String test: handlers.getStaticAnalysis()) {
-				echo "Loading ${test}"
-				sanityTests.add( load("${test}"))
-			}
-			for (String test: handlers.getIntegrationTests()) {
-				def testClass = load("${test}")
-				if (!test.toLowerCase().contains("fullbdd") && !testClass.name().toLowerCase().contains('fullbdd')) {
+				for (String test: handlers.getUnitTests()) {
 					echo "Loading ${test}"
-					integrationTests.add(testClass)
+					unitTests.add( load("${test}"))
 				}
+				for (String test: handlers.getStaticAnalysis()) {
+					echo "Loading ${test}"
+					sanityTests.add( load("${test}"))
+				}
+				for (String test: handlers.getIntegrationTests()) {
+					def testClass = load("${test}")
+					if (!test.toLowerCase().contains("fullbdd") && !testClass.name().toLowerCase().contains('fullbdd')) {
+						echo "Loading ${test}"
+						integrationTests.add(testClass)
+					}
+				}
+			} catch(error) {
+				echo error.message
+				throw error
+			} finally{
+				step([$class: 'WsCleanup', notFailBuild: true])
 			}
-
-			gerritHandler.buildStarted(changeID,revision)
 		}
+		gerritHandler.buildStarted(changeID,revision)
 		milestone (label: 'Ready')
 	}
 	try{
@@ -111,16 +117,18 @@ def call(BuildContext context, handlers, String targetCommit) {
 
 
 
-		// Build--------------------------------------------------//
-		stage("Package"){
-			try {
-				builder.pack(targetBranch, targetEnv, context)
-				milestone (label: 'Build')
-			} catch(error){
-				gerritHandler.failTests(changeID, revision)
-				echo "BUilding Distribution failed"
-				throw error
-			} finally{
+		// Build------only if deployment needed---------------------------//
+		if(!integrationTests.empty){
+			stage("Package"){
+				try {
+					builder.pack(targetBranch, targetEnv, context)
+					milestone (label: 'Build')
+				} catch(error){
+					gerritHandler.failTests(changeID, revision)
+					echo "BUilding Distribution failed"
+					throw error
+				} finally{
+				}
 			}
 		}
 

@@ -3,7 +3,7 @@ var env = system.env;
 
 var resourceWait  = 300,
     maxRenderWait = 10000,
-    url           = 'http://jenkins.sandbox.extranet.group/jenkins2/j_acegi_security_check';
+    url           = 'http://jenkins2.sandbox.extranet.group/jenkins2/j_acegi_security_check';
 
 var page          = require('webpage').create(),
     count         = 5,

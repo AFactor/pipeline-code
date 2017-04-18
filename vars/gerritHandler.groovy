@@ -85,27 +85,29 @@ Created/modified on: $curr_date'"
 				echo -e "$journey_reviewer_id				$journey-reviewer" >> groups
 				echo -e "$journey_admin_id				$journey-admin" >> groups
 			fi
-			git config --global user.name "bluemixdeploy"
-			git config --global user.email "bluemixdeploy@sandbox.local"
+			git config --global user.name "bluemixdeploy" || echo ""
+			git config --global user.email "bluemixdeploy@sandbox.local" || echo ""
 			git add *
 			git commit -am "Changes for refs modification"
 			git push origin meta/config:meta/config
 			cd ../ ; rm -rf tmp
 		done
 			'''
-		withCredentials([usernameColonPassword(credentialsId: 'GERRIT_HTTP_CREDS', variable: 'GERRIT_HTTP_CREDS')]) {
+		withCredentials([
+			usernameColonPassword(credentialsId: 'GERRIT_HTTP_CREDS', variable: 'GERRIT_HTTP_CREDS')
+		]) {
 
-		withEnv([
-			"journey=$journey",
-			"username=$username",
-			"email=$email",
-			"objectsizelimit=$objectsizelimit",
-			"curr_date=$curr_date"
+			withEnv([
+				"journey=$journey",
+				"username=$username",
+				"email=$email",
+				"objectsizelimit=$objectsizelimit",
+				"curr_date=$curr_date"
 			]) {
 				try{
-			sshagent(['gerrit-admin']) { sh command }
-			}catch(error){
-					echo error.message
+					sshagent(['gerrit-admin']) { sh command }
+				}catch(error){
+					echo error.message 
 					throw error
 				}finally{
 					step([$class: 'WsCleanup', notFailBuild: true])
@@ -127,7 +129,36 @@ def setStatus (String changeID, String revision, String message, String coderevi
 				--label verified=${verified}
 				"""
 
-		sshagent(['gerrit-updater']) { sh command }
+		try{
+			sshagent(['gerrit-updater']) {
+				sh command
+			}
+		} catch(error) {
+			echo error.message 
+			throw error
+		} finally{
+			step([$class: 'WsCleanup', notFailBuild: true])
+		}
+	}
+}
+def sendMessage (String changeID, String revision, String message) {
+
+	node('framework'){
+		def command = """
+			ssh -p 29418 -o StrictHostKeyChecking=no jenkins@gerrit.sandbox.extranet.group \\
+				gerrit review ${changeID},${revision} \\
+				-m '\"${message} \"' 
+				"""
+		try{
+			sshagent(['gerrit-updater']) {
+				sh command
+			}
+		} catch(error) {
+			echo error.message 
+			throw error
+		} finally{
+			step([$class: 'WsCleanup', notFailBuild: true])
+		}
 	}
 }
 
@@ -140,8 +171,16 @@ def setCodeReview (String changeID, String revision, String message, String code
 				-m '\"${message}: ${BUILD_URL}\"' \\
 				--code-review=${codereview}
 				"""
-
-		sshagent(['gerrit-updater']) { sh command }
+		try{
+			sshagent(['gerrit-updater']) {
+				sh command
+			}
+		} catch(error) {
+			echo error.message 
+			throw error
+		} finally{
+			step([$class: 'WsCleanup', notFailBuild: true])
+		}
 	}
 }
 def setVerified (String changeID, String revision, String message, String verified) {
@@ -153,8 +192,19 @@ def setVerified (String changeID, String revision, String message, String verifi
 				-m '\"${message}: ${BUILD_URL}\"' \\
 				--label verified=${verified}
 				"""
-
-		sshagent(['gerrit-updater']) { sh command }
+		try{
+			sshagent(['gerrit-updater']) {
+				sh command
+			}
+		} catch(error) {
+			echo error.message 
+			throw error
+		} finally{
+			step([$class: 'WsCleanup', notFailBuild: true])
+		}
+		sshagent(['gerrit-updater']) {
+			sh command
+		}
 	}
 }
 
@@ -188,8 +238,15 @@ String findTargetBranch(String targetCommit) {
 		| awk '/^([ ]+branch:)(.*)/{print \$2}'
        """
 	node('framework'){
-		sshagent(['gerrit-updater']) {
-			targetBranch = sh(returnStdout: true, script: command).trim()
+		try{
+			sshagent(['gerrit-updater']) {
+				targetBranch = sh(returnStdout: true, script: command).trim()
+			}
+		} catch(error) {
+			echo error.message
+			throw error
+		} finally{
+			step([$class: 'WsCleanup', notFailBuild: true])
 		}
 	}
 

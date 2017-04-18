@@ -25,34 +25,39 @@ def call(BuildContext context, handlers, String targetBranch) {
 
 	stage("Initialize"){
 		node('framework'){
-			echo "TARGET_BRANCH: ${targetBranch}"
-			epoch =	sh(returnStdout: true, script: 'date +%d%m%Y%H%M').trim()
-			checkout scm
+			try {
+				echo "TARGET_BRANCH: ${targetBranch}"
+				epoch =	sh(returnStdout: true, script: 'date +%d%m%Y%H%M').trim()
+				checkout scm
 
-			echo "Loading all handlers"
-			echo "Loading Builder: ${handlers.builder}"
-			builder = load("${handlers.builder}")
+				echo "Loading all handlers"
+				echo "Loading Builder: ${handlers.builder}"
+				builder = load("${handlers.builder}")
 
-			echo "Loading Deployer: ${handlers.deployer}"
-			appDeployer = load(handlers.deployer)
+				echo "Loading Deployer: ${handlers.deployer}"
+				appDeployer = load(handlers.deployer)
 
-			for (String test: handlers.getUnitTests()) {
-				echo "Loading ${test}"
-				unitTests.add( load("${test}"))
+				for (String test: handlers.getUnitTests()) {
+					echo "Loading ${test}"
+					unitTests.add( load("${test}"))
+				}
+				for (String test: handlers.getStaticAnalysis()) {
+					echo "Loading ${test}"
+					sanityTests.add( load("${test}"))
+				}
+				for (String test: handlers.getIntegrationTests()) {
+					echo "Loading ${test}"
+					integrationTests.add( load("${test}"))
+				}
+				allTests.addAll(unitTests)
+				allTests.addAll(sanityTests)
+				allTests.addAll(integrationTests)
+			} catch(error) {
+				echo error.message
+				throw error
+			} finally{
+				step([$class: 'WsCleanup', notFailBuild: true])
 			}
-			for (String test: handlers.getStaticAnalysis()) {
-				echo "Loading ${test}"
-				sanityTests.add( load("${test}"))
-			}
-			for (String test: handlers.getIntegrationTests()) {
-				echo "Loading ${test}"
-				integrationTests.add( load("${test}"))
-			}
-
-
-			allTests.addAll(unitTests)
-			allTests.addAll(sanityTests)
-			allTests.addAll(integrationTests)
 		}
 		milestone (label: 'Ready')
 	}
