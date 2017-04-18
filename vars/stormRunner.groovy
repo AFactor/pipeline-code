@@ -16,6 +16,7 @@ def call(Closure body) {
     def stormRemoteUser = config.remoteUser
     def stormSSHUSer = config.sshUser
     def stormTopologyClass = config.stormTopClass
+    def stormJarName = config.pathToJar
     def stormTopologyName = config.stormTopName
     def sshOpts = '-o StrictHostKeyChecking=no'
 
@@ -25,9 +26,9 @@ def call(Closure body) {
     sshagent(credentials: [stormSSHUSer]) {
         sh """
             ssh ${sshOpts}  ${stormRemoteUser}@${stormNode} "mkdir deployments || true"
-            scp audit/target/audit-*-jar-with-dependencies.jar ${stormRemoteUser}@${stormNode}:deployments
-            jar=`ssh ${sshOpts}${stormRemoteUser}@${stormNode} "ls -t /home/${stormRemoteUser}/deployments/* | head -1"`
-            ssh ${sshOpts} ${stormRemoteUser}@${stormNode} "storm kill ${stormTopologyName } || true
+            scp ${stormJarName} ${stormRemoteUser}@${stormNode}:deployments
+            jar=`ssh ${sshOpts} ${stormRemoteUser}@${stormNode} "ls -t /home/${stormRemoteUser}/deployments/* | head -1"`
+            ssh ${sshOpts} ${stormRemoteUser}@${stormNode} "storm kill ${stormTopologyName } || true"
             ssh ${sshOpts} ${stormRemoteUser}@${stormNode} "storm jar \$jar ${stormTopologyClass} sbdev cluster"
               """
     }
