@@ -136,8 +136,22 @@ sample job-configuration.json
   "topology_name": "CommsMgrAudit"
 }
 ```
+
+### stormKiller
+
+Kills a storm topology
+
+```
+  stormKiller {
+        node = stormNode
+        remoteUser = stormRemoteUser
+        sshUser = stormSSHUSer
+        stormTopName = stormTopologyName
+  }
+```
+
 		
-#####		SCP(String source, String destination) 
+####		SCP(String source, String destination) 
 
 #####		RSYNC(String source, String destination) 
 

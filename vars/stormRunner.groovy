@@ -25,10 +25,10 @@ def call(Closure body) {
 
     sshagent(credentials: [stormSSHUSer]) {
         sh """
+            ssh ${sshOpts} ${stormRemoteUser}@${stormNode} "storm kill ${stormTopologyName } || true"
             ssh ${sshOpts}  ${stormRemoteUser}@${stormNode} "mkdir deployments || true"
             scp ${stormJarName} ${stormRemoteUser}@${stormNode}:deployments
             jar=`ssh ${sshOpts} ${stormRemoteUser}@${stormNode} "ls -t /home/${stormRemoteUser}/deployments/* | head -1"`
-            ssh ${sshOpts} ${stormRemoteUser}@${stormNode} "storm kill ${stormTopologyName } || true"
             ssh ${sshOpts} ${stormRemoteUser}@${stormNode} "storm jar \$jar ${stormTopologyClass} sbdev cluster"
               """
     }
