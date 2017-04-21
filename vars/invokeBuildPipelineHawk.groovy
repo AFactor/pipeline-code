@@ -62,11 +62,11 @@ def callHandler(String application, handlers, String configuration) {
 	} else if (env.BRANCH_NAME =~ /^sprint[0-9]+\/.+$/  ) {
 		hawkFeatureWorkflow( context, handlers, "ft-" + utils.friendlyName(env.BRANCH_NAME, 20))
 	} else if (env.BRANCH_NAME =~ /^release-prod.*$/ )  {
-		hawkIntegrationWorkflow( context, handlers, 'release-prod')
+		hawkIntegrationWorkflow( context, handlers, utils.friendlyName(env.BRANCH_NAME, 40))
 	} else if (env.BRANCH_NAME =~ /^master$/ )  {
 		hawkIntegrationWorkflow( context, handlers, 'master')
 	}  else if (env.BRANCH_NAME =~ /^hotfixes.*$/ )  {
-		hawkIntegrationWorkflow( context, handlers, 'hotfixes')
+		hawkIntegrationWorkflow( context, handlers, utils.friendlyName(env.BRANCH_NAME, 40))
 	}  else if (env.BRANCH_NAME =~ /^develop$/ )  {
 		hawkIntegrationWorkflow( context, handlers, 'develop')
 	} else {
