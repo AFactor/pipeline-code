@@ -7,6 +7,7 @@ import com.lbg.workflow.sandbox.BuildContext
 import com.lbg.workflow.sandbox.BuildHandlers
 import com.lbg.workflow.sandbox.CWABuildHandlers
 import com.lbg.workflow.sandbox.Utils
+import com.lbg.workflow.sandbox.JobStats
 
 def call(String application, handlers, String configuration){
 	this.call(application, handlers, configuration,	'lloydscjtdevops@sapient.com', 120 )
@@ -37,6 +38,8 @@ def call(String application,
 		if(notifyList?.trim()){
 			emailNotify { to = notifyList }
 		}
+		def jobStats = new JobStats()
+		jobStats.toSplunk(env.BUILD_TAG, env.BUILD_URL, "jenkins-read-all", currentBuild.result)
 	}
 }
 
