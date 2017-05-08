@@ -5,6 +5,8 @@
 
 package com.lbg.workflow.sandbox
 
+import com.cloudbees.groovy.cps.NonCPS
+
 @NonCPS
 def friendlyName(String branchName){
 	return branchName.trim().split('/').last().trim()

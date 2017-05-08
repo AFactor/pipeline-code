@@ -1,0 +1,40 @@
+apply plugin: 'groovy'
+
+repositories {
+    maven { url 'https://repo.jenkins-ci.org/public/' }
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.4.11'
+    compile 'com.cloudbees:groovy-cps:1.1'
+    compile project('../devops-pipeline-workflowlib-global')
+
+    testCompile 'com.lesfurets:jenkins-pipeline-unit:0.11'
+    testCompile 'org.spockframework:spock-core:1.1-groovy-2.4-rc-3'
+    testCompile 'cglib:cglib-nodep:3.2.2'
+    testCompile 'org.objenesis:objenesis:1.2'
+    testCompile 'org.yaml:snakeyaml:1.18'
+}
+
+sourceSets {
+    main {
+        groovy {
+            srcDirs = ['src', 'vars']
+        }
+        java {
+            srcDirs = []
+        }
+        resources {
+            srcDirs = []
+        }
+    }
+    test {
+        groovy {
+            srcDirs= ['tests']
+        }
+    }
+}
+test {
+    testLogging.showStandardStreams = true
+}
