@@ -72,24 +72,24 @@ def call(BuildContext context, handlers, String targetBranch) {
 		}
 
 		// Sonar/Checkstyle etal -----------------------------------//
-		if(!sanityTests.empty){
-			stage("Static Analysis"){
-				def codeSanitySchedule = [:]
-				for (Object testClass: sanityTests) {
-					def currentTest = testClass
-					codeSanitySchedule[currentTest.name()] = { currentTest.runTest(targetBranch, context) }
-				}
-				try{
-					parallel codeSanitySchedule
-					milestone (label: 'StaticAnalysis')
-				} catch(error) {
-					echo "Static Analysis has failed."
-					throw error
-				} finally {
-					//Make a decision
-				}
-			}
-		}
+//		if(!sanityTests.empty){
+//			stage("Static Analysis"){
+//				def codeSanitySchedule = [:]
+//				for (Object testClass: sanityTests) {
+//					def currentTest = testClass
+//					codeSanitySchedule[currentTest.name()] = { currentTest.runTest(targetBranch, context) }
+//				}
+//				try{
+//					parallel codeSanitySchedule
+//					milestone (label: 'StaticAnalysis')
+//				} catch(error) {
+//					echo "Static Analysis has failed."
+//					throw error
+//				} finally {
+//					//Make a decision
+//				}
+//			}
+//		}
 
 
 
