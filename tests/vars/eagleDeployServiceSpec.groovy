@@ -44,5 +44,12 @@ class eagleDeployServiceSpec extends PipelineSpockTestBase {
                     "                  wget --quiet http://nexus/artifact-9-deb9b7e.tar.gz && \\\n" +
                     "                  tar -xf artifact-9-deb9b7e.tar.gz -C service-name")
         }).isTrue()
+
+
+        assertThat(helper.callStack.findAll { call ->
+            call.methodName == "eagleDeployBluemixService"
+        }.any {
+            call -> call.args == [service, deployContext]
+        }).isTrue()
     }
 }
