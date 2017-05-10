@@ -25,7 +25,7 @@ def call(Closure body) {
     def stormJarPath = config.pathToJar
     def args = config.extraArgs
 
-    println "[Library] Deploying to ${stormJarPath}/${stormJar}, topology ${stormTopologyName} , class, ${stormTopologyClass} to ${stormNode}"
+    println "[Storm Runner] Deploying to ${stormJarPath}/${stormJar}, topology ${stormTopologyName} , class, ${stormTopologyClass} to ${stormNode}"
     sshagent(credentials: [stormSSHUSer]) {
         sh """
             ssh ${sshOpts} ${stormRemoteUser}@${stormNode} "storm kill ${stormTopologyName} || true"

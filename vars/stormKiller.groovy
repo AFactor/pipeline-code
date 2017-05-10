@@ -20,7 +20,7 @@ def call(Closure body) {
 
 
 
-    println "[Library] Stopping ${stormTopologyName} on  ${stormNode} ..."
+    println "[Storm Killer] Stopping ${stormTopologyName} on  ${stormNode} ..."
     sshagent(credentials: [stormSSHUSer]) {
         sh """
           ssh ${sshOpts} ${stormRemoteUser}@${stormNode} "storm kill ${stormTopologyName} || true"
