@@ -12,6 +12,9 @@ def friendlyName(String branchName){
 	return branchName.trim().split('/').last().trim()
 }
 
+// return name of assembly jar in maven projects using maven assembly plugin
+
+
 @NonCPS
 def friendlyName(String branchName, int maxsize){
 	//Wonky implementation due to

@@ -3,8 +3,11 @@
  * Contributing HOWTO: TODO
  */
 
+import com.lbg.workflow.sandbox.Utils
+
 def call(Closure body) {
 
+    Utils  utils = new Utils()
     def config = [:]
 
     body.resolveStrategy = Closure.DELEGATE_FIRST
@@ -16,20 +19,19 @@ def call(Closure body) {
     def stormRemoteUser = config.remoteUser
     def stormSSHUSer = config.sshUser
     def stormTopologyClass = config.stormTopClass
-    def stormJarName = config.pathToJar
     def stormTopologyName = config.stormTopName
     def sshOpts = '-o StrictHostKeyChecking=no'
+    def stormJar= config.jarFileName
+    def stormJarPath = config.pathToJar
+    def args = config.extraArgs
 
-    println "[Library] Deploying to ${stormTopologyName} (${stormTopologyClass} to ${stormNode}"
-    println "[Library] ssh ${stormRemoteUser}@${stormNode} using ${stormSSHUSer} credentials"
-
+    println "[Storm Runner] Deploying to ${stormJarPath}/${stormJar}, topology ${stormTopologyName} , class, ${stormTopologyClass} to ${stormNode}"
     sshagent(credentials: [stormSSHUSer]) {
         sh """
-            ssh ${sshOpts}  ${stormRemoteUser}@${stormNode} "mkdir deployments || true"
-            scp ${stormJarName} ${stormRemoteUser}@${stormNode}:deployments
-            jar=`ssh ${sshOpts} ${stormRemoteUser}@${stormNode} "ls -t /home/${stormRemoteUser}/deployments/* | head -1"`
-            ssh ${sshOpts} ${stormRemoteUser}@${stormNode} "storm kill ${stormTopologyName } || true"
-            ssh ${sshOpts} ${stormRemoteUser}@${stormNode} "storm jar \$jar ${stormTopologyClass} sbdev cluster"
+            ssh ${sshOpts} ${stormRemoteUser}@${stormNode} "storm kill ${stormTopologyName} || true"
+            scp ${stormJarPath}/${stormJar} ${stormRemoteUser}@${stormNode}:/tmp
+            ssh ${sshOpts} ${stormRemoteUser}@${stormNode} "storm jar /tmp/${stormJar} ${stormTopologyClass} ${args}"
+            ssh ${sshOpts} ${stormRemoteUser}@${stormNode} "rm /tmp/${stormJar}"
               """
     }
 }

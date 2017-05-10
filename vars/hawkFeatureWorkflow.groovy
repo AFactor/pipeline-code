@@ -71,7 +71,7 @@ def call(BuildContext context, handlers, String targetBranch) {
 			milestone (label: 'UnitTests')
 		}
 
-		// Sonar/Checkstyle etal -----------------------------------//
+		// Sonar/Checkstyle et al -----------------------------------//
 		if(!sanityTests.empty){
 			stage("Static Analysis"){
 				def codeSanitySchedule = [:]
