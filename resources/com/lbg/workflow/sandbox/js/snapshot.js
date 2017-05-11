@@ -29,13 +29,13 @@ function doRender(filename) {
 		width: 1200,
 		height: 800
 	};
-    page.render(filename, {format: 'png', quality: '100'});
+    page.render(filename, {format: 'png', quality: '0'});
 };
 
 page.onInitialized = function() {
      if(page.injectJs('node_modules/babel-polyfill/browser.js')){
          console.log("Babel-Polyfill loaded");
-     }    
+     }
 };
 
 page.onResourceRequested = function (req) {
@@ -63,14 +63,14 @@ page.onResourceReceived = function (res) {
     //	console.log('Remaining Transitions ' + transitions);
      	doRender('onLoaded_' + imagefile);
     	//phantom.exit();
-     } else { 
+     } else {
      //	console.log('Remaining Transitions ' + transitions);
      	transitions -= 1;
      }
 };
  page.onPageReady = function(status){
        	doRender('onReady_' + imagefile);
-};   
+};
 
 page.open(url, 'POST', postBody, function (status) {
     if (status !== "success") {
@@ -79,8 +79,8 @@ page.open(url, 'POST', postBody, function (status) {
     } else {
    	 console.log('success');
         forcedRenderTimeout = setTimeout(function () {
-           doRender(imagefile);    
-           phantom.exit();  
+           doRender(imagefile);
+           phantom.exit();
         }, maxRenderWait);
     }
 });
