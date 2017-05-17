@@ -20,6 +20,11 @@ class DeployContext implements Serializable {
     String target
 
     /**
+     * deployment metadata
+     */
+    HashMap metadata
+
+    /**
      * list of services to deploy
      */
     List<Service> services = new ArrayList<>()
@@ -42,34 +47,11 @@ class DeployContext implements Serializable {
         this.journey = config.journey
         this.env = config.env
         this.target = config.target
+        this.metadata = config.metadata
         this.bluemix = config.bluemix
         this.proxy = config.proxy
         def dc = new DeployContext(config) // avoid lazymap issues
         this.services = dc.services
-
-        //validate()
-    }
-
-    private def validate() {
-
-        if (this.journey == null) {
-            throw new Exception("Invalid Configuration - journey must be defined")
-        }
-        if (this.env == null) {
-            throw new Exception("Invalid Configuration - env must be defined")
-        }
-        if (this.target == null) {
-            throw new Exception("Invalid Configuration - target must be defined")
-        }
-        if (this.services == null) {
-            throw new Exception("Invalid Configuration - services must be defined")
-        }
-        if (this.proxy == null) {
-            throw new Exception("Invalid Configuration - proxy config must be defined")
-        }
-        if (this.bluemix == null) {
-            throw new Exception("Invalid Configuration - bluemix config must be defined")
-        }
     }
 
     @Override
@@ -78,6 +60,7 @@ class DeployContext implements Serializable {
                 "journey='" + journey + '\'' +
                 ", env='" + env + '\'' +
                 ", target='" + target + '\'' +
+                ", metadata='" + metadata + '\'' +
                 ", services=" + services +
                 ", bluemix=" + bluemix +
                 ", proxy=" + proxy +

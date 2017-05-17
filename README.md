@@ -172,3 +172,55 @@ sample job-configuration.json
 	}
 ```  
 
+
+### Deployment pipeline 
+
+#### invokeDeployPipelineEagle
+
+	Pipeline Template: Eagle
+	Initialise ->
+        Build DeployContext from configuration
+	Deploy Services ->
+	    Deploy services - uses eagleDeployService per service
+	Deploy Proxy ->
+	    Deploy proxy - uses eagleDeployProxy
+	Tester ->
+	    Test services and proxy - eagleDeployTester
+    Cleanup ->
+	
+#### eagleDeployService
+
+    -> DeployService
+        -> eagleDeployBluemixService (bluemix deployment)
+
+#### eagleDeployProxy
+
+    -> Deploy Proxy
+        -> eagleDeployBluemixProxy
+        
+#### eagleDeployTester.groovy
+
+    -> Test deployed services
+    -> Test deployed proxy
+    
+
+### Usage:
+
+```
+@Library('workflowlib-sandbox@v2.8.1')
+import com.lbg.workflow.sandbox.*
+
+def configuration
+node {
+    checkout scm
+    def jobName = "${env.JOB_NAME}"
+    def targetEnv = jobName.substring(jobName.lastIndexOf('-') + 1)
+    configuration = "pipelines/conf/${targetEnv}/job-configuration.json"
+    if (configuration == null || !fileExists(configuration)) {
+        error 'Invalid job configuration'
+    }
+}
+
+invokeDeployPipelineEagle(configuration)
+
+```    

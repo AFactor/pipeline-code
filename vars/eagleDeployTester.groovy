@@ -9,7 +9,7 @@ def call(deployContext) {
                     pingTester("${deployContext.journey}-${service.name}-${deployContext.env}.${lbgDomain}")
                 } catch (error) {
                     currentBuild.result = 'FAILURE'
-                    echo error
+                    echo error.message
                     throw error
                 }
             }
@@ -20,7 +20,7 @@ def call(deployContext) {
                 pingTester("${deployContext.journey}-proxy-${deployContext.env}.${lbgDomain}")
             } catch (error) {
                 currentBuild.result = 'FAILURE'
-                echo error
+                echo error.message
                 throw error
             }
         }

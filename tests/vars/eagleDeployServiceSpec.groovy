@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat
 
 class eagleDeployServiceSpec extends PipelineSpockTestBase {
 
-    def "deploy service"() {
+    def "deploy given service"() {
         given:
         Service service = new Service()
         service.name = "service-name"

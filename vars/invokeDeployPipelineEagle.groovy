@@ -9,7 +9,15 @@ def call(String configuration) {
         node() {
             deleteDir()
             checkout scm
-            deployContext = new DeployContext(readFile(configuration))
+            try {
+                deployContext = new DeployContext(readFile(configuration))
+                validate(deployContext)
+            } catch (error) {
+                echo "Invalid job configuration $error.message"
+                currentBuild.result = 'FAILURE'
+                notify(deployContext)
+                throw error
+            }
             echo "Deploy Context " + deployContext.toString()
         }
     }
@@ -35,6 +43,8 @@ def call(String configuration) {
                 parallel deployments
             } catch (error) {
                 echo "Deploy Service Failure $error.message"
+                currentBuild.result = 'FAILURE'
+                notify(deployContext)
                 throw error
             } finally {
             }
@@ -47,6 +57,8 @@ def call(String configuration) {
                     eagleDeployProxy(deployContext)
                 } catch (error) {
                     echo "Deploy Proxy Failure  $error.message"
+                    currentBuild.result = 'FAILURE'
+                    notify(deployContext)
                     throw error
                 } finally {
                 }
@@ -61,6 +73,8 @@ def call(String configuration) {
                 eagleDeployTester(deployContext)
             } catch (error) {
                 echo "Test Stage Failure $error.message"
+                currentBuild.result = 'FAILURE'
+                notify(deployContext)
                 throw error
             } finally {
             }
@@ -69,11 +83,89 @@ def call(String configuration) {
 
     } //End Lock
 
-    milestone(label: 'Cleanup')
-    stage('End') {
+    milestone(label: 'Notify')
+    stage('Notify') {
+        currentBuild.result = 'SUCCESS'
+        notify(deployContext)
         echo "Finished"
     }
+}
 
+private def notify(deployContext) {
+    if (currentBuild.result == 'SUCCESS' &&
+            null != deployContext?.metadata?.confluence?.server &&
+            null != deployContext?.metadata?.confluence?.page &&
+            deployContext.metadata.confluence.server.trim() &&
+            deployContext.metadata.confluence.page.trim()) {
+        echo "confluence notification"
+        node {
+            withCredentials([
+                    usernameColonPassword(credentialsId: 'confluence-publisher', variable: 'CONFLUENCE_CREDENTIALS')
+            ]) {
+                try {
+                    confluencePublisher(
+                            deployContext.metadata.confluence.server,
+                            deployContext.metadata.confluence.page,
+                            "${env.CONFLUENCE_CREDENTIALS}",
+                            buildConfluencePage(deployContext)
+                    )
+                } catch (error) {
+                    echo "Confluence publisher failure $error.message"
+                    currentBuild.result = 'FAILURE'
+                    throw error
+                }
+            }
+        }
+    }
+
+    if (null != deployContext.metadata.notifyList && deployContext.metadata.notifyList?.trim()) {
+        echo "email notification"
+        emailNotify { to = deployContext.metadata.notifyList }
+    }
+}
+
+private def buildConfluencePage(deployContext) {
+    String artifacts = ""
+    for (Service service : deployContext.services) {
+        if (service.deploy) {
+            def artifact = service.runtime.binary.artifact
+            def artifactName = artifact.substring(artifact.lastIndexOf('/') + 1, artifact.length())
+            artifacts = artifacts + "<a href='$artifact'>$artifactName</a>" + "<br/>"
+        }
+    }
+    def page = """
+    <table border="1">
+    <tr> 
+        <td><strong>Date</strong><br/>${new Date().format("yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone('UTC'))}</td>
+        <td><strong>Job</strong><br/><a href="${env.BUILD_URL}">${env.JOB_BASE_NAME}</a></td>
+        <td><strong>Environment</strong><br/>$deployContext.env</td>
+        <td><strong>Target</strong><br/>$deployContext.target</td>
+        <td><strong>Release Name</strong><br/>${deployContext?.metadata?.name}</td>
+        <td><strong>Description</strong><br/>${deployContext?.metadata?.description}</td>
+        <td><strong>Artifacts</strong><br/>$artifacts</td>
+    </tr> 
+    </table>
+    """
+    return page
+}
+
+private def validate(deployContext) {
+    isValid("journey", deployContext.journey)
+    isValid("env", deployContext.env)
+    isValid("target", deployContext.target)
+    isValid("proxy", deployContext.proxy)
+    isValid("bluemix", deployContext.bluemix)
+
+    // TODO enforce stricter service validation?
+    if (deployContext.services == null) {
+        error "Invalid Configuration - services must be defined"
+    }
+}
+
+private def isValid(name, value) {
+    if (!value) {
+        error "$name config must be defined"
+    }
 }
 
 private def artifactTag(service) {
