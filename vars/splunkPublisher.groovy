@@ -55,9 +55,19 @@ def RSYNC(String source, String destination) {
 					splunk@10.113.140.187:${destination}"""  }
 }
 
+def CUCUMBER(String source, String destination) {
+  dir("cucumber-formatter"){
+    sh "for report in ../${source} ; do \
+            python -c \"import json,sys; print json.dumps(json.load(sys.stdin)[0]['elements'])\" \
+            < \$report > `basename \$report` ; \
+        done"
+    this.SCP("*", (String)destination)
+  }
+  sh "rm -r ${source}"
+}
+
 def credentialsID() {
 	return 'splunk-uploader'
 }
 
 return this;
-
