@@ -12,7 +12,7 @@ class ManifestBuilder implements Serializable {
         String manifest = defaultManifest(appName, bluemix)
         if (service.env != null) {
             for (e in service.env) {
-                if (!manifest.contains(e.key)) {
+                if (!manifest.contains("${e.key}:")) {
                     manifest += "\n            ${e.key}: \"${e.value}\""
                 }
             }
@@ -24,7 +24,7 @@ class ManifestBuilder implements Serializable {
         String manifest = defaultManifest(appName, bluemix)
         if (env != null) {
             for (e in env) {
-                if (!manifest.contains(e.key)) {
+                if (!manifest.contains("${e.key}:")) {
                     manifest += "\n            ${e.key}: \"${e.value}\""
                 }
             }
