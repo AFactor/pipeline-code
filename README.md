@@ -151,6 +151,32 @@ sample job-configuration.json
 	Beta implementation of Service Discovery. 
 	Currently only provides  `(new ServiceDiscovery).locate('vault')`
 	
+### createDockerContext
+	Loads a named "dockerContext". Translates to copying a well know set of Dockerfiles, docker-compose-yml, and .dockerignore
+	for a known target environment
+	Usage	
+``` createDockerContext('node48') 
+```
+
+	Effect  creates Dockerfile.node.allmodules, Dockerfile.node.base, docker-compose.yml, and dockerignore for node:4.8, and service containers/environments
+	node-allmodules, node-static, node-bdd-sauce, node-bdd-embedded-zap
+	
+	Further usable as 
+```
+	touch -c -t 12101630  * || true
+	rm -rf node_modules
+	rm -rf zap-report ; mkdir -p zap-report
+	docker-compose build node-bdd-embedded-zap
+	docker-compose run --rm node-bdd-embedded-zap bash -c "ln -sf ../node_modules; ${invokeBDD} "
+	zapContainer=`docker-compose ps |grep zapx |  head -1 | awk {'print $1'}`
+	sudo docker exec $zapContainer zap-cli report -f html -o report.html
+	sudo docker exec $zapContainer zap-cli report -f xml -o report.xml
+	sudo docker exec $zapContainer cat report.html >zap-report/report.html
+	sudo docker exec $zapContainer cat report.xml >zap-report/report.xml
+	docker-compose kill
+	docker-compose rm -f
+```	
+	
 ### withGenericVaultSecrets
 	Build wrapper for injecting secrets dynamically into your build from hashicorp Vault.
 	Uses ServiceDiscovery to locate the vault service, recovers the secrets and injects into the build.
