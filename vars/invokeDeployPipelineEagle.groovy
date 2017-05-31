@@ -92,6 +92,7 @@ def call(String configuration) {
 }
 
 private def notify(deployContext) {
+
     if (currentBuild.result == 'SUCCESS' &&
             null != deployContext?.metadata?.confluence?.server &&
             null != deployContext?.metadata?.confluence?.page &&
@@ -118,10 +119,38 @@ private def notify(deployContext) {
         }
     }
 
+    // jira notifier
+    if (currentBuild.result == 'SUCCESS' &&
+            null != deployContext?.metadata?.jira?.server &&
+            null != deployContext?.metadata?.jira?.page &&
+            deployContext.metadata.jira.server.trim() &&
+            deployContext.metadata.jira.page.trim()) {
+        echo "jira notification"
+        node {
+            withCredentials([
+                    usernameColonPassword(credentialsId: 'confluence-publisher', variable: 'CONFLUENCE_CREDENTIALS')
+                    //shared jira/confluence credentials
+            ]) {
+                try {
+                  jiraNotify {env.BRANCH_NAME }
+
+                    )
+                } catch (error) {
+                    echo "Jira publisher failure $error.message"
+                    currentBuild.result = 'FAILURE'
+                    throw error
+                }
+            }
+        }
+    }
+
+
     if (null != deployContext.metadata.notifyList && deployContext.metadata.notifyList?.trim()) {
         echo "email notification"
         emailNotify { to = deployContext.metadata.notifyList }
     }
+
+
 }
 
 private def buildConfluencePage(deployContext) {
@@ -135,7 +164,7 @@ private def buildConfluencePage(deployContext) {
     }
     def page = """
     <table border="1">
-    <tr> 
+    <tr>
         <td><strong>Date</strong><br/>${new Date().format("yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone('UTC'))}</td>
         <td><strong>Job</strong><br/><a href="${env.BUILD_URL}">${env.JOB_BASE_NAME}</a></td>
         <td><strong>Environment</strong><br/>$deployContext.env</td>
@@ -143,7 +172,7 @@ private def buildConfluencePage(deployContext) {
         <td><strong>Release Name</strong><br/>${deployContext?.metadata?.name}</td>
         <td><strong>Description</strong><br/>${deployContext?.metadata?.description}</td>
         <td><strong>Artifacts</strong><br/>$artifacts</td>
-    </tr> 
+    </tr>
     </table>
     """
     return page
