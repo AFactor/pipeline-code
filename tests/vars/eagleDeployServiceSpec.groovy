@@ -23,6 +23,7 @@ class eagleDeployServiceSpec extends PipelineSpockTestBase {
         ServiceRuntime runtime = new ServiceRuntime()
         runtime.binary = binary
         service.runtime = runtime
+        service.buildpack = "Node.js"
 
         DeployContext deployContext = new DeployContext()
         deployContext.target = "bluemix"

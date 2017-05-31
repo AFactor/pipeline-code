@@ -6,7 +6,7 @@ WORKDIR /home/jenkins2
 ADD 	http://nexus.sandbox.extranet.group/nexus/content/repositories/binaries/node-sass/v4.5.1/linux-x64-46_binding.node   linux-x64-46_binding.node
 
 ENV 	SASS_BINARY_PATH=/home/jenkins2/linux-x64-46_binding.node \
-		NVM_NODEJS_ORG_MIRROR=http://10.113.140.187/nexus/content/sites/binaries/node \
+		NVM_NODEJS_ORG_MIRROR=http://nexus.sandbox.extranet.group/nexus/content/sites/binaries/node \
 		HTTP_PROXY=http://10.113.140.187:3128 \
 		HTTPS_PROXY=http://10.113.140.187:3128 \
 		http_proxy=http://10.113.140.187:3128 \
@@ -14,7 +14,7 @@ ENV 	SASS_BINARY_PATH=/home/jenkins2/linux-x64-46_binding.node \
 		no_proxy=localhost,127.0.0.1,sandbox.local,lbg.eu-gb.mybluemix.net,lbg.eu-gb.bluemix.net,10.113.140.170,10.113.140.179,10.113.140.187,10.113.140.168,jenkins.sandbox.extranet.group,nexus.sandbox.extranet.group,gerrit.sandbox.extranet.group,sonar.sandbox.extranet.group,extranet.group
 
 RUN 	chown jenkins2:jenkins2  * -R && \
-		npm config set registry http://10.113.140.187/nexus/content/groups/npm-master && \
+		npm config set registry http://nexus.sandbox.extranet.group/nexus/content/groups/npm-master/ && \
 		npm install npm3 gulp yarn eslint -g && \
 		npm cache clean && \
 		rm -rf ~/.npm
@@ -24,9 +24,9 @@ WORKDIR /home/jenkins2/workspace
 
 COPY 	package.json npm-shrinkwrap.json /home/jenkins2/
 RUN 	npm config set progress false && \
-		npm config set phantomjs_cdnurl http://10.113.140.187/nexus/content/repositories/binaries/phantomjs && \
-		npm config set registry http://10.113.140.187/nexus/content/groups/npm-master && \
-		npm config set chromedriver_cdnurl http://10.113.140.187/nexus/content/sites/binaries/chromedriver && \
+		npm config set phantomjs_cdnurl http://nexus.sandbox.extranet.group/nexus/content/repositories/binaries/phantomjs && \
+		npm config set registry http://nexus.sandbox.extranet.group/nexus/content/groups/npm-master && \
+		npm config set chromedriver_cdnurl http://nexus.sandbox.extranet.group/nexus/content/sites/binaries/chromedriver && \
 		cd /home/jenkins2 && \
 		npm3 install && \
 		npm cache clean && \

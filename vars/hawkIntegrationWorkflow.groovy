@@ -161,6 +161,7 @@ def call(BuildContext context, handlers, String targetBranch) {
 				}catch(error){
 					echo error.message
 					echo "Nexus publication did not complete normally. Continuing"
+					throw error
 				} finally{
 
 				}

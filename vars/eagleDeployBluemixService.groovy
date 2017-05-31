@@ -6,7 +6,9 @@ def call(service, deployContext) {
         // build manifest
         echo "build service manifest"
         def appName = "${deployContext.journey}-${service.name}-${deployContext.env}"
-        def manifest = new ManifestBuilder().build(appName, service, deployContext)
+        def manifestBuilder = new ManifestBuilder()
+        def manifest = manifestBuilder.build(appName, service, deployContext)
+        manifest = manifestBuilder.buildEnvs(manifest, buildAnalyticsEnvs())
         sh "mkdir -p ${service.name}/pipelines/conf"
         writeFile file: "${service.name}/pipelines/conf/manifest.yml", text: manifest
 
@@ -39,6 +41,18 @@ def call(service, deployContext) {
     }
 }
 
+private def buildAnalyticsEnvs() {
+    def envs = [:]
+    def analytics = ["ANALYTICS_HOST_NAME", "ANALYTICS_ACCOUNT_NAME", "ANALYTICS_ACCESS_KEY", "ANALYTICS_APP_NAME"]
+    for (String credentialsId : analytics) {
+        def credentialsValue = getCredentials(credentialsId)
+        if (credentialsValue) {
+            envs[credentialsId] = credentialsValue
+        }
+    }
+    return envs
+}
+
 private String deployAppScript() {
     return """
         #!/bin/bash
@@ -54,4 +68,20 @@ private String deployAppScript() {
             cf push -f manifest.yml
         }
     """
+}
+
+private def getCredentials(id) {
+    def pwd
+    try {
+        withCredentials([
+                usernamePassword(credentialsId: id,
+                        passwordVariable: 'credentialsPwd',
+                        usernameVariable: id)
+        ]) {
+            pwd =  env.credentialsPwd
+        }
+    } catch (error) {
+        echo "Failed to locate credentials with id : $id"
+    }
+    return pwd
 }
