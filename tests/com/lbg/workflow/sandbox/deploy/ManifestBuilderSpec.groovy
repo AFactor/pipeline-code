@@ -8,7 +8,8 @@ class ManifestBuilderSpec extends Specification {
     def "build manifest for a given service"() {
         given:
         def appName = "test-bluemix-job-test"
-        def envs = ["NODE_ENV": "test", "ENTERPRISE": "lbg", "HEADER_UID_TYPE":"010", "HEADER_UID":"123456"]
+        def envs = ["NODE_ENV": "test", "ENTERPRISE": "lbg", "HEADER_UID_TYPE":"010",
+                    "HEADER_UID":"123456", "UID":"12", "ID": "1", "HEADER": "1234"]
         def serviceBluemix = [
                 "disk": "512M",
                 "memory": "512M"
@@ -32,7 +33,8 @@ class ManifestBuilderSpec extends Specification {
         when:
         ManifestBuilder manifestBuilder = new ManifestBuilder()
         def manifest = manifestBuilder.build(appName, service, deployContext)
-println manifest
+        println manifest
+
         then:
         Yaml parser = new Yaml()
         def yamlResult = parser.load(manifest)
@@ -46,5 +48,8 @@ println manifest
         assert yamlResult.applications.env[0]['NODE_ENV'] == "test"
         assert yamlResult.applications.env[0]['HEADER_UID'] == "123456"
         assert yamlResult.applications.env[0]['HEADER_UID_TYPE'] == "010"
+        assert yamlResult.applications.env[0]['UID'] == "12"
+        assert yamlResult.applications.env[0]['ID'] == "1"
+        assert yamlResult.applications.env[0]['HEADER'] == "1234"
     }
 }

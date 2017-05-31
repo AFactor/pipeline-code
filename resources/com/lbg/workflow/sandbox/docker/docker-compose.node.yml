@@ -40,7 +40,7 @@ node-bdd-embedded-zap:
 
 
 zapx:
-  image: owasp/zap2docker-stable
+  image: 10.112.159.88:40007/owasp-zap2docker:2.6.0
   command: 'zap-x.sh -daemon -host 0.0.0.0 -Xmx1024M -config api.disablekey=true -config api.addrs.addr.name=.* -config api.addrs.addr.regex=true' 
   user: zap
   hostname: zapx

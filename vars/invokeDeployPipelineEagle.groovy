@@ -154,8 +154,12 @@ private def validate(deployContext) {
     isValid("env", deployContext.env)
     isValid("target", deployContext.target)
     isValid("proxy", deployContext.proxy)
-    isValid("bluemix", deployContext.bluemix)
-
+    if (deployContext.target == "bluemix") {
+        isValid("bluemix", deployContext.bluemix)
+    }
+    if (deployContext.target == "apiconnect") {
+        isValid("apiconnect", deployContext.apiconnect)
+    }
     // TODO enforce stricter service validation?
     if (deployContext.services == null) {
         error "Invalid Configuration - services must be defined"

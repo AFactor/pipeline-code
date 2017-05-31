@@ -3,6 +3,9 @@
  * Contributing HOWTO: TODO
  */
 
+import com.cloudbees.groovy.cps.NonCPS
+
+
 def call(String name){
 
 	def dockerFiles = [:]
