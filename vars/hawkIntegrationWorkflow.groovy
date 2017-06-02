@@ -184,7 +184,7 @@ def call(BuildContext context, handlers, String targetBranch) {
 			}
 
 		}
-		stage("End"){ echo "Phew!. Finaly Finished" }
+		stage("End"){ echo "Phew!. Finally Finished" }
 	}
 }
 return this;
