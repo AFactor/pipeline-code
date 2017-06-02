@@ -25,21 +25,12 @@ def call(Closure body) {
 
 				def headline = globalUtils.urlDecode(
 						"J2:${env.JOB_NAME}:${env.BUILD_NUMBER}-> ${currentBuild.result}")
-						//
-						// GIT_CHANGE_LOG=$(git log --pretty="$GIT_LOG_FORMAT" $LAST_SUCCESS_REV..HEAD)
-						// echo "GIT_CHANGE_LOG=$(git log --no-merges --pretty="$GIT_LOG_FORMAT" $LAST_SUCCESS_REV..HEAD | while
-						// read line
-						// 	do
-						// 		echo $line\\n | tr -d n
-						// 	done)"
-						//sprint10/gt/CSRV-366
 						fullBranch= ${env.BRANCH_NAME}
-
 						int index = fullBranch.lastIndexOf("/");
 						String jiraKey = fullBranch.substring(index + 1);
 
 						if(jiraKey != null && !jiraKey.isEmpty()){
-							jiraPublisher.addJiraComment(jiraKey,"")
+							jiraPublisher.addJiraComment(jiraKey, headline)
 							echo "SUCCESS: Jira Notification submitted "
 						}else
 						{
