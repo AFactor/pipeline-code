@@ -122,19 +122,33 @@ private def notify(deployContext) {
     // jira notifier
     if (currentBuild.result == 'SUCCESS' &&
             null != deployContext?.metadata?.jira?.server &&
-            null != deployContext?.metadata?.jira?.page &&
-            deployContext.metadata.jira.server.trim() &&
-            deployContext.metadata.jira.page.trim()) {
-        echo "jira notification"
+            deployContext.metadata.jira.server.trim()  {
+        echo "JIRA notification"
         node {
             withCredentials([
                     usernameColonPassword(credentialsId: 'confluence-publisher', variable: 'CONFLUENCE_CREDENTIALS')
                     //shared jira/confluence credentials
             ]) {
                 try {
-                  jiraNotify {env.BRANCH_NAME }
 
-                    )
+                  def headline = globalUtils.urlDecode(
+                      "J2:${env.JOB_NAME}:${env.BUILD_NUMBER}-> ${currentBuild.result}")
+                      fullBranch= ${env.BRANCH_NAME}
+                      int index = fullBranch.lastIndexOf("/");
+                      String issueKey = fullBranch.substring(index + 1);
+
+                      if(issueKey != null && !issueKey.isEmpty()){
+                        server, issueKey, auth, body
+                        jiraPublisher.addJiraComment(deployContext.metadata.jira.server,
+                          jiraKey,
+                          "${env.CONFLUENCE_CREDENTIALS}",
+                          headline)
+                        echo "SUCCESS: Jira Notification submitted "
+                      }else
+                      {
+                        echo "FAILED: Jira, Couldn't find index key "
+                      }
+
                 } catch (error) {
                     echo "Jira publisher failure $error.message"
                     currentBuild.result = 'FAILURE'
