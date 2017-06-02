@@ -1,4 +1,4 @@
-package com.lbg.workflow.sandbox.deploy
+package com.lbg.workflow.sandbox.deploy.phoenix
 
 class Service implements Serializable {
 
@@ -13,14 +13,24 @@ class Service implements Serializable {
     String buildpack
 
     /**
-     * deployment type
+     * deployment choice
      */
     boolean deploy
+
+    /**
+     * deployment type
+     */
+    String type
 
     /**
      * service runtime
      */
     ServiceRuntime runtime
+
+    /**
+     * list of components to deploy
+     */
+    List<Components> components = new ArrayList<>()
 
     /**
      * proxy config
@@ -33,10 +43,14 @@ class Service implements Serializable {
     HashMap env
 
     /**
-     * bluemix env
+     * deployment env
      */
-    HashMap bluemix
+    HashMap deployment
 
+    /**
+     * Service Description
+     */
+    String description
 
     Service() {
     }
@@ -45,12 +59,15 @@ class Service implements Serializable {
     String toString() {
         return "Service{" +
                 "name='" + name + '\'' +
+                ", description='" + description + '\'' +
                 ", buildpack=" + buildpack+
                 ", deploy=" + deploy +
+                ", type=" + type +
                 ", runtime=" + runtime +
                 ", proxy=" + proxy +
                 ", env=" + env +
-                ", bluemix=" + bluemix +
+                ", deployment=" + deployment +
+                ", components=" + components +
                 '}'
     }
 }
