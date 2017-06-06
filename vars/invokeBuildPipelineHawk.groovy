@@ -62,9 +62,9 @@ def callHandler(String application, handlers, String configuration) {
 
 	if (env.BRANCH_NAME =~ /^patchset\/[0-9]*\/[0-9]*\/[0-9]*/ )  {
 		hawkPatchsetWorkflow(context, handlers, targetCommit)
-	} else if (env.BRANCH_NAME =~ /^sprint[0-9]+\/.+$/  ) {
+	} else if (env.BRANCH_NAME =~ /^sprint[0-9]+\/.+$/ || env.BRANCH_NAME =~ /^epic\/.+$/ ) {
 		hawkFeatureWorkflow( context, handlers, "ft-" + utils.friendlyName(env.BRANCH_NAME, 20))
-	} else if (env.BRANCH_NAME =~ /^release-prod.*$/ )  {
+	} else if (env.BRANCH_NAME =~ /^release-prod.*$/ || env.BRANCH_NAME =~ /^releases\/.*$/ )  {
 		hawkIntegrationWorkflow( context, handlers, utils.friendlyName(env.BRANCH_NAME, 40))
 	} else if (env.BRANCH_NAME =~ /^master$/ )  {
 		hawkIntegrationWorkflow( context, handlers, 'master')
