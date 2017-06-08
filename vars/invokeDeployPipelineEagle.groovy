@@ -138,7 +138,6 @@ private def notify(deployContext) {
                       String issueKey = fullBranch.substring(index + 1);
 
                       if(issueKey != null && !issueKey.isEmpty()){
-                        server, issueKey, auth, body
                         jiraPublisher.addJiraComment(deployContext.metadata.jira.server,
                           jiraKey,
                           "${env.CONFLUENCE_CREDENTIALS}",
