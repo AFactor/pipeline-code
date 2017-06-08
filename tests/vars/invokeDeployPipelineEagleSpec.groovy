@@ -56,7 +56,7 @@ class invokeDeployPipelineEagleSpec extends PipelineSpockTestBase {
 
         helper.registerAllowedMethod("usernameColonPassword", [HashMap.class], {})
         helper.registerAllowedMethod("confluencePublisher", [String.class, String.class, String.class, String.class], null)
-        helper.registerAllowedMethod("jiraPublisher", [String.class, String.class, String.class, String.class], null))
+        helper.registerAllowedMethod("jiraPublisher", [String.class, String.class, String.class, String.class], null)
 
         when:
         def script = loadScript("vars/invokeDeployPipelineEagle.groovy")
