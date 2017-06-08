@@ -122,7 +122,7 @@ private def notify(deployContext) {
     // jira notifier
     if (currentBuild.result == 'SUCCESS' &&
             null != deployContext?.metadata?.jira?.server &&
-            deployContext.metadata.jira.server.trim()  {
+            deployContext.metadata.jira.server.trim())  {
         echo "JIRA notification"
         node {
             withCredentials([
@@ -137,7 +137,7 @@ private def notify(deployContext) {
                       int index = fullBranch.lastIndexOf("/");
                       String issueKey = fullBranch.substring(index + 1);
 
-                      if(issueKey != null && !issueKey.isEmpty()){
+                      if(issueKey != null && !issueKey.isEmpty()) {
                         jiraPublisher.addJiraComment(deployContext.metadata.jira.server,
                           jiraKey,
                           "${env.CONFLUENCE_CREDENTIALS}",
