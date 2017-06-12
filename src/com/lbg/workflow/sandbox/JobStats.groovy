@@ -13,19 +13,22 @@
 
 package com.lbg.workflow.sandbox
 
-def toSplunk(String jobTag, String buildUrl, String credentialsId, String jobStatus){
-  node('framework'){
-    filename = "${jobTag}-stats.json"
-    try {
-      withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: credentialsId,
-        usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]){
-          sh "curl -f -s --user ${USERNAME}:${PASSWORD} ${buildUrl}/wfapi/describe | \
+def toSplunk(String jobTag, String buildUrl, String credentialsId, String jobStatus, String endPoint){
+    node('framework'){
+        filename = "${jobTag}-stats.json"
+        if (!endPoint) {
+            endPoint = "/apps/splunkreports/jenkinsstats/all/"
+        }
+        try {
+            withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: credentialsId,
+                              usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]){
+                sh "curl -f -s --user ${USERNAME}:${PASSWORD} ${buildUrl}/wfapi/describe | \
               python -c \'import json,sys; s=json.load(sys.stdin); s[\"status\"]=\"${jobStatus}\"; \
                           print json.dumps(s)\' > ${filename}"
-      }
-        splunkPublisher.SCP(filename, "/apps/splunkreports/jenkinsstats/all/")
-    } catch (error) {
-        echo "Post build: got error during job stats publishing, continuing: ${error}"
+            }
+            splunkPublisher.SCP(filename, endPoint)
+        } catch (error) {
+            echo "Post build: got error during job stats publishing, continuing: ${error}"
+        }
     }
-  }
 }

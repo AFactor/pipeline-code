@@ -1,54 +1,28 @@
 import com.lbg.workflow.sandbox.deploy.phoenix.Status
 import com.lbg.workflow.sandbox.deploy.UtilsUCD
-import com.lbg.workflow.sandbox.deploy.phoenix.Components
 
 def call(service, deployContext, ucdToken) {
-    println "************************"
-    println " Running UCD Deployment "
-    println "************************"
-    def outputPath = "${env.WORKSPACE}/ucd_config.json"
-    def version = service.runtime.binary.version
-    def revision = service.runtime.binary.revision
-    //def versionPath = "${version}-${revision}"
+    phoenixLogger(4, "UCD Deployment", 'star')
     def utils = new UtilsUCD()
+    def outputPath = "${env.WORKSPACE}/ucd_config.json"
 
     jsonData = utils.ucdGenJSON(service, deployContext, ucdToken)
     sh "echo \'${jsonData}\' > ${outputPath}"
 
-
-    for (Object componentObject : service.components) {
-        Components comp = componentObject
-        def baseDir = "./" + comp.baseDir
-        /*
-            This code is currently unused - need to be sure this will actually work in all scenarios
-            def baseVerPath =  comp.baseDir + "/" version
-            def baseVersion =  comp.baseDir + "/" versionPath
-            def bvpExists = utils.folderChecker(baseVerPath)
-            def bvExists = utils.folderChecker(baseVersion)
-            if (bvpExists == true) {
-                baseDir = "./" + baseVerPath
-            } else if (bvExists == true) {
-                baseDir = "./" + baseVersion
-            }
-        */
-
-        def name = comp.name
-        utils.ucdUploadNew(service, deployContext, ucdToken, baseDir, name)
-    }
     String result = utils.ucdDeploy(deployContext, ucdToken, outputPath)
     def jsonResult = new Status(result)
     def requestId = jsonResult.requestId
-    echo "Request ID == ${requestId}"
+    phoenixLogger(3, "Request ID: ${requestId}", 'dash')
     String requestStatus = utils.ucdStatus(deployContext, ucdToken, requestId)
     def jsonStatus = new Status(requestStatus)
     def status = jsonStatus.status
-    echo "Status == ${status}"
+    phoenixLogger(3, "Status: ${status}", 'dash')
     int statChecker = 0
     while (status != "CLOSED") {
         requestStatus = utils.ucdStatus(deployContext, ucdToken, requestId)
         jsonStatus = new Status(requestStatus)
         status = jsonStatus.status
-        echo "Status Currently :: ${status}"
+        phoenixLogger(3, "Status Currently :: ${status}", 'dash')
         if (status == "ERROR" || status == "FAILED") {
             break
         }
