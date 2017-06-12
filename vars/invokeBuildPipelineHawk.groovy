@@ -39,7 +39,7 @@ def call(String application,
 			emailNotify { to = notifyList }
 		}
 		def jobStats = new JobStats()
-		jobStats.toSplunk(env.BUILD_TAG, env.BUILD_URL, "jenkins-read-all", currentBuild.result)
+		jobStats.toSplunk(env.BUILD_TAG, env.BUILD_URL, "jenkins-read-all", currentBuild.result, "")
 	}
 }
 
