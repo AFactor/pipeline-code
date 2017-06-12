@@ -1,0 +1,48 @@
+node-allmodules:
+  build: .
+  dockerfile: Dockerfile.node.allmodules.610
+  volumes:
+    - .:/home/jenkins2/workspace
+  command: npm list
+
+
+node-static:
+  build: .
+  dockerfile: Dockerfile.node.base.610
+  volumes:
+    - .:/home/jenkins2/workspace
+  command: npm list -g
+
+
+node-bdd-sauce:
+  build: .
+  dockerfile: Dockerfile.node.allmodules.610
+  volumes:
+    - .:/home/jenkins2/workspace
+  command: npm list
+  net: host
+
+
+node-bdd-embedded-zap:
+  build: .
+  dockerfile: Dockerfile.node.allmodules.610
+  volumes:
+    - .:/home/jenkins2/workspace
+  command: npm list
+  environment:
+    HTTP_PROXY: http://zapx:8080
+    HTTPS_PROXY: http://zapx:8080
+    http_proxy: http://zapx:8080
+    https_proxy: http://zapx:8080
+    no_proxy: "extranet.group,local"
+  links:
+    - zapx
+
+
+zapx:
+  image: 10.112.159.88:40007/owasp-zap2docker:2.6.0
+  command: 'zap-x.sh -daemon -host 0.0.0.0 -Xmx1024M -config api.disablekey=true -config api.addrs.addr.name=.* -config api.addrs.addr.regex=true'
+  user: zap
+  hostname: zapx
+  expose:
+    - "8080"
