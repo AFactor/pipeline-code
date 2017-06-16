@@ -26,10 +26,11 @@ def cwaCreateVersion(service, deployContext, ucdToken, name, date) {
     println "********************************"
 
     def version = service.runtime.binary.version
+    def revision = service.runtime.binary.revision[0..8]
     def ucdUrl = deployContext.deployment.ucd_url
     def udClient = "./udclient/udclient"
     def componentSet = "-component ${name}"
-    def nameSet = "-name ${version}-${date}"
+    def nameSet = "-name ${version}-${revision}"
     def command = "createVersion ${componentSet} ${nameSet}"
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
 
@@ -44,10 +45,11 @@ def cwaAddVersion(service, deployContext, ucdToken, baseDir, name, date) {
     println "*****************************"
 
     def version = service.runtime.binary.version
+    def revision = service.runtime.binary.revision[0..8]
     def ucdUrl = deployContext.deployment.ucd_url
     def udClient = "./udclient/udclient"
     def componentSet = "-component ${name}"
-    def versionSet = "-version ${version}-${date}"
+    def versionSet = "-version ${version}-${revision}"
     def baseSet = "-base ${baseDir}"
     def command = "addVersionFiles ${componentSet} ${versionSet} ${baseSet}"
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
@@ -63,10 +65,11 @@ def apiCreateVersion(service, deployContext, ucdToken, name, date) {
     println "********************************"
 
     def version = service.runtime.binary.version
+    def revision = service.runtime.binary.revision[0..8]
     def ucdUrl = deployContext.deployment.ucd_url
     def udClient = "./udclient/udclient"
     def componentSet = "-component ${name}"
-    def nameSet = "-name ${version}-${date}"
+    def nameSet = "-name ${version}-${revision}"
     def descSet = "-description ${version}-ear"
     def command = "createVersion ${componentSet} ${nameSet} ${descSet}"
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
@@ -82,10 +85,11 @@ def apiAddVersion(service, deployContext, ucdToken, baseDir, name, date) {
     println "*****************************"
 
     def version = service.runtime.binary.version
+    def revision = service.runtime.binary.revision[0..8]
     def ucdUrl = deployContext.deployment.ucd_url
     def udClient = "./udclient/udclient"
     def componentSet = "-component ${name}"
-    def versionSet = "-version ${version}-${date}"
+    def versionSet = "-version ${version}-${revision}"
     def baseSet = "-base ${baseDir}"
     def command = "addVersionFiles ${componentSet} ${versionSet} ${baseSet}"
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
@@ -102,11 +106,12 @@ def ucdSetVersionProperty(service, deployContext, ucdToken, name, date) {
 
     def version = service.runtime.binary.version
     def revision = service.runtime.binary.revision
+    def revisionTrunc = service.runtime.binary.revision[0..8]
     def ucdUrl = deployContext.deployment.ucd_url
     def versionPath = "${version}-${revision}"
     def udClient = "./udclient/udclient"
     def componentSet = "-component ${name}"
-    def versionSet = "-version ${version}-${date}"
+    def versionSet = "-version ${version}-${revisionTrunc}"
     def valueSet = "-value ${versionPath}"
     def command = "setVersionProperty ${componentSet} ${versionSet} -name versionPath ${valueSet}"
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
@@ -123,10 +128,11 @@ def ucdAddVersionLink(service, deployContext, ucdToken, name, date) {
     println "**********************************"
 
     def version = service.runtime.binary.version
+    def revision = service.runtime.binary.revision[0..8]
     def ucdUrl = deployContext.deployment.ucd_url
     def udClient = "./udclient/udclient"
     def componentSet = "-component ${name}"
-    def versionSet = "-version ${version}-${date}"
+    def versionSet = "-version ${version}-${revision}"
     def linkName = "-linkName \'Jenkins Build upload\'"
     def linkSet = "-link \"\$env.BUILD_URL\""
     def command = "addVersionLink ${componentSet} ${versionSet} ${linkName} ${linkSet}"
