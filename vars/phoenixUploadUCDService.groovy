@@ -25,7 +25,7 @@ private def cwaUpload(service, deployContext, ucdToken) {
         def baseDir = "./" + comp.baseDir
         def name = comp.name
         def date = new Date().format("ddMMyyyyHHMM", TimeZone.getTimeZone('UTC'))
-        def name_date = comp.name + "-" date
+        def name_date = comp.name + "-" + date
         phoenixLogger(5,"Base Dir: ${baseDir} :: Name: ${name}", "dash")
         def getVersion = utils.ucdComponentVersion(deployContext, ucdToken, name)
         echo "Current Version information: ${getVersion}"
