@@ -24,11 +24,16 @@ private def cwaUpload(service, deployContext, ucdToken) {
         Components comp = componentObject
         def baseDir = "./" + comp.baseDir
         def name = comp.name
+        def date = new Date().format("ddMMyyyyHHMM", TimeZone.getTimeZone('UTC'))
+        def name_date = comp.name + "-" date
         phoenixLogger(5,"Base Dir: ${baseDir} :: Name: ${name}", "dash")
         def getVersion = utils.ucdComponentVersion(deployContext, ucdToken, name)
         echo "Current Version information: ${getVersion}"
-        if (getVersion == "") {
-            def createVersion = utils.cwaCreateVersion(service, deployContext, ucdToken, name)
+        //if (getVersion == "") {
+        //} else {
+        //    phoenixLogger(3,"Skipping Component: ${name} :: Already Deployed", "star")
+        //}
+            def createVersion = utils.cwaCreateVersion(service, deployContext, ucdToken, name_date)
             phoenixLogger(3, "Create Version Output: ${createVersion}", 'dash')
             /*
                 if (createVersion == "") {
@@ -36,7 +41,7 @@ private def cwaUpload(service, deployContext, ucdToken) {
                     throw new Exception("Upload Error")
                 }
             */
-            def addVersion = utils.cwaAddVersion(service, deployContext, ucdToken, baseDir, name)
+            def addVersion = utils.cwaAddVersion(service, deployContext, ucdToken, baseDir, name_date)
             phoenixLogger(3, "Add Version Output: ${addVersion}", 'dash')
             /*
                 if (addVersion == "") {
@@ -44,7 +49,7 @@ private def cwaUpload(service, deployContext, ucdToken) {
                     throw new Exception("Upload Error")
                 }
             */
-            def setVersion = utils.ucdSetVersionProperty(service, deployContext, ucdToken, name)
+            def setVersion = utils.ucdSetVersionProperty(service, deployContext, ucdToken, name_date)
             phoenixLogger(3, "Set Version Property Output: ${setVersion}", 'dash')
             /*
                 if (setVersion == "") {
@@ -52,7 +57,7 @@ private def cwaUpload(service, deployContext, ucdToken) {
                     throw new Exception("UCD Version Property Error")
                 }
             */
-            def addLink = utils.ucdAddVersionLink(service, deployContext, ucdToken, name)
+            def addLink = utils.ucdAddVersionLink(service, deployContext, ucdToken, name_date)
             phoenixLogger(3, "Add Version Link Output: ${addLink}", 'dash')
             /*
                 if (addLink == "") {
@@ -60,9 +65,6 @@ private def cwaUpload(service, deployContext, ucdToken) {
                     throw new Exception("UCD Version Link Error")
                 }
             */
-        } else {
-            phoenixLogger(3,"Skipping Component: ${name} :: Already Deployed", "star")
-        }
     }
 }
 
