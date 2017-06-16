@@ -25,46 +25,20 @@ private def cwaUpload(service, deployContext, ucdToken) {
         def baseDir = "./" + comp.baseDir
         def name = comp.name
         def date = new Date().format("ddMMyyyyHHMM", TimeZone.getTimeZone('UTC'))
-        def name_date = comp.name + "-" + date
         phoenixLogger(5,"Base Dir: ${baseDir} :: Name: ${name}", "dash")
         def getVersion = utils.ucdComponentVersion(deployContext, ucdToken, name)
         echo "Current Version information: ${getVersion}"
-        //if (getVersion == "") {
-        //} else {
-        //    phoenixLogger(3,"Skipping Component: ${name} :: Already Deployed", "star")
-        //}
-            def createVersion = utils.cwaCreateVersion(service, deployContext, ucdToken, name_date)
-            phoenixLogger(3, "Create Version Output: ${createVersion}", 'dash')
-            /*
-                if (createVersion == "") {
-                    phoenixLogger(1, "Could Not Create UCD Version", 'star')
-                    throw new Exception("Upload Error")
-                }
-            */
-            def addVersion = utils.cwaAddVersion(service, deployContext, ucdToken, baseDir, name_date)
-            phoenixLogger(3, "Add Version Output: ${addVersion}", 'dash')
-            /*
-                if (addVersion == "") {
-                    phoenixLogger(1, "Could Not Add UCD Version Files", 'star')
-                    throw new Exception("Upload Error")
-                }
-            */
-            def setVersion = utils.ucdSetVersionProperty(service, deployContext, ucdToken, name_date)
-            phoenixLogger(3, "Set Version Property Output: ${setVersion}", 'dash')
-            /*
-                if (setVersion == "") {
-                    phoenixLogger(1, "Could Not Set UCD Version Property Information", 'star')
-                    throw new Exception("UCD Version Property Error")
-                }
-            */
-            def addLink = utils.ucdAddVersionLink(service, deployContext, ucdToken, name_date)
-            phoenixLogger(3, "Add Version Link Output: ${addLink}", 'dash')
-            /*
-                if (addLink == "") {
-                    phoenixLogger(1, "Could Not Add UCD Version Link", 'star')
-                    throw new Exception("UCD Version Link Error")
-                }
-            */
+        def createVersion = utils.cwaCreateVersion(service, deployContext, ucdToken, name, date)
+        phoenixLogger(3, "Create Version Output: ${createVersion}", 'dash')
+
+        def addVersion = utils.cwaAddVersion(service, deployContext, ucdToken, baseDir, name, date)
+        phoenixLogger(3, "Add Version Output: ${addVersion}", 'dash')
+
+        def setVersion = utils.ucdSetVersionProperty(service, deployContext, ucdToken, name, date)
+        phoenixLogger(3, "Set Version Property Output: ${setVersion}", 'dash')
+
+        def addLink = utils.ucdAddVersionLink(service, deployContext, ucdToken, name, date)
+        phoenixLogger(3, "Add Version Link Output: ${addLink}", 'dash')
     }
 }
 
@@ -79,23 +53,17 @@ private def apiUpload(service, deployContext, ucdToken) {
 
         def getVersion = utils.ucdComponentVersion(deployContext, ucdToken, name)
         echo "Current Version information: ${getVersion}"
-        //if (getVersion == "") {
-        //}
         def createVersion = utils.apiCreateVersion(service, deployContext, ucdToken, name, date)
         phoenixLogger(3, "Create Version Output: ${createVersion}", 'dash')
 
         def addVersion = utils.apiAddVersion(service, deployContext, ucdToken, comp.baseDir, name, date)
         phoenixLogger(3, "Add Version Output: ${addVersion}", 'dash')
-        /*
-            if (createVersion != "") {
-                phoenixLogger(1, "Could Not Create UCD Version", 'star')
-                throw new Exception("Upload Error")
-            }
-            if (addVersion != "") {
-                phoenixLogger(1, "Could Not Add UCD Version Files", 'star')
-                throw new Exception("Upload Error")
-            }
-        */
     }
 }
 
+/*
+    if (getVersion == "") {
+    } else {
+        phoenixLogger(3,"Skipping Component: ${name} :: Already Deployed", "star")
+    }
+ */

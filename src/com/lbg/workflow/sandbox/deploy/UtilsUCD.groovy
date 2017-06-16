@@ -20,15 +20,17 @@ def ucdComponentVersion(deployContext, ucdToken, name) {
 }
 
 @NonCPS
-def cwaCreateVersion(service, deployContext, ucdToken, name) {
+def cwaCreateVersion(service, deployContext, ucdToken, name, date) {
     println "********************************"
     println " UCD Create Version for ${name} "
     println "********************************"
 
+    def version = service.runtime.binary.version
     def ucdUrl = deployContext.deployment.ucd_url
     def udClient = "./udclient/udclient"
     def componentSet = "-component ${name}"
-    def command = "createVersion ${componentSet}"
+    def nameSet = "-name ${version}-${date}"
+    def command = "createVersion ${componentSet} ${nameSet}"
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
 
     def request = sh(returnStdout: true, script: ucdCmd).trim()
@@ -36,7 +38,7 @@ def cwaCreateVersion(service, deployContext, ucdToken, name) {
 }
 
 @NonCPS
-def cwaAddVersion(service, deployContext, ucdToken, baseDir, name) {
+def cwaAddVersion(service, deployContext, ucdToken, baseDir, name, date) {
     println "*****************************"
     println " UCD Add Version for ${name} "
     println "*****************************"
@@ -45,7 +47,7 @@ def cwaAddVersion(service, deployContext, ucdToken, baseDir, name) {
     def ucdUrl = deployContext.deployment.ucd_url
     def udClient = "./udclient/udclient"
     def componentSet = "-component ${name}"
-    def versionSet = "-version ${version}"
+    def versionSet = "-version ${version}-${date}"
     def baseSet = "-base ${baseDir}"
     def command = "addVersionFiles ${componentSet} ${versionSet} ${baseSet}"
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
@@ -93,7 +95,7 @@ def apiAddVersion(service, deployContext, ucdToken, baseDir, name, date) {
 }
 
 @NonCPS
-def ucdSetVersionProperty(service, deployContext, ucdToken, name) {
+def ucdSetVersionProperty(service, deployContext, ucdToken, name, date) {
     println "**************************************"
     println " UCD Set Version Property for ${name} "
     println "**************************************"
@@ -104,7 +106,7 @@ def ucdSetVersionProperty(service, deployContext, ucdToken, name) {
     def versionPath = "${version}-${revision}"
     def udClient = "./udclient/udclient"
     def componentSet = "-component ${name}"
-    def versionSet = "-version ${version}"
+    def versionSet = "-version ${version}-${date}"
     def valueSet = "-value ${versionPath}"
     def command = "setVersionProperty ${componentSet} ${versionSet} -name versionPath ${valueSet}"
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
@@ -123,7 +125,7 @@ def ucdAddVersionLink(service, deployContext, ucdToken, name) {
     def ucdUrl = deployContext.deployment.ucd_url
     def udClient = "./udclient/udclient"
     def componentSet = "-component ${name}"
-    def versionSet = "-version ${version}"
+    def versionSet = "-version ${version}-${date}"
     def linkName = "-linkName \'Jenkins Build upload\'"
     def linkSet = "-link \"\$env.BUILD_URL\""
     def command = "addVersionLink ${componentSet} ${versionSet} ${linkName} ${linkSet}"
