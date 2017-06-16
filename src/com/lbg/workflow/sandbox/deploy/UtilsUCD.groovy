@@ -116,7 +116,8 @@ def ucdSetVersionProperty(service, deployContext, ucdToken, name, date) {
 }
 
 @NonCPS
-def ucdAddVersionLink(service, deployContext, ucdToken, name) {
+def ucdAddVersionLink(service, deployContext, ucdToken, name, date) {
+
     println "**********************************"
     println " UCD Add Version Link for ${name} "
     println "**********************************"
