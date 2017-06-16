@@ -12,40 +12,149 @@ The structure, is as follows:
 ```
 vars/invokeDeployPipelinePhoenix
 |
+|-> Stage:  Initialize -> Read in Json Configuration File
+|
 |-> Deployment Type: UCD
-     |-> phoenixTestStage.groovy (all tests defined here)
-     |    
-     |-> phoenixDeployStage.groovy 
-     |     |-> phoenixDeployService.groovy
-     |    _|_  |-> Deploy Type: UCD
-     |         |    |-> Service Type (cwa / api etc):
-     |         |   _|_       Archive Extraction 
-     |         |             apiExtract / cwaExtract / bluemixExtract etc..
-     |         |                  |--> Type: Upload
-     |         |                  |      |-> phoenixUploadUCDService.groovy
-     |         |                  |           |-> com.lbg.workflow.sandbox.deploy.UtilsUCD
-     |         |                  |           |___/---> Do the actual deployment
-     |         |                  |                     This also calls devops-pipeline-ucdlibs-global
-     |         |                  |--> Type: Deploy
-     |         |                  |     |-> phoenixDeployUCDService.groovy
-     |         |                  |           |-> com.lbg.workflow.sandbox.deploy.UtilsUCD
-     |         |                  |           |___/---> Do the actual deployment
-     |         |                 _|_                    This also calls devops-pipeline-ucdlibs-global
-     |         |           
-     |         |   
-     |         |-> Deploy Type: Bluemix
-     |             Archive Extraction: bluemixExtract
-     |               |
-     |               |-> eagleDeployBluemixService.groovy (Eagle Pipeline Takes over)
-     |              _|_
-     |
-     |
-     | -> phoenixNotifyStage.groovy
-          This handles confluence, splunk, email ... Notifications 
+|     |
+|     |-> Stage: Environment Check
+|     |     |-> phoenixTestStage.groovy (all tests defined here)
+|     |    _|_
+|     |
+|     |-> Stage: PRE-BDD Check
+|     |     |-> phoenixTestStage.groovy
+|     |    _|_    |-> bddTests
+|     |          _|_   | 
+|     |                |-> Service: api
+|     |                |     |-> apiBddCheck
+|     |                |    _|    |-> Load pipelines/tests/bdd.groovy
+|     |                |         _|_       Which in turn checks out code repo
+|     |                |                   and executes bdd tests
+|     |                | 
+|     |                |-> Service: cwa 
+|     |                |     |-> cwaBddCheck
+|     |                |    _|_   |-> Currently Does Nothing
+|     |                |         _|_       
+|     |                |                   
+|     |                |-> Service: salsa 
+|     |               _|_     |
+|     |                       |-> salsaBddCheck
+|     |                      _|_   |-> Currently Does Nothing
+|     |                           _|_       
+|     |
+|     |-> Stage: Upload Services >-----------\
+|     |                                      |
+|     |                                      |
+|     |-> Stage: Deploy Services >-----------| 
+|     |                                      | 
+|     |                                      | 
+|     |                                      |
+|     |   phoenixDeployStage.groovy  <-------/
+|     |     |-> phoenixDeployService.groovy
+|     |    _|_  |-> Deploy Type: UCD
+|     |         |    |-> Service Type (cwa / api etc):
+|     |         |   _|_       Archive Extraction 
+|     |         |             apiExtract / cwaExtract / bluemixExtract etc..
+|     |         |                  |--> Type: Upload
+|     |         |                  |      |-> phoenixUploadUCDService.groovy
+|     |         |                  |     _|_   |-> com.lbg.workflow.sandbox.deploy.UtilsUCD
+|     |         |                  |          _|_   Do the actual deployment
+|     |         |                  |                This also calls devops-pipeline-ucdlibs-global
+|     |         |                  |--> Type: Deploy
+|     |         |                  |     |-> phoenixDeployUCDService.groovy
+|     |         |                  |    _|_    |-> com.lbg.workflow.sandbox.deploy.UtilsUCD
+|     |         |                  |          _|_    Do the actual deployment
+|     |         |                  |                 This also calls devops-pipeline-ucdlibs-global
+|     |         |                  |           
+|     |         |                  |           
+|     |         |                 _|_          
+|     |         |           
+|     |         |   
+|     |         |-> Deploy Type: Bluemix
+|     |        _|_    Archive Extraction: bluemixExtract
+|     |                 |
+|     |                 |-> eagleDeployBluemixService.groovy (Eagle Pipeline Takes over)
+|     |                _|_
+|     |
+|     |-> Stage: POST-BDD Check
+|     |     |-> phoenixTestStage.groovy - exact same as pre-BDD Check above currently
+|     |    _|_
+|     |
+|     |-> Stage: TEST
+|     |     |-> phoenixTestStage.groovy (all tests defined here)
+|     |    _|_
+|     |
+|     |-> Stage: NOTIFY
+|    _|_    |-> phoenixNotifyStage.groovy
+|          _|_    This handles confluence, splunk, email ... Notifications 
+|    
+|
+|-> Deployment Type: Bluemix
+|     |
+|     |
+|     |-> Stage: Deploy Services >-----------\ 
+|     |                                      | 
+|     |                                      | 
+|     |                                      |
+|     |   phoenixDeployStage.groovy  <-------/
+|     |     |-> phoenixDeployService.groovy
+|     |    _|_  |-> Deploy Type: UCD
+|     |         |    |-> Service Type (cwa / api etc):
+|     |         |   _|_       Archive Extraction 
+|     |         |             apiExtract / cwaExtract / bluemixExtract etc..
+|     |         |                  |--> Type: Upload
+|     |         |                  |      |-> phoenixUploadUCDService.groovy
+|     |         |                  |     _|_   |
+|     |         |                  |           |-> com.lbg.workflow.sandbox.deploy.UtilsUCD
+|     |         |                  |          _|_   Do the actual deployment
+|     |         |                  |                This also calls devops-pipeline-ucdlibs-global
+|     |         |                  |                
+|     |         |                  |--> Type: Deploy
+|     |         |                  |     |-> phoenixDeployUCDService.groovy
+|     |         |                  |    _|_    |
+|     |         |                  |           |-> com.lbg.workflow.sandbox.deploy.UtilsUCD
+|     |         |                  |          _|_    Do the actual deployment
+|     |         |                 _|_                This also calls devops-pipeline-ucdlibs-global
+|     |         |           
+|     |         |   
+|     |         |-> Deploy Type: Bluemix
+|     |        _|_    Archive Extraction: bluemixExtract
+|     |               |-> eagleDeployBluemixService.groovy (Eagle Pipeline Takes over)
+|     |              _|_
+|     |
+|     |-> Stage: Deploy Proxy
+|     |     |-> phoenixDeployService.groovy (deployProxy)
+|     |    _|_
+|     |
+|     |-> Stage: TEST
+|     |     |-> phoenixTestStage.groovy (all tests defined here)
+|     |    _|_
+|     |
+|     |-> Stage: NOTIFY
+|    _|_    |-> phoenixNotifyStage.groovy
+|          _|_   This handles confluence, splunk, email ... Notifications 
+x   
 ```
 
+The basic flow is as follows, invokeDeployPipelinePhoenix is called, this sets out each stage of the pipeline. 
+The pipeline itself is broken into 3 stage files, test, deploy and finally notify. 
+The core of the code is within phoenixDeployService. 
+For bluemix the Eagle pipeline takes over at this point, for UCD depending on whether or not it is an upload or deployment, 
+phoenixUploadUCDService or phoenixDeployUCDService are called, both of these in turn call:
+
+src.com.lbg.workflow.sandbox.deploy.UtilsUCD.groovy, 
+This is a bunch of functions which each carry out a specific call to udclient 
+with all of the information gathered from the json configuration file for the environment.
+
+For deployment, UtilsUCD calls com.lbg.workflow.ucd.UDClient which is in devops-ucdlibs-global repo, 
+this sits in an external lib as it creates a json file using groovy, something the sandbox env is not allowed to do. 
+The json file is fed back and then pumped into the actual udclient (again all data from the json configuration file initially read in)
+this in turn allows the deployment to be carried out. The json file UCD expects has a specific format and this is the job
+of that external lib, which in essence means that the deployment should be identical regardless of service being deployed,
+however the uploads will differ based on how the artifact is packaged and how it is expected to be uploaded to UCD. The upload methods
+will probably need updating / additional code to work for each particular service attempting to be deployed. 
+
 On top of this there is a phoenixLogger.groovy, this can be used to generate different types of messages
-and does support colour output (although currently disabled)
+and supports colour output (although currently disabled)
 
 
 ## Usage:
@@ -91,12 +200,12 @@ The json File is as follows:
 
 ```
 {
-  "journey": "cwa-ucd",
+  "journey": "ucd-cwa",
   "env": "DEV",
   "label": "lbg_slave",
   "metadata": {
     "confluence": {
-      "type": "cwa-ucd",
+      "type": "ucd-cwa",
       "server": "http://confluence.sandbox.extranet.group",
       "page": "26784379",
       "credentials": "confluence-publisher"
@@ -143,7 +252,8 @@ The json File is as follows:
     "ucd_url": "https://ucd.intranet.group",
     "work_dir": "dist",
     "process": "Stage and Activate",
-    "credentials": "UC_TOKEN_CWA"
+    "credentials": "UC_TOKEN_CWA",
+    "timeout": 60
   },
   "proxy": {
     "deploy": false
@@ -154,17 +264,25 @@ The json File is as follows:
 #### Deployment
 There is a type, this currently supports bluemix or ucd, the key / values are defined in:
 
-src.com.lbg.workflow.sandbox.deploy.phoenix.deployContext.groovy deployment itself is a hashmap, so you can add any key: value pair
-and as long as the deployment understands the keys then the deployment will be carried out. 
+```
+src.com.lbg.workflow.sandbox.deploy.phoenix.deployContext.groovy 
+```
+
+deployment is a hashmap, so you can add any key: value pair and as long as the deployment
+understands the keys then the deployment will be carried out. 
 
 #### Service
 This is a bit more complicated as there can be multiple different services, 
 
 This is defined in:
+```
 src.com.lbg.workflow.sandbox.deploy.phoenix.deployContext.groovy 
+```
 
 which is further defined in:
+```
 src.com.lbg.workflow.sandbox.deploy.phoenix.Service.groovy
+```
 
 As service is an array of hashes, the Service.groovy defines the further types the service can offer, it is run through the constructor
 of deployContext to ensure it is not lazymapped. Lazy maps are not serialiazable and  all jenkins jobs must be serialiazable. 
@@ -175,9 +293,11 @@ wish to explicitly define anything.
 
 ##### Artifact Information
 Within service the following extras are defined:
+
+```
 src.com.lbg.workflow.sandbox.phoenix.deploy.ServiceRuntime.groovy 
-and 
 src.com.lbg.workflow.sandbox.phoenix.deploy.ServiceRuntimeBinary.groovy
+```
 
 For bluemix only artifact is used and the whole path to the artifact is defined in artifact, for ucd 
 the artifact is split into multiple sections, which are as follows:
@@ -209,7 +329,9 @@ how the naming scheme for the artifact and the nexus upload path is defined.
 
 ##### Service Componenets
 For ucd there is a further :
+```
 src.com.lbg.workflow.sandbox.phoenix.Components.groovy
+```
 
 which is again an array of hashes and determines what components are part of the upload / deployment and this is actually where
 it should be deployed to within the environment defined within the json file. The basedir and name must exist in UCD for the deployment

@@ -57,7 +57,7 @@ private def buildConfluencePage(service, deployContext) {
     phoenixLogger(3, "Running Confluence Page Generator", 'equal')
     if (service.deploy) {
         switch (deployContext.metadata.confluence.type) {
-            case 'cwa-ucd':
+            case 'ucd-cwa':
                 def page = cwaPage(service, deployContext)
                 phoenixLogger(5, "HTML Table: ${page}", "")
                 return page

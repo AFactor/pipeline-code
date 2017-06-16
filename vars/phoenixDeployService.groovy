@@ -6,35 +6,37 @@ def call(service, deployContext, jobType) {
     // check the deployment type before configuring how to handle the deployment
     switch (deployContext.deployment.type) {
         case 'ucd':
-            node(deployContext.label) {
-                withCredentials([string(credentialsId: deployContext.deployment.credentials, variable: 'ucdToken')]) {
-                    withEnv(['PATH+bin=/bin', 'PATH+usr=/usr/bin', 'PATH+local=/usr/local/bin']) {
-                        checkout scm
-                        phoenixLogger(3, "Downloading UCD Deployment", 'dash')
-                        def ucdUrl = deployContext.deployment.ucd_url
-                        def wgetCmd = 'wget --no-check-certificate --quiet'
-                        sh """${wgetCmd} ${ucdUrl}/tools/udclient.zip ; \\
+            timeout(deployContext.deployment.timeout) {
+                node(deployContext.label) {
+                    withCredentials([string(credentialsId: deployContext.deployment.credentials, variable: 'ucdToken')]) {
+                        withEnv(['PATH+bin=/bin', 'PATH+usr=/usr/bin', 'PATH+local=/usr/local/bin']) {
+                            checkout scm
+                            phoenixLogger(3, "Downloading UCD Deployment", 'dash')
+                            def ucdUrl = deployContext.deployment.ucd_url
+                            def wgetCmd = 'wget --no-check-certificate --quiet'
+                            sh """${wgetCmd} ${ucdUrl}/tools/udclient.zip ; \\
                                   unzip -o udclient.zip """
-                        // check service type to work out best extraction method
-                        switch (service.type) {
-                            case 'cwa':
-                                cwaArtifactPath(service)
-                                cwaExtract(service, deployContext)
-                                break
-                            case 'api':
-                                apiArtifactPath(service)
-                                apiExtract(service, deployContext)
-                                break
-                            default:
-                                bluemixExtract(service)
-                                break
-                        }
-                        // deploy using ucd functions
-                        if (jobType == 'deploy') {
-                            phoenixDeployUCDService(service, deployContext, ucdToken)
-                        }
-                        if (jobType == 'upload') {
-                            phoenixUploadUCDService(service, deployContext, ucdToken)
+                            // check service type to work out best extraction method
+                            switch (service.type) {
+                                case 'cwa':
+                                    cwaArtifactPath(service)
+                                    cwaExtract(service, deployContext)
+                                    break
+                                case 'api':
+                                    apiArtifactPath(service)
+                                    apiExtract(service, deployContext)
+                                    break
+                                default:
+                                    bluemixExtract(service)
+                                    break
+                            }
+                            // deploy using ucd functions
+                            if (jobType == 'deploy') {
+                                phoenixDeployUCDService(service, deployContext, ucdToken)
+                            }
+                            if (jobType == 'upload') {
+                                phoenixUploadUCDService(service, deployContext, ucdToken)
+                            }
                         }
                     }
                 }

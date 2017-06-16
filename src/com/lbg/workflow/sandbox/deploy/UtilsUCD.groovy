@@ -67,7 +67,7 @@ def apiCreateVersion(service, deployContext, ucdToken, name, date) {
     def nameSet = "-name ${version}-${date}"
     def descSet = "-description ${version}-ear"
     def command = "createVersion ${componentSet} ${nameSet} ${descSet}"
-    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command} --verbose"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
 
     def request = sh(returnStdout: true, script: ucdCmd).trim()
     return request
@@ -82,11 +82,11 @@ def apiAddVersion(service, deployContext, ucdToken, baseDir, name, date) {
     def version = service.runtime.binary.version
     def ucdUrl = deployContext.deployment.ucd_url
     def udClient = "./udclient/udclient"
-    def componentSet = '-component \"' + name + '\"'
+    def componentSet = "-component ${name}"
     def versionSet = "-version ${version}-${date}"
     def baseSet = "-base ${baseDir}"
     def command = "addVersionFiles ${componentSet} ${versionSet} ${baseSet}"
-    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command} --verbose"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
 
     def request = sh(returnStdout: true, script: ucdCmd).trim()
     return request

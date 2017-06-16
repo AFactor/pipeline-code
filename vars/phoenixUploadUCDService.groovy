@@ -75,10 +75,14 @@ private def apiUpload(service, deployContext, ucdToken) {
         def name = comp.name
         phoenixLogger(5, "Base Dir: ${baseDir} :: Name: ${name}", "dash")
 
+        def getVersion = utils.ucdComponentVersion(deployContext, ucdToken, name)
+        echo "Current Version information: ${getVersion}"
+        //if (getVersion == "") {
+        //}
         def createVersion = utils.apiCreateVersion(service, deployContext, ucdToken, name, date)
         phoenixLogger(3, "Create Version Output: ${createVersion}", 'dash')
 
-        def addVersion = utils.apiAddVersion(service, deployContext, ucdToken, baseDir, name, date)
+        def addVersion = utils.apiAddVersion(service, deployContext, ucdToken, comp.baseDir, name, date)
         phoenixLogger(3, "Add Version Output: ${addVersion}", 'dash')
         /*
             if (createVersion != "") {

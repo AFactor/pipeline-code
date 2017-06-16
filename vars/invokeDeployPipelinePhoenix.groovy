@@ -2,7 +2,7 @@ import com.lbg.workflow.sandbox.deploy.phoenix.DeployContext
 import com.lbg.workflow.sandbox.deploy.phoenix.Service
 import com.lbg.workflow.sandbox.JobStats
 
-def call(String configuration) {
+def call(String configuration, tests) {
 
     DeployContext deployContext
 
@@ -35,7 +35,8 @@ def call(String configuration) {
                 }
                 milestone(label: 'Environment Check')
                 stage('pre-BDD Check') {
-                    testStage.preBddCheck(deployContext)
+                    phoenixLogger(3, "Skipping Pre-BDD For Now", 'star')
+                    //testStage.bddTests(deployContext, tests, 'pre-BDD')
                 }
                 milestone(label: 'Pre BDD Checks Complete')
                 stage('upload Services') {
@@ -47,7 +48,7 @@ def call(String configuration) {
                 }
                 milestone(label: 'Deployed Services')
                 stage('post-BDD Check') {
-                    testStage.postBddCheck(deployContext)
+                    testStage.bddTests(deployContext, tests, 'post-BDD')
                 }
                 milestone(label: 'Post BDD Checks Complete')
                 stage('Test') {
@@ -77,8 +78,7 @@ def call(String configuration) {
                 }
                 break
             default:
-                def logger = new phoenixLogger()
-                logger.printLog(" Error: No Deployment Type provided  ")
+                phoenixLogger(1, " Error: No Deployment Type provided  ", 'star')
                 throw new Exception("Error: No Deployment Type provided")
                 break
         }
