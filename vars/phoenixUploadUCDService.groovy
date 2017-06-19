@@ -28,8 +28,12 @@ private def cwaUpload(service, deployContext, ucdToken) {
         phoenixLogger(5,"Base Dir: ${baseDir} :: Name: ${name}", "dash")
         def getVersion = utils.ucdComponentVersion(deployContext, ucdToken, name)
         echo "Current Version information: ${getVersion}"
-        def createVersion = utils.cwaCreateVersion(service, deployContext, ucdToken, name, date)
-        phoenixLogger(3, "Create Version Output: ${createVersion}", 'dash')
+        try{
+            def createVersion = utils.cwaCreateVersion(service, deployContext, ucdToken, name, date)
+            phoenixLogger(3, "Create Version Output: ${createVersion}", 'dash')
+        } catch (error) {
+            phoenixLogger(2, "Create Version Output: ${createVersion} :: Error: ${error} :: continuing")
+        }
 
         def addVersion = utils.cwaAddVersion(service, deployContext, ucdToken, baseDir, name, date)
         phoenixLogger(3, "Add Version Output: ${addVersion}", 'dash')
