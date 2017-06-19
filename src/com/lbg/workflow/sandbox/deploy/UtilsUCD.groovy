@@ -34,8 +34,14 @@ def cwaCreateVersion(service, deployContext, ucdToken, name, date) {
     def command = "createVersion ${componentSet} ${nameSet}"
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
 
-    def request = sh(returnStdout: true, script: ucdCmd).trim()
-    return request
+    try {
+        def request = sh(returnStdout: true, script: ucdCmd).trim()
+        return request
+    } catch (error) {
+        echo "Version probably already deployed"
+        echo error
+        return null
+    }
 }
 
 @NonCPS
