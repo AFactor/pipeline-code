@@ -1,8 +1,23 @@
 package com.lbg.workflow.sandbox.deploy
 
 import com.lbg.workflow.ucd.UDClient
+import com.lbg.workflow.ucd.UCDVersions
+import com.lbg.workflow.ucd.UCDVersionParser
 import com.cloudbees.groovy.cps.NonCPS
 
+/**
+ * All NonCPS methods below return immediately (even inside for loops)
+ * This is why there are different methods created, their behaviour is not like normal functions / methods
+ * When it comes to @NonCPS methods keep it simple, more info below:
+ * https://stackoverflow.com/questions/40196903/why-noncps-is-necessary-when-iterating-through-the-list
+ **/
+
+/**
+ * @param deployContext
+ * @param ucdToken
+ * @param name
+ * @return
+ **/
 @NonCPS
 def ucdComponentVersion(deployContext, ucdToken, name) {
     println "***************************************"
@@ -19,6 +34,14 @@ def ucdComponentVersion(deployContext, ucdToken, name) {
     return request
 }
 
+/**
+ * @param service
+ * @param deployContext
+ * @param ucdToken
+ * @param name
+ * @param date
+ * @return
+ **/
 @NonCPS
 def cwaCreateVersion(service, deployContext, ucdToken, name, date) {
     println "********************************"
@@ -43,6 +66,15 @@ def cwaCreateVersion(service, deployContext, ucdToken, name, date) {
     }
 }
 
+/**
+ * @param service
+ * @param deployContext
+ * @param ucdToken
+ * @param baseDir
+ * @param name
+ * @param date
+ * @return
+ **/
 @NonCPS
 def cwaAddVersion(service, deployContext, ucdToken, baseDir, name, date) {
     println "*****************************"
@@ -63,6 +95,14 @@ def cwaAddVersion(service, deployContext, ucdToken, baseDir, name, date) {
     return request
 }
 
+/**
+ * @param service
+ * @param deployContext
+ * @param ucdToken
+ * @param name
+ * @param date
+ * @return
+ **/
 @NonCPS
 def apiCreateVersion(service, deployContext, ucdToken, name, date) {
     println "********************************"
@@ -83,6 +123,15 @@ def apiCreateVersion(service, deployContext, ucdToken, name, date) {
     return request
 }
 
+/**
+ * @param service
+ * @param deployContext
+ * @param ucdToken
+ * @param baseDir
+ * @param name
+ * @param date
+ * @return
+ */
 @NonCPS
 def apiAddVersion(service, deployContext, ucdToken, baseDir, name, date) {
     println "*****************************"
@@ -103,6 +152,14 @@ def apiAddVersion(service, deployContext, ucdToken, baseDir, name, date) {
     return request
 }
 
+/**
+ * @param service
+ * @param deployContext
+ * @param ucdToken
+ * @param name
+ * @param date
+ * @return
+ */
 @NonCPS
 def ucdSetVersionProperty(service, deployContext, ucdToken, name, date) {
     println "**************************************"
@@ -125,6 +182,14 @@ def ucdSetVersionProperty(service, deployContext, ucdToken, name, date) {
     return request
 }
 
+/**
+ * @param service
+ * @param deployContext
+ * @param ucdToken
+ * @param name
+ * @param date
+ * @return
+ */
 @NonCPS
 def ucdAddVersionLink(service, deployContext, ucdToken, name, date) {
 
@@ -147,6 +212,12 @@ def ucdAddVersionLink(service, deployContext, ucdToken, name, date) {
     return request
 }
 
+/**
+ * @param service
+ * @param deployContext
+ * @param ucdToken
+ * @return
+ */
 @NonCPS
 def ucdGenJSON(service, deployContext, ucdToken) {
     println "********************"
@@ -156,6 +227,12 @@ def ucdGenJSON(service, deployContext, ucdToken) {
     return jsonGenerator
 }
 
+/**
+ * @param deployContext
+ * @param ucdToken
+ * @param jsonFile
+ * @return
+ */
 @NonCPS
 def ucdDeploy(deployContext, ucdToken, jsonFile) {
     println "**************************"
@@ -169,6 +246,12 @@ def ucdDeploy(deployContext, ucdToken, jsonFile) {
     return request
 }
 
+/**
+ * @param deployContext
+ * @param ucdToken
+ * @param requestId
+ * @return
+ */
 @NonCPS
 def ucdStatus(deployContext, ucdToken, requestId) {
     println "********************"
@@ -182,6 +265,12 @@ def ucdStatus(deployContext, ucdToken, requestId) {
     return request
 }
 
+/**
+ * @param deployContext
+ * @param ucdToken
+ * @param requestId
+ * @return
+ */
 @NonCPS
 def ucdResult(deployContext, ucdToken, requestId) {
     println "********************"
@@ -193,6 +282,36 @@ def ucdResult(deployContext, ucdToken, requestId) {
     def ucdScript = "${ucdCmd} getApplicationProcessExecution -request ${requestId} "
     sh "${ucdScript}"
 }
+
+/**
+ * @param getVersion
+ * @param service
+ * @param name
+ * @return
+ */
+boolean getVersionsJson(getVersion, service, name) {
+    println "**************************"
+    println " Parsing UCD Version Info "
+    println "**************************"
+    def cfgVersion = service.runtime.binary.version
+    def cfgRevision = service.runtime.binary.revision[0..8]
+    def versionName = "${cfgVersion}-${cfgRevision}"
+
+    def versionData = "{ \"versions\": " + getVersion + "}"
+    def versionParser = new UCDVersionParser(versionData)
+
+    for (Object versionObject : versionParser.versions) {
+        UCDVersions ucdVersion = versionObject
+        println "Version Name :: " + ucdVersion.name
+        println "Version ID :: " + ucdVersion.id
+        if (ucdVersion.name == versionName) {
+            println "Component: ${name} :: Version: ${versionName} :: Already Uploaded :: Skipping"
+            return true
+        }
+    }
+    return false
+}
+
 
 /*
     udclient -weburl https://ucd.intranet.group -authtoken $UC_TOKEN  createVersion -component "DigitalMC_sales-pca-api Application" -name "${VERSION}-${vtime}" -description ${VERSION}-ear
