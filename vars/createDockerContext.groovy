@@ -19,8 +19,8 @@ def call(String name){
 			dockerIgnore = 'com/lbg/workflow/sandbox/docker/dockerignore.node'
 			break
 		case 'node610':
-			dockerFiles['Dockerfile.node610.allmodules'] = 'com/lbg/workflow/sandbox/docker/Dockerfile.node.allmodules.610'
-			dockerFiles['Dockerfile.node610.base'] = 'com/lbg/workflow/sandbox/docker/Dockerfile.node.base.610'
+			dockerFiles['Dockerfile.node.allmodules'] = 'com/lbg/workflow/sandbox/docker/Dockerfile.node.allmodules.610'
+			dockerFiles['Dockerfile.node.base'] = 'com/lbg/workflow/sandbox/docker/Dockerfile.node.base.610'
 			composeFile = 'com/lbg/workflow/sandbox/docker/docker-compose.node610.yml'
 			dockerIgnore = 'com/lbg/workflow/sandbox/docker/dockerignore.node'
 			break
