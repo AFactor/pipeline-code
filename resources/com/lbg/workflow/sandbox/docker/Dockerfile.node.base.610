@@ -24,7 +24,7 @@ RUN 	chown jenkins2:jenkins2  * -R && \
 		ln -s /home/jenkins2/instantclient_12_2/libclntsh.so.12.1 /home/jenkins2/instantclient_12_2/libclntsh.so  && \
     		ls -l /home/jenkins2/instantclient_12_2 && \
 		npm config set registry http://nexus.sandbox.extranet.group/nexus/content/groups/npm-master/ && \
-		npm install npm3 gulp yarn eslint -g && \
+		npm install npm3 gulp eslint -g && \
 		npm cache clean && \
 		rm -rf ~/.npm
 
