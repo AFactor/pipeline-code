@@ -34,7 +34,7 @@ def call(String application,
 	} catch(error) {
 		currentBuild.result = 'FAILURE'
 		throw error
-	}finally {
+	} finally {
 		if(notifyList?.trim()){
 			emailNotify { to = notifyList }
 		}
@@ -45,12 +45,16 @@ def call(String application,
 
 def callHandler(String application, handlers, String configuration) {
 	def targetCommit
+  def branch
+  def localBranchName
 	BuildContext context
 	BuildHandlers initializer
-	Utils  utils = new Utils()
+	Utils utils = new Utils()
 
 	node ('framework'){
 		checkout scm
+
+    localBranchName = sh(returnStdout: true, script: "git rev-parse --abbrev-ref HEAD").trim()
 		targetCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
 
 		stash  name: 'pipelines', includes: 'pipelines/**'
@@ -59,21 +63,27 @@ def callHandler(String application, handlers, String configuration) {
 		step([$class: 'WsCleanup', notFailBuild: true])
 	}
 
+  // env.BRANCH_NAME is only available in multibranch pipeline jobs
+  // to support scheduled pipeline jobs, we define and use local branch name
+  branch = env.BRANCH_NAME
+  if (branch == null) {
+    branch = localBranchName
+  }
 
-	if (env.BRANCH_NAME =~ /^patchset\/[0-9]*\/[0-9]*\/[0-9]*/ )  {
-		hawkPatchsetWorkflow(context, handlers, targetCommit)
-	} else if (env.BRANCH_NAME =~ /^sprint[0-9]+\/.+$/ || env.BRANCH_NAME =~ /^epic\/.+$/ ) {
-		hawkFeatureWorkflow( context, handlers, "ft-" + utils.friendlyName(env.BRANCH_NAME, 20))
-	} else if (env.BRANCH_NAME =~ /^release-prod.*$/ || env.BRANCH_NAME =~ /^releases\/.*$/ )  {
-		hawkIntegrationWorkflow( context, handlers, utils.friendlyName(env.BRANCH_NAME, 40))
-	} else if (env.BRANCH_NAME =~ /^master$/ )  {
-		hawkIntegrationWorkflow( context, handlers, 'master')
-	}  else if (env.BRANCH_NAME =~ /^hotfixes.*$/ )  {
-		hawkIntegrationWorkflow( context, handlers, utils.friendlyName(env.BRANCH_NAME, 40))
-	}  else if (env.BRANCH_NAME =~ /^develop$/ )  {
-		hawkIntegrationWorkflow( context, handlers, 'develop')
+	if (branch =~ /^patchset\/[0-9]*\/[0-9]*\/[0-9]*/ ) {
+		  hawkPatchsetWorkflow(context, handlers, targetCommit)
+	} else if (branch =~ /^sprint[0-9]+\/.+$/ || branch =~ /^epic\/.+$/ ) {
+		  hawkFeatureWorkflow(context, handlers, "ft-" + utils.friendlyName(branch, 20))
+	} else if (branch =~ /^release-prod.*$/ || branch =~ /^releases\/.*$/ ) {
+		  hawkIntegrationWorkflow(context, handlers, utils.friendlyName(branch, 40))
+	} else if (branch =~ /^master$/ ) {
+		  hawkIntegrationWorkflow(context, handlers, 'master')
+	} else if (branch =~ /^hotfixes.*$/ ) {
+		  hawkIntegrationWorkflow(context, handlers, utils.friendlyName(branch, 40))
+	} else if (branch =~ /^develop$/ ) {
+		  hawkIntegrationWorkflow(context, handlers, 'develop')
 	} else {
-		echo "We dont know how to build this branch. Stopping"
+      echo "We dont know how to build this branch. Stopping."
 	}
 	echo "End deployment cycle"
 }
