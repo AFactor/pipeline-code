@@ -18,10 +18,9 @@ private def uploadService(deployContext) {
         echo "parallel deployments $uploads"
         parallel uploads
     } catch (error) {
-        def notice = new phoenixNotifyStage()
         echo "Deploy Service Failure $error.message"
         currentBuild.result = 'FAILURE'
-        notice.notify(deployContext)
+        phoenixNotifyStage.notify(deployContext)
         throw error
     } finally {
     }
@@ -46,7 +45,7 @@ private def deployService(deployContext) {
     } catch (error) {
         echo "Deploy Service Failure $error.message"
         currentBuild.result = 'FAILURE'
-        notify(deployContext)
+        phoenixNotifyStage.notify(deployContext)
         throw error
     } finally {
     }
@@ -59,7 +58,7 @@ private def deployProxy(deployContext) {
         } catch (error) {
             echo "Deploy Proxy Failure  $error.message"
             currentBuild.result = 'FAILURE'
-            notify(deployContext)
+            phoenixNotifyStage.notify(deployContext)
             throw error
         } finally {
         }
