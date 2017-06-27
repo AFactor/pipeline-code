@@ -312,6 +312,32 @@ boolean getVersionsJson(getVersion, service, name) {
     return false
 }
 
+/**
+ *
+ * @param getVersion
+ * @param service
+ * @param name
+ * @return
+ */
+def getLatestVersionUploadJson(getVersion, service, name) {
+    println "**************************"
+    println " Parsing UCD Version Info "
+    println "**************************"
+    def cfgVersion = service.runtime.binary.version
+    def cfgRevision = service.runtime.binary.revision[0..8]
+    def versionName = "${cfgVersion}-${cfgRevision}"
+
+    def versionData = "{ \"versions\": " + getVersion + "}"
+    def versionParser = new UCDVersionParser(versionData)
+
+    for (Object versionObject : versionParser.versions) {
+        UCDVersions ucdVersion = versionObject
+        println "Checking Version Name: " + ucdVersion.name + " is Active and Not Archived"
+        if ((ucdVersion.active == true) && (ucdVersion.archived == false)) {
+            return ucdVersion.name
+        }
+    }
+}
 
 /*
     udclient -weburl https://ucd.intranet.group -authtoken $UC_TOKEN  createVersion -component "DigitalMC_sales-pca-api Application" -name "${VERSION}-${vtime}" -description ${VERSION}-ear

@@ -44,6 +44,11 @@ class DeployContext implements Serializable {
      */
     HashMap proxy
 
+    /**
+     * deployment tests Hashmap
+     */
+    HashMap tests
+
     DeployContext() {
     }
 
@@ -54,6 +59,7 @@ class DeployContext implements Serializable {
         this.label = config.label
         this.deployment = config.deployment
         this.metadata = config.metadata
+        this.tests = config.tests
         this.proxy = config.proxy
         def dc = new DeployContext(config) // avoid lazymap issues
         this.services = dc.services
@@ -77,6 +83,7 @@ class DeployContext implements Serializable {
                 ", env='" + env + '\'' +
                 ", label='" + label + '\'' +
                 ", metadata='" + metadata + '\'' +
+                ", tests='" + tests + '\'' +
                 ", services=" + services +
                 ", deployment=" + deployment +
                 ", components=" + components +

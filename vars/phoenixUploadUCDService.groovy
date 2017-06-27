@@ -11,6 +11,12 @@ def call(service, deployContext, ucdToken) {
         case 'api':
             apiUpload(service,deployContext,ucdToken)
             break
+        case 'salsa':
+            apiUpload(service,deployContext,ucdToken)
+            break
+        case 'mca':
+            apiUpload(service,deployContext,ucdToken)
+            break
         default:
             phoenixLogger(1, "No Service Type definition found for ${service.name}", 'star')
             throw new Exception("Error: No Service Type provided")

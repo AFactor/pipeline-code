@@ -26,6 +26,14 @@ def call(service, deployContext, jobType) {
                                     apiArtifactPath(service)
                                     apiExtract(service, deployContext)
                                     break
+                                case 'salsa':
+                                    apiArtifactPath(service)
+                                    apiExtract(service, deployContext)
+                                    break
+                                case 'mca':
+                                    apiArtifactPath(service)
+                                    apiExtract(service, deployContext)
+                                    break
                                 default:
                                     bluemixExtract(service)
                                     break

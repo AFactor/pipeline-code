@@ -82,6 +82,18 @@ private def artifactTag(service) {
             def appName = "${version} - ${revision}"
             return appName
             break
+        case 'mca':
+            def version = service.runtime.binary.version
+            def revision = service.runtime.binary.revision
+            def appName = "${version} - ${revision}"
+            return appName
+            break
+        case 'salsa':
+            def version = service.runtime.binary.version
+            def revision = service.runtime.binary.revision
+            def appName = "${version} - ${revision}"
+            return appName
+            break
         case 'bluemix':
             def artifact = service.runtime.binary.artifact
             def artifactName = artifact.substring(artifact.lastIndexOf('/') + 1, artifact.length())
