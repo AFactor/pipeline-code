@@ -152,7 +152,7 @@ private def bddCall (credentials, gitRepo, gitUrl, gitRef, targetBranch) {
     } catch (error) {
         phoenixLogger(1, "api BDD Test Stage Failure $error.message", 'star')
         currentBuild.result = 'FAILURE'
-        phoenixNotifyStage.notify(deployContext)
+        phoenixNotifyStage().notify(deployContext)
         throw error
     }
 }
@@ -169,7 +169,7 @@ private def deployTest(deployContext) {
             } catch (error) {
                 phoenixLogger(1, "Test Stage Failure $error.message", 'star')
                 currentBuild.result = 'FAILURE'
-                phoenixNotifyStage.notify(deployContext)
+                phoenixNotifyStage().notify(deployContext)
                 throw error
             } finally {
             }
@@ -177,7 +177,7 @@ private def deployTest(deployContext) {
         default:
             phoenixLogger(1, "No Deployment Type provided", 'star')
             currentBuild.result = 'FAILURE'
-            phoenixNotifyStage.notify(deployContext)
+            phoenixNotifyStage().notify(deployContext)
             throw new Exception("Error: No Deployment Type provided")
             break
     }

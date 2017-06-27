@@ -20,7 +20,7 @@ private def uploadService(deployContext) {
     } catch (error) {
         echo "Deploy Service Failure $error.message"
         currentBuild.result = 'FAILURE'
-        phoenixNotifyStage.notify(deployContext)
+        phoenixNotifyStage().notify(deployContext)
         throw error
     } finally {
     }
@@ -45,7 +45,7 @@ private def deployService(deployContext) {
     } catch (error) {
         echo "Deploy Service Failure $error.message"
         currentBuild.result = 'FAILURE'
-        phoenixNotifyStage.notify(deployContext)
+        phoenixNotifyStage().notify(deployContext)
         throw error
     } finally {
     }
@@ -58,7 +58,7 @@ private def deployProxy(deployContext) {
         } catch (error) {
             echo "Deploy Proxy Failure  $error.message"
             currentBuild.result = 'FAILURE'
-            phoenixNotifyStage.notify(deployContext)
+            phoenixNotifyStage().notify(deployContext)
             throw error
         } finally {
         }
