@@ -2,7 +2,7 @@ import com.lbg.workflow.sandbox.deploy.phoenix.DeployContext
 import com.lbg.workflow.sandbox.deploy.phoenix.Service
 import com.lbg.workflow.sandbox.JobStats
 
-def call(String configuration, tests) {
+def call(String configuration) {
 
     DeployContext deployContext
 
@@ -31,12 +31,11 @@ def call(String configuration, tests) {
         switch (deployContext.deployment.type) {
             case 'ucd':
                 stage('environment Check') {
-                    testStage.envCheck(deployContext)
+                    phoenixLogger(3, "Environment Checks Carried out by PRE-BDD Stage", 'dash')
                 }
                 milestone(label: 'Environment Check')
                 stage('pre-BDD Check') {
-                    phoenixLogger(3, "Skipping Pre-BDD For Now", 'star')
-                    //testStage.bddTests(deployContext, tests, 'pre-BDD')
+                    testStage.apiBddTests(deployContext, 'pre-BDD')
                 }
                 milestone(label: 'Pre BDD Checks Complete')
                 stage('upload Services') {
@@ -48,7 +47,7 @@ def call(String configuration, tests) {
                 }
                 milestone(label: 'Deployed Services')
                 stage('post-BDD Check') {
-                    testStage.bddTests(deployContext, tests, 'post-BDD')
+                    testStage.apiBddTests(deployContext, 'post-BDD')
                 }
                 milestone(label: 'Post BDD Checks Complete')
                 stage('Test') {

@@ -1,65 +1,162 @@
+import com.lbg.workflow.sandbox.deploy.phoenix.Components
 import com.lbg.workflow.sandbox.deploy.phoenix.Service
+import com.lbg.workflow.sandbox.BuildContext
+import com.lbg.workflow.sandbox.deploy.UtilsUCD
 
-private def envCheck(deployContext) {
-    return null
-}
-
-private def bddTests(deployContext, testFiles, milestone) {
+private def apiBddTests (deployContext, stage) {
     for (Object serviceObject : deployContext.services) {
         Service service = serviceObject
         if (service.deploy) {
-            switch(service.type) {
-                case 'api':
-                    apiBddCheck(deployContext, service, testFiles, milestone)
-                    break
-                case 'salsa':
-                    phoenixLogger(3, "Currently No Tests Defined For: ${milestone} :: Skipping", 'star')
-                    //salsaBddCheck(deployContext, service, testFiles, milestone)
-                    break
-                case 'cwa':
-                    phoenixLogger(3, "Currently No Tests Defined For: ${milestone} :: Skipping", 'star')
-                    break
-                default:
-                    phoenixLogger(1, " Error: No Service Type provided  ", 'star')
-                    throw new Exception("Error: No Service Type provided")
-                    break
+            node(deployContext.label) {
+                switch(service.type) {
+                    case 'api':
+                        switch (stage) {
+                            case 'pre-BDD':
+                                if (deployContext.tests.pre_bdd) {
+                                    preBddCheck(deployContext, service)
+                                }
+                                break
+                            case 'post-BDD':
+                                if (deployContext.tests.post_bdd) {
+                                    postBddCheck(deployContext, service)
+                                }
+                                break
+                            default:
+                                phoenixLogger(2, "Stage: ${stage} :: Not Found :: Skipping", 'dash')
+                                return null
+                                break
+                        }
+                        break
+                    case 'mca':
+                        switch (stage) {
+                            case 'pre-BDD':
+                                if (deployContext.tests.pre_bdd) {
+                                    preBddCheck(deployContext, service)
+                                }
+                                break
+                            case 'post-BDD':
+                                if (deployContext.tests.post_bdd) {
+                                    postBddCheck(deployContext, service)
+                                }
+                                break
+                            default:
+                                phoenixLogger(2, "Stage: ${stage} :: Not Found :: Skipping", 'dash')
+                                return null
+                                break
+                        }
+                        break
+                    case 'salsa':
+                        switch (stage) {
+                            case 'pre-BDD':
+                                if (deployContext.tests.pre_bdd) {
+                                    preBddCheck(deployContext, service)
+                                }
+                                break
+                            case 'post-BDD':
+                                if (deployContext.tests.post_bdd) {
+                                    postBddCheck(deployContext, service)
+                                }
+                                break
+                            default:
+                                phoenixLogger(2, "Stage: ${stage} :: Not Found :: Skipping", 'dash')
+                                return null
+                                break
+                        }
+                        break
+                    case 'cwa':
+                        switch (stage) {
+                            case 'pre-BDD':
+                                if (deployContext.tests.pre_bdd) {
+                                    preBddCheck(deployContext, service)
+                                }
+                                break
+                            case 'post-BDD':
+                                if (deployContext.tests.post_bdd) {
+                                    postBddCheck(deployContext, service)
+                                }
+                                break
+                            default:
+                                phoenixLogger(2, "Stage: ${stage} :: Not Found :: Skipping", 'dash')
+                                return null
+                                break
+                        }
+                        break
+                    default:
+                        phoenixLogger(1, " Error: No Service Type provided  ", 'star')
+                        throw new Exception("Error: No Service Type provided")
+                        break
+                }
             }
         } else {
-            phoenixLogger(3, "Deployment Is Disabled Skipping ${milestone}", 'star')
+            phoenixLogger(3, "Deployment Is Disabled Skipping ${stage}", 'star')
         }
     }
 
 }
 
-private def salsaBddCheck(deployContext, service, testFiles) {
-    return null
+private def preBddCheck(deployContext, service) {
+    withCredentials([string(credentialsId: deployContext.deployment.credentials, variable: 'ucdToken')]) {
+        withEnv(['PATH+bin=/bin', 'PATH+usr=/usr/bin', 'PATH+local=/usr/local/bin', 'JAVA_HOME=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64']) {
+            def utils = new UtilsUCD()
+            def gitRepo = deployContext.tests.repo
+            def gitUrl = "http://gerrit.sandbox.extranet.group/${gitRepo}"
+            def name = ''
+            for (Object componentObject : service.components) {
+                Components comp = componentObject
+                name = comp.name
+            }
+            def ucdUrl = deployContext.deployment.ucd_url
+            def wgetCmd = 'wget --no-check-certificate --quiet'
+            sh """${wgetCmd} ${ucdUrl}/tools/udclient.zip ; \\
+                                  unzip -o udclient.zip """
+            def getVersion = utils.ucdComponentVersion(deployContext, ucdToken, name)
+            def uploadedVersion = utils.getLatestVersionUploadJson(getVersion, service, name)
+            def gitRef = uploadedVersion.trim().split('-').last().trim()
+            def branch = deployContext.tests.branch
+            def credentials = deployContext.tests.credentials
+            phoenixLogger(4, "Git Reference: ${gitRef} :: Branch: ${branch} :: credentials ${credentials}", 'dash')
+            bddCall(credentials, gitRepo, gitUrl, gitRef, branch)
+        }
+    }
 }
 
-private def apiBddCheck(deployContext, service, testFiles, milestone) {
-    def tests = []
-    def testSchedule = [:]
-    for (String test: testFiles) {
-        echo "Loading ${test}"
-        tests.add( load("${test}"))
+private def postBddCheck(deployContext, service) {
+    withEnv(['PATH+bin=/bin', 'PATH+usr=/usr/bin', 'PATH+local=/usr/local/bin', 'JAVA_HOME=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64']) {
+        def gitRepo = deployContext.tests.repo
+        def gitUrl = "http://gerrit.sandbox.extranet.group/${gitRepo}"
+        def gitRef = service.runtime.binary.revision
+        def branch = deployContext.tests.branch
+        def credentials = deployContext.tests.credentials
+        bddCall(credentials, gitRepo, gitUrl, gitRef, branch)
     }
+}
 
-    for (Object testClass: tests) {
-        def currentTest = testClass
-        version = service.runtime.binary.version
-        testSchedule[currentTest.name()] = { currentTest.runTest(version, deployContext) }
-    }
-    try{
-        parallel testSchedule
-        milestone (label: milestone)
+
+private def bddCall (credentials, gitRepo, gitUrl, gitRef, targetBranch) {
+    def testDir = "${env.WORKSPACE}"
+    def filePath = testDir + "/pipelines/tests/bdd.groovy"
+    def bddConfig = testDir + "/pipelines/conf/job-configuration.json"
+    BuildContext context
+    checkout([$class                           : 'GitSCM',
+              branches                         : [[name: "${gitRef}"]],
+              doGenerateSubmoduleConfigurations: false,
+              extensions                       : [[$class: 'CleanCheckout']],
+              submoduleCfg                     : [],
+              userRemoteConfigs                : [[credentialsId: "${credentials}", url: "${gitUrl}"]]
+    ])
+
+    try {
+        context = new BuildContext(readFile(bddConfig))
+        load(filePath).runTest(targetBranch, context)
+        milestone(label: "BDD Test Done")
     } catch (error) {
         phoenixLogger(1, "api BDD Test Stage Failure $error.message", 'star')
         currentBuild.result = 'FAILURE'
-        notify(deployContext)
+        phoenixNotifyStage().notify(deployContext)
         throw error
-    } finally {
     }
-    return null
 }
+
 
 private def deployTest(deployContext) {
     switch(deployContext.deployment.type) {
@@ -72,7 +169,7 @@ private def deployTest(deployContext) {
             } catch (error) {
                 phoenixLogger(1, "Test Stage Failure $error.message", 'star')
                 currentBuild.result = 'FAILURE'
-                notify(deployContext)
+                phoenixNotifyStage().notify(deployContext)
                 throw error
             } finally {
             }
@@ -80,10 +177,14 @@ private def deployTest(deployContext) {
         default:
             phoenixLogger(1, "No Deployment Type provided", 'star')
             currentBuild.result = 'FAILURE'
-            notify(deployContext)
+            phoenixNotifyStage().notify(deployContext)
             throw new Exception("Error: No Deployment Type provided")
             break
     }
+}
+
+private def envCheck(deployContext) {
+    return null
 }
 
 return this;
