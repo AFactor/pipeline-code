@@ -83,6 +83,15 @@ def call(String configuration) {
 
     } //End Lock
 
+
+    milestone(label: 'Tag')
+    stage('Tag') {
+        currentBuild.result = 'SUCCESS'
+        tag(deployContext)
+        echo "Finished"
+    }
+
+
     milestone(label: 'Notify')
     stage('Notify') {
         currentBuild.result = 'SUCCESS'
@@ -90,6 +99,48 @@ def call(String configuration) {
         echo "Finished"
     }
 }
+
+
+private def tag(deployContext) {
+
+    if (currentBuild.result == 'SUCCESS' &&
+            null != deployContext?.metadata?.tag?.enabled  &&
+            deployContext.metadata.tag.enabled.toBoolean() &&
+              {
+        echo "git tag"
+        node {
+            // get the latest version (if any)
+            sh 'git describe --tags $(git rev-list --tags --max-count=1) > version.tmp'
+            def currentVersion = readFile 'version.tmp'
+            def version =""
+
+              echo 'found current tagged version ' + currentVersion
+              try {
+
+                      def microVersion = currentVersion.substring(currentVersion.lastIndexOf('.')+1) as int
+                      version = currentVersion.substring(0, currentVersion.lastIndexOf('.')+1) + (microVersion+1)
+
+                        echo "going from ${currentVersion} using new version " +  version
+                        // push incremented tag
+                        sh "git tag '${version}'"
+                        sh 'git push --tags'
+
+                        sh 'git describe --tags $(git rev-list --tags --max-count=1) > newversion.tmp'
+                        def newVersion = readFile 'newversion.tmp'
+                        echo 'tagged version ' + newVersion
+
+                  } catch (err) {
+                    echo "TAG: no existing tag found or tagging failed"
+
+                  }
+
+        }
+
+
+    }
+}
+
+
 
 private def notify(deployContext) {
 
