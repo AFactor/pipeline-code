@@ -6,6 +6,8 @@ def call(String configuration) {
 
     DeployContext deployContext
 
+    print "--------------------------------- $params -----------------------------------------"
+
     stage('Initialize') {
         node() {
             deleteDir()
@@ -18,6 +20,18 @@ def call(String configuration) {
                 currentBuild.result = 'FAILURE'
                 phoenixNotifyStage().notify(deployContext)
                 throw error
+            }
+            // overriding deploy context values with the values provided via params above
+            if(params.containsKey('artifactName')) {
+                deployContext.deployment.process = params.process
+                deployContext.tests.pre_bdd = convertYesNoToBoolean(params.pre_bdd)
+                deployContext.tests.post_bdd = convertYesNoToBoolean(params.post_bdd)
+
+                for (def service in deployContext.services) {
+                    service.deploy = convertYesNoToBoolean(params.deploy)
+                    service.upload = convertYesNoToBoolean(params.upload)
+                    service.runtime.binary.artifactName = params.artifactName
+                }
             }
             echo "Deploy Context " + deployContext.toString()
         }
@@ -102,6 +116,10 @@ private def isValid(name, value) {
     if (!value) {
         error "$name config must be defined"
     }
+}
+
+private boolean convertYesNoToBoolean(value){
+    return value == 'yes'
 }
 
 return this;

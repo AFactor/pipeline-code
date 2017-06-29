@@ -30,7 +30,7 @@ private def notify(deployContext) {
                             variable: 'CONFLUENCE_CREDENTIALS')
             ]) {
                 try {
-                    for (Service service : deployContext.services) {
+                    for (def service in deployContext.services) {
                         confluencePublisher(
                                 deployContext.metadata.confluence.server,
                                 deployContext.metadata.confluence.page,
@@ -101,18 +101,17 @@ private def bluemixPage(service, deployContext) {
 }
 
 private def cwaPage(service, deployContext) {
-    def version = service.runtime.binary.version
-    def revision = service.runtime.binary.revision
-    def versionPath = "${version}-${revision}"
     def compNames = []
     artifactSet = new phoenixDeployService()
     artifactSet.cwaArtifactPath(service)
     def artifact = service.runtime.binary.artifact
     def artifactName = service.runtime.binary.artifactName
+    def version = service.runtime.binary.version
+    def revision = service.runtime.binary.revision
+    def versionPath = "${version}-${revision}"
     def date = new Date().format("yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone('UTC'))
-    for (Object comp : service.components) {
-        def components = comp
-        compNames.add(components.name)
+    for (def comp in service.components) {
+        compNames.add(comp.name)
     }
     def page = """
     <table border="1">
@@ -139,9 +138,8 @@ private def apiPage(service, deployContext) {
     def artifact = service.runtime.binary.artifact
     def artifactName = service.runtime.binary.artifactName
     def date = new Date().format("yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone('UTC'))
-    for (Object comp : service.components) {
-        def components = comp
-        compNames.add(components.name)
+    for (def comp in service.components) {
+        compNames.add(comp.name)
     }
     def page = """
     <table border="1">

@@ -3,8 +3,7 @@ import com.lbg.workflow.sandbox.deploy.phoenix.Service
 
 private def uploadService(deployContext) {
     def uploads = [:]
-    for (Object serviceObject : deployContext.services) {
-        Service service = serviceObject
+    for (def service in deployContext.services) {
         if (service.upload) {
             echo "service $service.name"
             uploads["${service.name}: ${artifactTag(service)}"] = {
@@ -70,28 +69,20 @@ private def deployProxy(deployContext) {
 private def artifactTag(service) {
     switch(service.type){
         case 'cwa':
-            def version = service.runtime.binary.version
-            def revision = service.runtime.binary.revision
-            def appName = "${version} - ${revision}"
-            return appName
+            def appName = service.runtime.binary.artifactName
+            return appName.split(/\./)[0]
             break
         case 'api':
-            def version = service.runtime.binary.version
-            def revision = service.runtime.binary.revision
-            def appName = "${version} - ${revision}"
-            return appName
+            def appName = service.runtime.binary.artifactName
+            return appName.split(/\./)[0]
             break
         case 'mca':
-            def version = service.runtime.binary.version
-            def revision = service.runtime.binary.revision
-            def appName = "${version} - ${revision}"
-            return appName
+            def appName = service.runtime.binary.artifactName
+            return appName.split(/\./)[0]
             break
         case 'salsa':
-            def version = service.runtime.binary.version
-            def revision = service.runtime.binary.revision
-            def appName = "${version} - ${revision}"
-            return appName
+            def appName = service.runtime.binary.artifactName
+            return appName.split(/\./)[0]
             break
         case 'bluemix':
             def artifact = service.runtime.binary.artifact

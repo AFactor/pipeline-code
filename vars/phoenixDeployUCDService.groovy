@@ -26,9 +26,9 @@ def call(service, deployContext, ucdToken) {
         if (status == "ERROR" || status == "FAILED") {
             break
         }
-        // 15 sec per run - 120 counts should be 30 minutes
-        // if it cant deploy in 30 minutes - there must be an issue
-        if (statChecker > 120) {
+        // 15 sec per run - 360 counts should be 1 hour 30 minutes
+        // if it cant deploy in 1 hour 30 minutes - there must be an issue
+        if (statChecker > 360) {
             status == "TIMEOUT"
             break
         }
@@ -38,7 +38,8 @@ def call(service, deployContext, ucdToken) {
     if (status == "CLOSED") {
         utils.ucdResult(deployContext, ucdToken, requestId)
     } else {
-        throw new Exception ("Error Deployment :: ${status}")
+        //throw new Exception ("Error Deployment :: ${status}")
+        phoenixLogger(1, "Status :: ${status}", 'star')
     }
 }
 

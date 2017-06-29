@@ -15,11 +15,12 @@ class ServiceRuntimeBinary implements Serializable  {
     String toString() {
         return "ServiceRuntimeBinary{" +
                 "artifact='" + artifact + '\'' +
-                "git_sha(revision)='" + revision + '\'' +
-                "version='" + version + '\'' +
-                "git_branch(branch)='" + branch + '\'' +
-                "extension='" + extension + '\'' +
-                "name='" + artifactName + '\'' +
+                ", artifactName='" + artifactName + '\'' +
+                ", git_sha(revision)='" + revision + '\'' +
+                ", version='" + version + '\'' +
+                ", git_branch(branch)='" + branch + '\'' +
+                ", extension='" + extension + '\'' +
+                ", name='" + name + '\'' +
                 '}'
     }
 }
