@@ -105,7 +105,7 @@ private def tag(deployContext) {
 
     if (currentBuild.result == 'SUCCESS' &&
             null != deployContext?.metadata?.tag?.enabled  &&
-            deployContext.metadata.tag.enabled.toBoolean())
+            deployContext.metadata.tag.enabled == true )
               {
         echo "git tag"
         node {
