@@ -129,7 +129,12 @@ private void cwaArtifactPath(service) {
     if (!srvBin.artifact) {
         def nameComp = srvBin.artifactName.split(/\./)
         srvBin.extension = srvBin.artifactName.split(nameComp[0]).last()
-        srvBin.version = nameComp[0].split('-').last()
+        def lastDash = nameComp[0].split('-').last()
+        if (lastDash =~ /\w{7}/) {
+            srvBin.version = srvBin.artifactName.split(nameComp[0])[-2]
+        } else {
+            srvBin.version = lastDash
+        }
         def verDash = '-' + srvBin.version
         srvBin.name = nameComp[0].split(verDash)[0]
         srvBin.artifactName = srvBin.name + "-" + srvBin.version + srvBin.extension
