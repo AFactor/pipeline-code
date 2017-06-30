@@ -137,7 +137,6 @@ private void cwaArtifactPath(service) {
         }
         def verDash = '-' + srvBin.version
         srvBin.name = nameComp[0].split(verDash)[0]
-        srvBin.artifactName = srvBin.name + "-" + srvBin.version + srvBin.extension
         srvBin.artifact = srvBin.nexus_url + "/" + srvBin.artifactName
         phoenixLogger(3, "Paths : Updated Configuration ::  ${service}", 'dash' )
     }
@@ -154,7 +153,6 @@ private void apiArtifactPath(service) {
         srvBin.version = nameComp[0].split('-').last()
         def verDash = '-' + srvBin.version
         srvBin.name = nameComp[0].split(verDash)[0]
-        srvBin.artifactName = srvBin.name + "-" + srvBin.version + srvBin.extension
         srvBin.artifact = srvBin.nexus_url + "/" + srvBin.version + "/" + srvBin.artifactName
     }
 
