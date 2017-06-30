@@ -9,11 +9,7 @@ def call(service, deployContext, ucdToken) {
             cwaUpload(service,deployContext,ucdToken)
             break
         case 'api':
-            apiUpload(service,deployContext,ucdToken)
-            break
         case 'salsa':
-            apiUpload(service,deployContext,ucdToken)
-            break
         case 'mca':
             apiUpload(service,deployContext,ucdToken)
             break
@@ -32,7 +28,6 @@ private def cwaUpload(service, deployContext, ucdToken) {
         def name = comp.name
         def date = new Date().format("ddMMyyyyHHMM", TimeZone.getTimeZone('UTC'))
         phoenixLogger(5,"Base Dir: ${baseDir} :: Name: ${name}", "dash")
-        //def getVersion = "{ \"versions\": " + utils.ucdComponentVersion(deployContext, ucdToken, name) + "}"
         def getVersion = utils.ucdComponentVersion(deployContext, ucdToken, name)
 
         def versionStatus = utils.getVersionsJson(getVersion, service, name)
@@ -73,11 +68,4 @@ private def apiUpload(service, deployContext, ucdToken) {
         }
     }
 }
-
-/*
-    if (getVersion == "") {
-    } else {
-        phoenixLogger(3,"Skipping Component: ${name} :: Already Deployed", "star")
-    }
- */
 

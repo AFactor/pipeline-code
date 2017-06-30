@@ -101,34 +101,21 @@ private def bluemixPage(service, deployContext) {
 }
 
 private def cwaPage(service, deployContext) {
-    def compNames = []
+
     artifactSet = new phoenixDeployService()
     artifactSet.cwaArtifactPath(service)
-    def artifact = service.runtime.binary.artifact
-    def artifactName = service.runtime.binary.artifactName
-    def version = service.runtime.binary.version
-    def revision = service.runtime.binary.revision
-    def versionPath = "${version}-${revision}"
-    def date = new Date().format("yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone('UTC'))
-    for (def comp in service.components) {
-        compNames.add(comp.name)
-    }
-    def page = """
-    <table border="1">
-    <tr>
-       <td><strong>Date:</strong>${date}</td>
-       <td><strong>Jenkins Build Number: </strong><a href="${env.BUILD_URL}">${env.BUILD_NUMBER}</a></td>
-       <td><strong>Environment: </strong><br/>$deployContext.env</td>
-       <td><strong>Component Version: </strong> ${version}</td>
-       <td><strong>Component Revision: </strong> ${versionPath}</td>
-       <td><strong>Components: </strong> ${compNames}</td>
-       <td><strong>Artifact: </strong><a href="${artifact}">${artifactName}</a></td>
-    </tr>
-    </table> """
-    return page
+
+    return UCDPage(service, deployContext)
 }
 
 private def apiPage(service, deployContext) {
+    artifactSet = new phoenixDeployService()
+    artifactSet.apiArtifactPath(service)
+
+    return UCDPage(service, deployContext)
+}
+
+def UCDPage(service, deployContext){
     def version = service.runtime.binary.version
     def revision = service.runtime.binary.revision
     def versionPath = "${version}-${revision}"

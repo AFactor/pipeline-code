@@ -10,59 +10,8 @@ private def apiBddTests (deployContext, stage) {
             node(deployContext.label) {
                 switch(service.type) {
                     case 'api':
-                        switch (stage) {
-                            case 'pre-BDD':
-                                if (deployContext.tests.pre_bdd) {
-                                    preBddCheck(deployContext, service)
-                                }
-                                break
-                            case 'post-BDD':
-                                if (deployContext.tests.post_bdd) {
-                                    postBddCheck(deployContext, service)
-                                }
-                                break
-                            default:
-                                phoenixLogger(2, "Stage: ${stage} :: Not Found :: Skipping", 'dash')
-                                return null
-                                break
-                        }
-                        break
                     case 'mca':
-                        switch (stage) {
-                            case 'pre-BDD':
-                                if (deployContext.tests.pre_bdd) {
-                                    preBddCheck(deployContext, service)
-                                }
-                                break
-                            case 'post-BDD':
-                                if (deployContext.tests.post_bdd) {
-                                    postBddCheck(deployContext, service)
-                                }
-                                break
-                            default:
-                                phoenixLogger(2, "Stage: ${stage} :: Not Found :: Skipping", 'dash')
-                                return null
-                                break
-                        }
-                        break
                     case 'salsa':
-                        switch (stage) {
-                            case 'pre-BDD':
-                                if (deployContext.tests.pre_bdd) {
-                                    preBddCheck(deployContext, service)
-                                }
-                                break
-                            case 'post-BDD':
-                                if (deployContext.tests.post_bdd) {
-                                    postBddCheck(deployContext, service)
-                                }
-                                break
-                            default:
-                                phoenixLogger(2, "Stage: ${stage} :: Not Found :: Skipping", 'dash')
-                                return null
-                                break
-                        }
-                        break
                     case 'cwa':
                         switch (stage) {
                             case 'pre-BDD':
@@ -97,42 +46,37 @@ private def apiBddTests (deployContext, stage) {
 private def preBddCheck(deployContext, service) {
     withCredentials([string(credentialsId: deployContext.deployment.credentials, variable: 'ucdToken')]) {
         withEnv(['PATH+bin=/bin', 'PATH+usr=/usr/bin', 'PATH+local=/usr/local/bin', 'JAVA_HOME=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64']) {
-            def utils = new UtilsUCD()
-            def gitRepo = deployContext.tests.repo
-            def gitUrl = "http://gerrit.sandbox.extranet.group/${gitRepo}"
-            def name = ''
+            UtilsUCD utils = new UtilsUCD()
+            String gitUrl = "http://gerrit.sandbox.extranet.group/${deployContext.tests.repo}"
+            String name = ''
+
+            //What is going on here what are we setting cos only getting done once
             for (Object componentObject : service.components) {
                 Components comp = componentObject
                 name = comp.name
             }
-            def ucdUrl = deployContext.deployment.ucd_url
-            def wgetCmd = 'wget --no-check-certificate --quiet'
-            sh """${wgetCmd} ${ucdUrl}/tools/udclient.zip ; \\
-                                  unzip -o udclient.zip """
-            def getVersion = utils.ucdComponentVersion(deployContext, ucdToken, name)
-            def uploadedVersion = utils.getLatestVersionUploadJson(getVersion, service, name)
-            def gitRef = uploadedVersion.trim().split('-').last().trim()
-            def branch = deployContext.tests.branch
+            utils.install(deployContext)
+            gitRef = getGitReferenceFromVersion(deployContext, ucdToken, name, service)
+
+            String branch = deployContext.tests.branch
             def credentials = deployContext.tests.credentials
             phoenixLogger(4, "Git Reference: ${gitRef} :: Branch: ${branch} :: credentials ${credentials}", 'dash')
-            bddCall(credentials, gitRepo, gitUrl, gitRef, branch)
+            bddCall(credentials, gitUrl, gitRef, branch)
         }
     }
 }
 
 private def postBddCheck(deployContext, service) {
     withEnv(['PATH+bin=/bin', 'PATH+usr=/usr/bin', 'PATH+local=/usr/local/bin', 'JAVA_HOME=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64']) {
-        def gitRepo = deployContext.tests.repo
-        def gitUrl = "http://gerrit.sandbox.extranet.group/${gitRepo}"
+        def gitUrl = "http://gerrit.sandbox.extranet.group/${deployContext.tests.repo}"
         def gitRef = service.runtime.binary.revision
         def branch = deployContext.tests.branch
         def credentials = deployContext.tests.credentials
-        bddCall(credentials, gitRepo, gitUrl, gitRef, branch)
+        bddCall(credentials, gitUrl, gitRef, branch)
     }
 }
 
-
-private def bddCall (credentials, gitRepo, gitUrl, gitRef, targetBranch) {
+private def bddCall (credentials, gitUrl, gitRef, targetBranch) {
     def testDir = "${env.WORKSPACE}"
     def filePath = testDir + "/pipelines/tests/bdd.groovy"
     def bddConfig = testDir + "/pipelines/conf/job-configuration.json"
@@ -186,5 +130,13 @@ private def deployTest(deployContext) {
 private def envCheck(deployContext) {
     return null
 }
+
+private String getGitReferenceFromVersion(deployContext, ucdToken, name, service){
+    UtilsUCD utils = new UtilsUCD()
+    def getVersion = utils.ucdComponentVersion(deployContext, ucdToken, name)
+    def uploadedVersion = utils.getLatestVersionUploadJson(getVersion, service, name)
+    return uploadedVersion.trim().split('-').last().trim()
+}
+
 
 return this;

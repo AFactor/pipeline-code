@@ -1,5 +1,4 @@
-import com.lbg.workflow.sandbox.deploy.phoenix.Components
-import com.lbg.workflow.ucd.UDClient
+import com.lbg.workflow.sandbox.deploy.UtilsUCD
 
 def call(service, deployContext, jobType) {
     println "Deploying service ${service.name}"
@@ -14,10 +13,8 @@ def call(service, deployContext, jobType) {
                         withEnv(['PATH+bin=/bin', 'PATH+usr=/usr/bin', 'PATH+local=/usr/local/bin', 'JAVA_HOME=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64']) {
                             checkout scm
                             phoenixLogger(3, "Downloading UCD Deployment", 'dash')
-                            def ucdUrl = deployContext.deployment.ucd_url
-                            def wgetCmd = 'wget --no-check-certificate --quiet'
-                            sh """${wgetCmd} ${ucdUrl}/tools/udclient.zip ; \\
-                                  unzip -o udclient.zip """
+                            UtilsUCD utils = new UtilsUCD()
+                            utils.install(deployContext)
                             // check service type to work out best extraction method
                             switch (service.type) {
                                 case 'cwa':
@@ -26,13 +23,7 @@ def call(service, deployContext, jobType) {
                                     cwaSetComponentPaths(service)
                                     break
                                 case 'api':
-                                    apiArtifactPath(service)
-                                    apiExtract(service, deployContext)
-                                    break
                                 case 'salsa':
-                                    apiArtifactPath(service)
-                                    apiExtract(service, deployContext)
-                                    break
                                 case 'mca':
                                     apiArtifactPath(service)
                                     apiExtract(service, deployContext)
@@ -138,7 +129,6 @@ private void cwaArtifactPath(service) {
         def verDash = '-' + srvBin.version
         srvBin.name = nameComp[0].split(verDash)[0]
         srvBin.artifact = srvBin.nexus_url + "/" + srvBin.artifactName
-        phoenixLogger(3, "Paths : Updated Configuration ::  ${service}", 'dash' )
     }
 }
 

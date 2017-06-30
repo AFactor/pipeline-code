@@ -182,6 +182,13 @@ def ucdSetVersionProperty(service, deployContext, ucdToken, name, date) {
     return request
 }
 
+def install(deployContext) {
+    def ucdUrl = deployContext.deployment.ucd_url
+    def wgetCmd = 'wget --no-check-certificate --quiet'
+    sh """${wgetCmd} ${ucdUrl}/tools/udclient.zip ; \\
+                                  unzip -o udclient.zip """
+}
+
 /**
  * @param service
  * @param deployContext
@@ -338,77 +345,3 @@ def getLatestVersionUploadJson(getVersion, service, name) {
         }
     }
 }
-
-/*
-    udclient -weburl https://ucd.intranet.group -authtoken $UC_TOKEN  createVersion -component "DigitalMC_sales-pca-api Application" -name "${VERSION}-${vtime}" -description ${VERSION}-ear
-
-    echo "Uploading the artifacts to UrbanCode"
-    echo "===================================="
-
-    udclient -weburl https://ucd.intranet.group -authtoken $UC_TOKEN addVersionFiles -component "DigitalMC_sales-pca-api Application" -version "${VERSION}-${vtime}" -base "${URBAN_CODE_UPLOAD_DIR}"
-
-    @NonCPS
-    def ucdCompleteUpload(service, deployContext, ucdToken, baseDir, name) {
-        println "********************"
-        println " Running UCD Upload "
-        println "********************"
-
-        def version = service.runtime.binary.version
-        def revision = service.runtime.binary.revision
-        def ucdUrl = deployContext.deployment.ucd_url
-        def versionPath = "${version}-${revision}"
-        def udClient = "./udclient/udclient"
-        def componentSet = "-component ${name}"
-        def nameSet = "-name ${version}"
-        def versionSet = "-version ${version}"
-        def baseSet = "-base ${baseDir}"
-        def valueSet = "-value ${versionPath}"
-        def linkName = "-linkName \'Jenkins Build upload\'"
-        def linkSet = "-link \"\$env.BUILD_URL\""
-        def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
-
-        echo "Base Dir: ${baseDir} :: Name: ${name}"
-        sh """ ${ucdCmd} getComponentVersions ${componentSet}|| get_version=\$? && \\
-                 if [ \"\$get_version\" != \"\" ]; then \\
-                       ${ucdCmd} createVersion ${componentSet} ${nameSet} || if [ "\$?" != "" ]; then exit 1; fi ; \\
-                       ${ucdCmd} addVersionFiles ${componentSet} ${versionSet} ${baseSet} || if [ "\$?" != "" ]; then exit 1; fi ; \\
-                       ${ucdCmd} setVersionProperty ${componentSet} ${versionSet} -name versionPath ${valueSet} || if [ "\$?" != "" ]; then exit 1; fi ; \\
-                       ${ucdCmd} addVersionLink ${componentSet} ${versionSet} ${linkName} ${linkSet} || if [ "\$?" != "" ]; then exit 1; fi ; \\
-                   else \\
-                       echo "Skipping Component : ${name} :: It already exists " ;\\
-                   fi """
-    }
-
-    @NonCPS
-    def ucdApiCreateVersion(service, deployContext, ucdToken, name, date) {
-        println "*****************************"
-        println " New UCD Version for ${name} "
-        println "*****************************"
-        def version = service.runtime.binary.version
-        def ucdUrl = deployContext.deployment.ucd_url
-        def udClient = "./udclient/udclient"
-        def componentSet = "-component ${name}"
-        def command = "createVersion ${componentSet} ${nameSet} ${descSet}"
-        def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
-
-        def request = sh(returnStdout: true, script: ${ucdCmd}).trim()
-        return request
-    }
-
-    @NonCPS
-    def ucdUpload(service, deployContext, ucdToken, baseDir, name, date) {
-        println "*********************"
-        println " UCD Upload: ${name} "
-        println "*********************"
-        def version = service.runtime.binary.version
-        def ucdUrl = deployContext.deployment.ucd_url
-        def udClient = "./udclient/udclient"
-        def componentSet = "-component ${name}"
-        def baseSet = "-base ${baseDir}"
-        def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} addVersionFiles ${componentSet} ${versionSet} ${baseSet}"
-
-        def request = sh(returnStdout: true, script: ${ucdCmd}).trim()
-        return request
-    }
-*/
-
