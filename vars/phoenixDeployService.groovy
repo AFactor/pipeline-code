@@ -91,6 +91,10 @@ private void apiExtract(service, deployContext) {
     def workDir = distsPath + "/" + service.name
     def extractPath = workDir + "/Expanded"
     def wgetCmd = 'wget --no-check-certificate --quiet'
+    def verScript = "find . -name version.txt -exec cat '{}' \\; -quit"
+    def date = new Date().format("ddMMyyyy", TimeZone.getTimeZone('UTC'))
+    def revision = date
+    srvBin = service.runtime.binary
     sh """if [ -e dist ]; then rm -rfv dist; fi; \\
           mkdir -p ${extractPath} && \\
           ${wgetCmd} ${artifact} && \\
@@ -101,8 +105,19 @@ private void apiExtract(service, deployContext) {
           rm -f \$war ;\\
           done ; \\
           rm -rfv $extractPath"""
+    try {
+        revision = sh(returnStdout:true, script: verScript).trim().split('-').last().trim()
+        phoenixLogger(4, "Revision :: ${revision}", 'dash')
+        if (!revision) {
+            revision = date
+            phoenixLogger(1, "Revision Not Found :: Revision Now: ${revision}", 'star')
+        }
+    } catch (error) {
+        revision = date
+        phoenixLogger(1, "Revision Not Found :: Revision Now: ${revision}", 'star')
+    }
+    srvBin.revision = revision
     echo "All Done - Extraction Complete"
-
 }
 
 private void bluemixExtract(service) {
@@ -134,18 +149,19 @@ private void cwaArtifactPath(service) {
 
 private void apiArtifactPath(service) {
     srvBin = service.runtime.binary
-    def verScript = "find . -name version.txt -exec cat '{}' \\; -quit"
     if (!srvBin.artifact) {
-        def revision = sh(returnStdout:true, script: verScript).trim().split('-').last().trim()
-        srvBin.revision = revision
         def nameComp = srvBin.artifactName.split(/\./)
         srvBin.extension = srvBin.artifactName.split(nameComp[0]).last()
-        srvBin.version = nameComp[0].split('-').last()
+        def lastDash = nameComp[0].split('-').last()
+        if (lastDash =~ /\w{7}/) {
+            srvBin.version = nameComp[0].split('-')[-2]
+        } else {
+            srvBin.version = lastDash
+        }
         def verDash = '-' + srvBin.version
         srvBin.name = nameComp[0].split(verDash)[0]
         srvBin.artifact = srvBin.nexus_url + "/" + srvBin.version + "/" + srvBin.artifactName
     }
-
 }
 
 private def cwaSetComponentPaths(service) {
