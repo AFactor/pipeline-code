@@ -149,17 +149,26 @@ private void cwaArtifactPath(service) {
 
 private void apiArtifactPath(service) {
     srvBin = service.runtime.binary
+    def artifactName = ''
     if (!srvBin.artifact) {
         def nameComp = srvBin.artifactName.split(/\./)
-        srvBin.extension = srvBin.artifactName.split(nameComp[0]).last()
-        def lastDash = nameComp[0].split('-').last()
+        if (len(nameComp) > 2) {
+            if ('tar' == nameComp[-2]) {
+                srvBin.extension = srvBin.artifactName.split(nameComp[0]).last()
+                artifactName = srvBin.artifactName.split(srvBin.extension)[0]
+            } else {
+                srvBin.extension = nameComp.pop()
+                artifactName = nameComp.join('.')
+            }
+        }
+        def lastDash = artifactName.split('-').last()
         if (lastDash =~ /\w{7}/) {
-            srvBin.version = nameComp[0].split('-')[-2]
+            srvBin.version = artifactName.split('-')[-2]
         } else {
             srvBin.version = lastDash
         }
         def verDash = '-' + srvBin.version
-        srvBin.name = nameComp[0].split(verDash)[0]
+        srvBin.name = artifactName.split(verDash)[0]
         srvBin.artifact = srvBin.nexus_url + "/" + srvBin.version + "/" + srvBin.artifactName
     }
 }
