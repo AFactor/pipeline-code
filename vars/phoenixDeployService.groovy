@@ -158,7 +158,7 @@ private void apiArtifactPath(service) {
                 artifactName = srvBin.artifactName.split(srvBin.extension)[0]
             } else {
                 srvBin.extension = nameComp.last()
-                artifactName = nameComp.take(nameComp.size() - 1).join('.')
+                artifactName = srvBin.artifactName.split(srvBin.extension)[0]
             }
         }
         def lastDash = artifactName.split('-').last()
