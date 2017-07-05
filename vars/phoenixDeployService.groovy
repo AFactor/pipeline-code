@@ -152,6 +152,7 @@ private void apiArtifactPath(service) {
     def artifactName = ''
     if (!srvBin.artifact) {
         def nameComp = srvBin.artifactName.split(/\./)
+        println ("Name Components == " + nameComp)
         if (nameComp.size() > 2) {
             if ('tar' == nameComp[-2]) {
                 srvBin.extension = srvBin.artifactName.split(nameComp[0]).last()
@@ -159,6 +160,8 @@ private void apiArtifactPath(service) {
             } else {
                 srvBin.extension = nameComp.last()
                 artifactName = srvBin.artifactName.split(srvBin.extension)[0]
+                println("Extension == " + srvBin.extension)
+                println("artifactName == " + artifactName)
             }
         }
         def lastDash = artifactName.split('-').last()
