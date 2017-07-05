@@ -159,7 +159,8 @@ private void apiArtifactPath(service) {
                 artifactName = srvBin.artifactName.split(srvBin.extension)[0]
             } else {
                 srvBin.extension = nameComp.last()
-                artifactName = srvBin.artifactName.split("." + srvBin.extension)[0]
+                def extDot = '/.' + srvBin.extension
+                artifactName = srvBin.artifactName.split(extDot)[0]
                 println("Extension == " + srvBin.extension)
                 println("artifactName == " + artifactName)
             }
