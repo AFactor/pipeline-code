@@ -58,6 +58,7 @@ private def apiUpload(service, deployContext, ucdToken) {
         phoenixLogger(5, "Base Dir: ${baseDir} :: Name: ${name}", "dash")
 
         def getVersion = utils.ucdComponentVersion(deployContext, ucdToken, name)
+        println ("Version Information: " + getVersion.toString())
         def versionStatus = utils.getVersionsJson(getVersion, service, name)
         if (!versionStatus) {
             def createVersion = utils.apiCreateVersion(service, deployContext, ucdToken, name, date)
