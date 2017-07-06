@@ -92,7 +92,7 @@ private void apiExtract(service, deployContext) {
     def extractPath = workDir + "/Expanded"
     def wgetCmd = 'wget --no-check-certificate --quiet'
     def verScript = "find . -name version.txt -exec cat '{}' \\; -quit"
-    def date = new Date().format("ddMMyyyy", TimeZone.getTimeZone('UTC'))
+    def date = new Date().format("ddMMyyyyHHMM", TimeZone.getTimeZone('UTC'))
     def revision = date
     srvBin = service.runtime.binary
     sh """if [ -e dist ]; then rm -rfv dist; fi; \\
