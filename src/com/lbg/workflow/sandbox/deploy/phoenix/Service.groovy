@@ -23,6 +23,11 @@ class Service implements Serializable {
     boolean upload
 
     /**
+     * onlyChanged choice
+     */
+    boolean onlyChanged
+
+    /**
      * deployment type
      */
     String type
@@ -68,6 +73,7 @@ class Service implements Serializable {
                 ", buildpack=" + buildpack+
                 ", deploy=" + deploy +
                 ", upload=" + upload +
+                ", onlyChanged=" + onlyChanged +
                 ", type=" + type +
                 ", runtime=" + runtime +
                 ", proxy=" + proxy +

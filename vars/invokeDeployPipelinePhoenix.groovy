@@ -30,6 +30,7 @@ def call(String configuration) {
                 for (def service in deployContext.services) {
                     service.deploy = convertYesNoToBoolean(params.deploy)
                     service.upload = convertYesNoToBoolean(params.upload)
+                    service.onlyChanged = convertYesNoToBoolean(params.onlyChanged)
                     service.runtime.binary.artifactName = params.artifactName
                 }
             }
