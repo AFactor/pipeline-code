@@ -35,6 +35,31 @@ def ucdComponentVersion(deployContext, ucdToken, name) {
 }
 
 /**
+ * @param deployContext
+ * @param ucdToken
+ * @param name
+ * @return
+ **/
+@NonCPS
+def ucdMCAComponentVersion(name) {
+    println "***************************************"
+    println " Get UCD Component Version for ${name} "
+    println "***************************************"
+    def ucdToken = 'UC_TOKEN_MCA'
+    def ucdUrl = 'https://ucd.intranet.group'
+    def udClient = "./udclient/udclient"
+    def componentSet = "-component '${name}'"
+    def command = "getComponentVersions ${componentSet}"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+
+    def request = sh(returnStdout: true, script: ucdCmd).trim()
+    return request
+}
+
+
+
+
+/**
  * @param service
  * @param deployContext
  * @param ucdToken
