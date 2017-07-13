@@ -41,7 +41,7 @@ def ucdComponentVersion(deployContext, ucdToken, name) {
  * @return
  **/
 @NonCPS
-String[] ucdMCAComponentVersion(name) {
+String ucdMCAComponentVersion(name) {
     println "***************************************"
     println " Get UCD Component Version for ${name} "
     println "***************************************"
@@ -60,7 +60,7 @@ String[] ucdMCAComponentVersion(name) {
     for (Object versionObject : versionParser.versions) {
         versions.add(versionObject.name)
     }
-    return versions
+    return versions.join('\n')
 }
 
 
