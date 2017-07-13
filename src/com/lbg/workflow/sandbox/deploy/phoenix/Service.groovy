@@ -13,6 +13,11 @@ class Service implements Serializable {
     String buildpack
 
     /**
+     * IBM WAS Version for UCD MCA Deployment
+     */
+    String wasVersion
+
+    /**
      * deployment choice
      */
     boolean deploy
@@ -70,6 +75,7 @@ class Service implements Serializable {
         return "Service{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", wasVersion='" + wasVersion + '\'' +
                 ", buildpack=" + buildpack+
                 ", deploy=" + deploy +
                 ", upload=" + upload +

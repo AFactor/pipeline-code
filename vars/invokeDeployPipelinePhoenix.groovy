@@ -32,6 +32,9 @@ def call(String configuration) {
                     service.upload = convertYesNoToBoolean(params.upload)
                     service.onlyChanged = convertYesNoToBoolean(params.onlyChanged)
                     service.runtime.binary.artifactName = params.artifactName
+                    if (service.name == "Digital - MCA Sales") {
+                        service.wasVersion = params.wasVersion
+                    }
                 }
             }
             echo "Deploy Context " + deployContext.toString()
