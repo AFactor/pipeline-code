@@ -41,7 +41,7 @@ def ucdComponentVersion(deployContext, ucdToken, name) {
  * @return
  **/
 @NonCPS
-def ucdMCAComponentVersion(name) {
+String[] ucdMCAComponentVersion(name) {
     println "***************************************"
     println " Get UCD Component Version for ${name} "
     println "***************************************"
@@ -52,8 +52,15 @@ def ucdMCAComponentVersion(name) {
     def command = "getComponentVersions ${componentSet}"
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
 
-    def request = sh(returnStdout: true, script: ucdCmd).trim()
-    return request
+    def response = sh(returnStdout: true, script: ucdCmd).trim()
+    def versionParser = new UCDVersionParser(response)
+    String[] versions = []
+
+
+    for (Object versionObject : versionParser.versions) {
+        versions.add(versionObject.name)
+    }
+    return versions
 }
 
 
