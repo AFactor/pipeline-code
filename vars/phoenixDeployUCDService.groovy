@@ -17,13 +17,15 @@ def call(service, deployContext, ucdToken) {
     println "Request Status: ${requestStatus}"
     def jsonStatus = new Status(requestStatus)
     def status = jsonStatus.status
+    def processResult = jsonStatus.result
     phoenixLogger(3, "Status: ${status}", 'dash')
     int statChecker = 0
     while (status != "CLOSED") {
         requestStatus = utils.ucdStatus(deployContext, ucdToken, requestId)
         jsonStatus = new Status(requestStatus)
         status = jsonStatus.status
-        phoenixLogger(3, "Status Currently :: ${status}", 'dash')
+        processResult = jsonStatus.result
+        phoenixLogger(3, "Status: ${status} :: Result: ${processResult}", 'dash')
         if (status == "ERROR" || status == "FAILED") {
             break
         }
