@@ -6,8 +6,11 @@ def call(String name) {
     node('lbg_slave') {
         def ucdTokenKey = 'UC_TOKEN_MCA'
         withCredentials([string(credentialsId: ucdTokenKey, variable: 'ucdToken')]) {
-            def utils = new UtilsUCD()
-            versionsChoice = utils.ucdMCAComponentVersion(ucdToken, name)
+            withEnv(['PATH+bin=/bin', 'PATH+usr=/usr/bin', 'PATH+local=/usr/local/bin', 'JAVA_HOME=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64']) {
+                def utils = new UtilsUCD()
+                utils.install()
+                versionsChoice = utils.ucdMCAComponentVersion(ucdToken, name)
+            }
         }
     }
     return versionsChoice
