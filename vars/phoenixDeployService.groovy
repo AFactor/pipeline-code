@@ -109,7 +109,7 @@ private void apiExtract(service, deployContext) {
           done ; \\
           IFS=\$SAVEIFS ; \\
           rm -rfv "$extractPath"
-        ""
+        """
     try {
         revision = sh(returnStdout:true, script: verScript).trim().split('-').last().trim()
         phoenixLogger(4, "Revision :: ${revision}", 'dash')
