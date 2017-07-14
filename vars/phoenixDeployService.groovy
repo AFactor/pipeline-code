@@ -104,7 +104,7 @@ private void apiExtract(service, deployContext) {
           SAVEIFS=\$IFS && \\
           IFS=\$(echo -en "\\n\\b") &&\\
           for war in `ls -1 "${extractPath}"/*.war`; do \\
-          unzip -o \$war -d ${workDir}/\$(basename \$war) ;\\
+          unzip -o "\$war" -d "${workDir}"/\$(basename "\$war") ;\\
           rm -fv "\$war" ;\\
           done ; \\
           IFS=\$SAVEIFS ; \\
