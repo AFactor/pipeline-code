@@ -59,6 +59,7 @@ String ucdMCAComponentVersion(ucdToken, name) {
     for (def ucdVersion in versionParser.versions) {
         versions.add(ucdVersion.name)
     }
+    println(versions)
     return versions.join('\n')
 }
 
