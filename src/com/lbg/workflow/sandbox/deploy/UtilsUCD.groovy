@@ -55,6 +55,7 @@ String ucdMCAComponentVersion(ucdToken, name) {
     def versionData = "{ \"versions\": " + response + "}"
     def versionParser = new UCDVersionParser(versionData)
     def versions = []
+    versions.add('')
 
     for (def ucdVersion in versionParser.versions) {
         versions.add(ucdVersion.name)
