@@ -26,7 +26,7 @@ def call(service, deployContext, ucdToken) {
         status = jsonStatus.status
         processResult = jsonStatus.result
         phoenixLogger(3, "Status: ${status} :: Result: ${processResult}", 'dash')
-        if (status == "ERROR" || status == "FAILED") {
+        if (processResult == "FAULTED" || processResult == "CANCELED") {
             break
         }
         // 15 sec per run - 360 counts should be 1 hour 30 minutes
@@ -38,11 +38,17 @@ def call(service, deployContext, ucdToken) {
         statChecker ++
         sleep(15)
     }
+
+    if (processResult == "FAULTED" || processResult == "CANCELED") {
+        phoenixLogger(1, "Result :: ${processResult}", 'star')
+        throw processResult
+    }
+
     if (status == "CLOSED") {
         utils.ucdResult(deployContext, ucdToken, requestId)
     } else {
-        //throw new Exception ("Error Deployment :: ${status}")
         phoenixLogger(1, "Status :: ${status}", 'star')
+        throw ${status}
     }
 }
 
