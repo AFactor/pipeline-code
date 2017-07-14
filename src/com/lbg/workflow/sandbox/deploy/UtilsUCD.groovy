@@ -83,7 +83,7 @@ def cwaCreateVersion(service, deployContext, ucdToken, name, date) {
     def version = service.runtime.binary.version
     def revision = ''
     if (service.runtime.binary.revision.size() > 9) {
-        revision = service.runtime.binary.revision[0..8]
+        revision = service.runtime.binary.revision[0..9]
     } else {
         revision = service.runtime.binary.revision
     }
@@ -121,7 +121,7 @@ def cwaAddVersion(service, deployContext, ucdToken, baseDir, name, date) {
     def version = service.runtime.binary.version
     def revision = ''
     if (service.runtime.binary.revision.size() > 9) {
-        revision = service.runtime.binary.revision[0..8]
+        revision = service.runtime.binary.revision[0..9]
     } else {
         revision = service.runtime.binary.revision
     }
@@ -154,7 +154,7 @@ def apiCreateVersion(service, deployContext, ucdToken, name, date) {
     def version = service.runtime.binary.version
     def revision = ''
     if (service.runtime.binary.revision.size() > 9) {
-        revision = service.runtime.binary.revision[0..8]
+        revision = service.runtime.binary.revision[0..9]
     } else {
         revision = service.runtime.binary.revision
     }
@@ -188,7 +188,7 @@ def apiAddVersion(service, deployContext, ucdToken, baseDir, name, date) {
     def version = service.runtime.binary.version
     def revision = ''
     if (service.runtime.binary.revision.size() > 9) {
-        revision = service.runtime.binary.revision[0..8]
+        revision = service.runtime.binary.revision[0..9]
     } else {
         revision = service.runtime.binary.revision
     }
@@ -222,7 +222,7 @@ def ucdSetVersionProperty(service, deployContext, ucdToken, name, date) {
     def revision = service.runtime.binary.revision
     def revisionTrunc = ''
     if (service.runtime.binary.revision.size() > 9) {
-        revisionTrunc = service.runtime.binary.revision[0..8]
+        revisionTrunc = service.runtime.binary.revision[0..9]
     } else {
         revisionTrunc = service.runtime.binary.revision
     }
@@ -264,7 +264,7 @@ def ucdAddVersionLink(service, deployContext, ucdToken, name, date) {
     def version = service.runtime.binary.version
     def revision = ''
     if (service.runtime.binary.revision.size() > 9) {
-        revision = service.runtime.binary.revision[0..8]
+        revision = service.runtime.binary.revision[0..9]
     } else {
         revision = service.runtime.binary.revision
     }
@@ -365,7 +365,7 @@ boolean getVersionsJson(getVersion, service, name) {
     def cfgVersion = service.runtime.binary.version
     def cfgRevision = ''
     if (service.runtime.binary.revision.size() > 9) {
-        cfgRevision = service.runtime.binary.revision[0..8]
+        cfgRevision = service.runtime.binary.revision[0..9]
     } else {
         cfgRevision = service.runtime.binary.revision
     }
@@ -400,7 +400,7 @@ def getLatestVersionUploadJson(getVersion, service, name) {
     def cfgVersion = service.runtime.binary.version
     def cfgRevision = ''
     if (service.runtime.binary.revision.size() > 9) {
-        cfgRevision = service.runtime.binary.revision[0..8]
+        cfgRevision = service.runtime.binary.revision[0..9]
     } else {
         cfgRevision = service.runtime.binary.revision
     }
