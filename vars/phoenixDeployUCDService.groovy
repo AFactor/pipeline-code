@@ -14,6 +14,7 @@ def call(service, deployContext, ucdToken) {
     def requestId = jsonResult.requestId
     phoenixLogger(3, "Request ID: ${requestId}", 'dash')
     String requestStatus = utils.ucdStatus(deployContext, ucdToken, requestId)
+    println "Request Status: ${requestStatus}"
     def jsonStatus = new Status(requestStatus)
     def status = jsonStatus.status
     phoenixLogger(3, "Status: ${status}", 'dash')
