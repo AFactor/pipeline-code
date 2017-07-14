@@ -51,7 +51,7 @@ String ucdMCAComponentVersion(ucdToken, name) {
     def componentSet = "-component '${name}'"
     def command = "getComponentVersions ${componentSet}"
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
-
+    install_by_url(ucdUrl)
     def response = sh(returnStdout: true, script: ucdCmd).trim()
     def versionParser = new UCDVersionParser(response)
     def versions = []
@@ -245,6 +245,11 @@ def install(deployContext) {
                                   unzip -o udclient.zip """
 }
 
+def install_by_url(ucdUrl) {
+    def wgetCmd = 'wget --no-check-certificate --quiet'
+    sh """${wgetCmd} ${ucdUrl}/tools/udclient.zip ; \\
+                                  unzip -o udclient.zip """
+}
 /**
  * @param service
  * @param deployContext
