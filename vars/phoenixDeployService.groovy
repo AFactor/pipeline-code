@@ -97,8 +97,9 @@ private void apiExtract(service, deployContext) {
     srvBin = service.runtime.binary
     sh """if [ -e dist ]; then rm -rfv dist; fi; \\
           mkdir -p ${extractPath} && \\
-          ${wgetCmd} ${artifact} && \\
-          unzip -o "${artifactName}" -d "${workDir}" && \\
+          ${wgetCmd} ${artifact} """
+
+    sh """unzip -o "${artifactName}" -d "${workDir}" && \\
           mv ${workDir}/*.war ${extractPath} && \\
           for war in `ls -1 ${extractPath}/*.war`; do \\
           unzip -o \$war -d ${workDir}/\$(basename \$war) ;\\
