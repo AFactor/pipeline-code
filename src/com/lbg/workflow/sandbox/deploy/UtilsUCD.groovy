@@ -40,12 +40,11 @@ def ucdComponentVersion(deployContext, ucdToken, name) {
  * @param name
  * @return
  **/
-@NonCPS
-String ucdMCAComponentVersion(name) {
+String ucdMCAComponentVersion(ucdToken, name) {
     println "***************************************"
     println " Get UCD Component Version for ${name} "
     println "***************************************"
-    def ucdToken = 'UC_TOKEN_MCA'
+
     def ucdUrl = 'https://ucd.intranet.group'
     def udClient = "./udclient/udclient"
     def componentSet = "-component '${name}'"
