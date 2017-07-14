@@ -6,7 +6,8 @@ def call(String name) {
     node('lbg_slave') {
         def ucdTokenKey = 'UC_TOKEN_MCA'
         withCredentials([string(credentialsId: ucdTokenKey, variable: 'ucdToken')]) {
-            versionsChoice = UtilsUCD.ucdMCAComponentVersion(ucdToken, name)
+            def utils = new UtilsUCD()
+            versionsChoice = utils.ucdMCAComponentVersion(ucdToken, name)
         }
     }
     return versionsChoice
