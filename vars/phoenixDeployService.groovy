@@ -103,12 +103,13 @@ private void apiExtract(service, deployContext) {
           mv "${workDir}/"*.war "${extractPath}" && \\
           SAVEIFS=\$IFS && \\
           IFS=\$(echo -en "\\n\\b") &&\\
-          for war in `ls -1 "${extractPath}/"*.war`; do \\
+          for war in `ls -1 "${extractPath}"/*.war`; do \\
           unzip -o \$war -d ${workDir}/\$(basename \$war) ;\\
-          rm -f \$war ;\\
+          rm -fv "\$war" ;\\
           done ; \\
           IFS=\$SAVEIFS ; \\
-          rm -rfv $extractPath"""
+          rm -rfv "$extractPath"
+        ""
     try {
         revision = sh(returnStdout:true, script: verScript).trim().split('-').last().trim()
         phoenixLogger(4, "Revision :: ${revision}", 'dash')
