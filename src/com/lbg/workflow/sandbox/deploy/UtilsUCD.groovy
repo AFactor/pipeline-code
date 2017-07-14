@@ -40,6 +40,7 @@ def ucdComponentVersion(deployContext, ucdToken, name) {
  * @param name
  * @return
  **/
+@NonCPS
 String ucdMCAComponentVersion(ucdToken, name) {
     println "***************************************"
     println " Get UCD Component Version for ${name} "
