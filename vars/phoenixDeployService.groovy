@@ -96,15 +96,18 @@ private void apiExtract(service, deployContext) {
     def revision = date
     srvBin = service.runtime.binary
     sh """if [ -e dist ]; then rm -rfv dist; fi; \\
-          mkdir -p ${extractPath} && \\
+          mkdir -p "${extractPath}" && \\
           ${wgetCmd} ${artifact} """
 
     sh """unzip -o "${artifactName}" -d "${workDir}" && \\
-          mv ${workDir}/*.war ${extractPath} && \\
-          for war in `ls -1 ${extractPath}/*.war`; do \\
+          mv "${workDir}/"*.war "${extractPath}" && \\
+          SAVEIFS=\$IFS && \\
+          IFS=\$(echo -en "\\n\\b") &&\\
+          for war in `ls -1 "${extractPath}/"*.war`; do \\
           unzip -o \$war -d ${workDir}/\$(basename \$war) ;\\
           rm -f \$war ;\\
           done ; \\
+          IFS=\$SAVEIFS ; \\
           rm -rfv $extractPath"""
     try {
         revision = sh(returnStdout:true, script: verScript).trim().split('-').last().trim()
