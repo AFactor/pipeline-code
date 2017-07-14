@@ -40,6 +40,7 @@ def call(service, deployContext, ucdToken) {
     }
 
     if (processResult == "FAULTED" || processResult == "CANCELED") {
+        utils.ucdResult(deployContext, ucdToken, requestId)
         phoenixLogger(1, "Result :: ${processResult}", 'star')
         throw new Exception(processResult)
     }
@@ -47,6 +48,7 @@ def call(service, deployContext, ucdToken) {
     if (status == "CLOSED") {
         utils.ucdResult(deployContext, ucdToken, requestId)
     } else {
+        utils.ucdResult(deployContext, ucdToken, requestId)
         phoenixLogger(1, "Status :: ${status}", 'star')
         throw new Exception(status)
     }
