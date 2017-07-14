@@ -87,8 +87,10 @@ private void cwaExtract(service, deployContext) {
 private void apiExtract(service, deployContext) {
     def artifact = service.runtime.binary.artifact
     def artifactName = service.runtime.binary.artifactName
+    def name = service.runtime.binary.name
+    def extension = service.runtime.binary.extension
     def distsPath = deployContext.deployment.work_dir
-    def workDir = distsPath + "/" + service.name
+    def workDir = distsPath + "/" + name + "." + extension
     def extractPath = workDir + "/Expanded"
     def wgetCmd = 'wget --no-check-certificate'
     def verScript = "find . -name version.txt -exec cat '{}' \\; -quit"
