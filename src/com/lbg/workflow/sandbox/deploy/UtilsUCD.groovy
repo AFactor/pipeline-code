@@ -54,10 +54,9 @@ String ucdMCAComponentVersion(name) {
 
     def response = sh(returnStdout: true, script: ucdCmd).trim()
     def versionParser = new UCDVersionParser(response)
-    String[] versions = []
+    def versions = []
 
-
-    for (Object versionObject : versionParser.versions) {
+    for (String versionObject : versionParser.versions) {
         versions.add(versionObject.name)
     }
     return versions.join('\n')
