@@ -52,11 +52,12 @@ String ucdMCAComponentVersion(ucdToken, name) {
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
     install_by_url(ucdUrl)
     def response = sh(returnStdout: true, script: ucdCmd).trim()
-    def versionParser = new UCDVersionParser(response)
+    def versionData = "{ \"versions\": " + response + "}"
+    def versionParser = new UCDVersionParser(versionData)
     def versions = []
 
-    for (String versionObject : versionParser.versions) {
-        versions.add(versionObject.name)
+    for (def ucdVersion in versionParser.versions) {
+        versions.add(ucdVersion.name)
     }
     return versions.join('\n')
 }
