@@ -10,21 +10,30 @@ import com.lbg.workflow.sandbox.Utils
 import com.lbg.workflow.sandbox.JobStats
 
 def call(String application, handlers, String configuration){
-	this.call(application, handlers, configuration,	'lloydscjtdevops@sapient.com', 120 )
+	this.call(application, handlers, configuration,	'lloydscjtdevops@sapient.com', 'display/redirect', 120 )
 }
 
-def call(String application, handlers, String configuration,String notifyList){
-	this.call(application, handlers, configuration,	notifyList,	120 )
+def call(String application, handlers, String configuration, String notifyList){
+	this.call(application, handlers, configuration,	notifyList, 'display/redirect', 120 )
 }
 
 def call(String application, handlers, String configuration, Integer timeoutInMinutes){
-	this.call(application, handlers, configuration,	'lloydscjtdevops@sapient.com', timeoutInMinutes)
+	this.call(application, handlers, configuration,	'lloydscjtdevops@sapient.com', 'display/redirect', timeoutInMinutes)
+}
+
+def call(String application, handlers, String configuration, String notifyList, String snapPath){
+	this.call(application, handlers, configuration,	notifyList, snapPath, 120)
+}
+
+def call(String application, handlers, String configuration, String notifyList, Integer timeoutInMinutes){
+	this.call(application, handlers, configuration,	notifyList, 'display/redirect', timeoutInMinutes)
 }
 
 def call(String application,
 		handlers,
 		String configuration,
 		String notifyList,
+    String snapPath,
 		Integer timeoutInMinutes){
 	try {
 		timeout(timeoutInMinutes){
@@ -36,7 +45,8 @@ def call(String application,
 		throw error
 	} finally {
 		if(notifyList?.trim()){
-			emailNotify { to = notifyList }
+			emailNotify { to = notifyList
+                    path = snapPath }
 		}
 		def jobStats = new JobStats()
 		jobStats.toSplunk(env.BUILD_TAG, env.BUILD_URL, "jenkins-read-all", currentBuild.result, "")

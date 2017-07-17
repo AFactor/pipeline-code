@@ -27,7 +27,7 @@ function doRender(filename) {
 		top: 8,
 		left: 0,
 		width: 1200,
-		height: 800
+		height: 2400
 	};
     page.render(filename, {format: 'png', quality: '0'});
 };

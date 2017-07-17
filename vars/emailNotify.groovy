@@ -29,7 +29,7 @@ def call(Closure body) {
 				def headline = globalUtils.urlDecode(
 						"J2:${env.JOB_NAME}:${env.BUILD_NUMBER}-> ${currentBuild.result}")
 
-				utils.snapshotStatus(imagefile)
+				utils.snapshotStatus(imagefile, config.path)
 				echo "TRYING: Email Notification to ${recipients}"
 				emailSender.sendImage(	env.WORKSPACE + '/'+ imagefile,
 						recipients,

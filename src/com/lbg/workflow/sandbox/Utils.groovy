@@ -30,11 +30,11 @@ def friendlyName(String branchName, int maxsize){
 	}
 }
 
-def snapshotStatus(String imagefile){
+def snapshotStatus(String imagefile, String path){
 
 	def code = libraryResource 'com/lbg/workflow/sandbox/js/snapshot.js'
 	writeFile file: 'snapshot.js', text: code
-	def buildPath = blueoceanJobURL().replace(env.JENKINS_URL, '')
+	def buildPath = relativeJobURL(path).replace(env.JENKINS_URL, '')
 	withCredentials([
 		usernamePassword(credentialsId: 'jenkins-read-all',
 		passwordVariable: 'JENKINS_PASS',
@@ -44,7 +44,7 @@ def snapshotStatus(String imagefile){
 			"BUILD_PATH=${buildPath}",
 			"IMAGEFILE=${imagefile}"
 		]) { sh """npm install phantomjs@2.1.7  babel-polyfill@6.23.0 &>/dev/null && \
-                   node_modules/.bin/phantomjs snapshot.js 
+                   node_modules/.bin/phantomjs snapshot.js
                 """  }
 	}
 
