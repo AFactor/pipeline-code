@@ -73,7 +73,7 @@ String getNexusArtifactNameFromMetadata(artifactBaseName, nexusURL){
     " \n" + resultant.readLines().join('\n')
 
 }
-
+@NonCPS
 String getNexusArtifactNameFromRegex(artifactRegex, nexusURL){
     def cmd = [
             'bash',
