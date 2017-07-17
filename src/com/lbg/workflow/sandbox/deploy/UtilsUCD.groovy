@@ -88,7 +88,7 @@ String getNexusArtifactNameFromRegex(artifactRegex, nexusURL) {
     for (Object result : resultList) {
         updatedResults.add(result.split('/').last())
     }
-    " \n" + updatedResults.unique().sort({ a, b -> b.compareToIgnoreCase a }).join('\n')
+    " \n" + updatedResults.unique().join('\n')
 }
 
 /**
