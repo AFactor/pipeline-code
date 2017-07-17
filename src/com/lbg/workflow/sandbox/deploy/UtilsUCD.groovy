@@ -68,9 +68,9 @@ String getNexusArtifactNameFromMetadata(artifactBaseName, nexusURL){
     def cmd = [
             'bash',
             '-c',
-            '''if [ "" != "" ];then for artifact in $(cat /maven-metadata.xml | grep "<version>.*</version>"  | cut -d "<" -f2 | cut -d ">" -f2 | sort -t. -nk1,1 -k2,2 -k3,3 -k 4,4 -r | sed 's/^/''' + artifactBaseName + '''-/g;s/$/.ear/g');do echo $artifact; done; else for artifact in $(curl ''' + nexusURL + '''/maven-metadata.xml | grep "<version>.*</version>"  | cut -d "<" -f2 | cut -d ">" -f2 | sort -t. -nk1,1 -k2,2 -k3,3 -k 4,4 -r | sed 's/^/''' + artifactBaseName + '''-/g;s/$/.ear/g');do echo $artifact; done ; fi'''.stripMargin() ]
+            '''if [ "" != "" ];then for artifact in $(cat /maven-metadata.xml | grep "<version>.*</version>"  | cut -d "<" -f2 | cut -d ">" -f2 | sort -t. -nk1,1 -k2,2 -k3,3 -k 4,4 -r | sed 's/^/''' + artifactBaseName + '''-/g;s/$/.ear/g');do echo $artifact; done; else for artifact in $(curl ''' + nexusURL + '''/maven-metadata.xml | grep "<version>.*</version>"  | cut -d "<" -f2 | cut -d ">" -f2 | sort -t. -nk1,1 -k2,2 -k3,3 -k 4,4 -r | sed 's/^/''' + artifactBaseName + '''-/g;s/$/.ear/g');do echo $artifact; done ; fi''' ]
     def resultant = cmd.execute().text
-    resultant.readLines().join('\n')
+    " \n" + resultant.readLines().join('\n')
 
 }
 
@@ -84,7 +84,7 @@ String getNexusArtifactNameFromRegex(artifactRegex, nexusURL){
     |done'''.stripMargin() ]
 
     def resultList = cmd.execute().text.readLines()
-    resultList.collect({ it.split('/').last() }).unique().sort({ a, b -> b.compareToIgnoreCase a}).join('\n')
+    " \n" + resultList.collect({ it.split('/').last() }).unique().sort({ a, b -> b.compareToIgnoreCase a}).join('\n')
 
 }
 /**
