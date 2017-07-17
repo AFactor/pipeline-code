@@ -64,9 +64,29 @@ String ucdMCAComponentVersion(ucdToken, name) {
     return versions.join('\n')
 }
 
+String getNexusArtifactNameFromMetadata(artifactBaseName, nexusURL){
+    def cmd = [
+            'bash',
+            '-c',
+            '''if [ "" != "" ];then for artifact in $(cat /maven-metadata.xml | grep "<version>.*</version>"  | cut -d "<" -f2 | cut -d ">" -f2 | sort -t. -nk1,1 -k2,2 -k3,3 -k 4,4 -r | sed 's/^/''' + arifact_base_name + '''-/g;s/$/.ear/g');do echo $artifact; done; else for artifact in $(curl ''' + nexus_url + '''/maven-metadata.xml | grep "<version>.*</version>"  | cut -d "<" -f2 | cut -d ">" -f2 | sort -t. -nk1,1 -k2,2 -k3,3 -k 4,4 -r | sed 's/^/''' + arifact_base_name + '''-/g;s/$/.ear/g');do echo $artifact; done ; fi'''.stripMargin() ]
+    def resultant = cmd.execute().text
+    resultant.readLines().join('\n')
 
+}
 
+String getNexusArtifactNameFromRegex(artifactRegex, nexusURL){
+    def cmd = [
+            'bash',
+            '-c',
+            '''unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY; for file in $(curl -s ''' + nexusURL + '''/ | grep 'href=\"''' + nexusURL + '''/' | sed 's/.*href="//'| sed 's/".*//' |  grep -oE '''+ artifactRegex + ''')
+    |do
+    |    echo $file
+    |done'''.stripMargin() ]
 
+    def resultList = cmd.execute().text.readLines()
+    resultList.collect({ it.split('/').last() }).unique().sort({ a, b -> b.compareToIgnoreCase a}).join('\n')
+
+}
 /**
  * @param service
  * @param deployContext
