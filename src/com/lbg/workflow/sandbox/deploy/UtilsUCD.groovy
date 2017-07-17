@@ -73,20 +73,24 @@ String getNexusArtifactNameFromMetadata(artifactBaseName, nexusURL){
     " \n" + resultant.readLines().join('\n')
 
 }
-@NonCPS
-String getNexusArtifactNameFromRegex(artifactRegex, nexusURL){
+
+String getNexusArtifactNameFromRegex(artifactRegex, nexusURL) {
     def cmd = [
             'bash',
             '-c',
-            '''unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY; for file in $(curl -s ''' + nexusURL + '''/ | grep 'href=\"''' + nexusURL + '''/' | sed 's/.*href="//'| sed 's/".*//' |  grep -oE '''+ artifactRegex + ''')
+            '''unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY; for file in $(curl -s ''' + nexusURL + '''/ | grep 'href=\"''' + nexusURL + '''/' | sed 's/.*href="//'| sed 's/".*//' |  grep -oE ''' + artifactRegex + ''')
     |do
     |    echo $file
-    |done'''.stripMargin() ]
+    |done'''.stripMargin()]
 
     def resultList = cmd.execute().text.readLines()
-    " \n" + resultList.collect({ it.split('/').last() }).unique().sort({ a, b -> b.compareToIgnoreCase a}).join('\n')
-
+    def updatedResults = []
+    for (Object result : resultList) {
+        updatedResults.add(result.split('/').last())
+    }
+    " \n" + updatedResults.unique().sort({ a, b -> b.compareToIgnoreCase a }).join('\n')
 }
+
 /**
  * @param service
  * @param deployContext
