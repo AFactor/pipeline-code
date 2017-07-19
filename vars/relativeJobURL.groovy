@@ -10,9 +10,9 @@ String call(String suffix){
 	def jobUrl = env.JENKINS_URL
 	def urlTokens = env.BUILD_URL.replace(env.JENKINS_URL, '').split('/')
 
-	for (String token: urlTokens) {
+	for (String token: urlTokens){
 		jobUrl += globalUtils.urlEncode(token)
-		jobUrl +=  '/'
+		jobUrl += '/'
 	}
 
 	return jobUrl + suffix

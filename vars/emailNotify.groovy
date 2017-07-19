@@ -8,8 +8,7 @@ import com.lbg.workflow.global.EmailManager
 import com.lbg.workflow.sandbox.Utils
 import com.lbg.workflow.global.GlobalUtils
 
-def call(Closure body) {
-
+def call(Closure body){
 	def config = [:]
 
 	body.resolveStrategy = Closure.DELEGATE_FIRST
@@ -17,7 +16,9 @@ def call(Closure body) {
 	body()
 
 	def recipients = config.to?: 'lloydscjtdevops@sapient.com'
-	node('master') {
+	def path = config.path?: 'display/redirect'
+	def result = config.stage?: currentBuild.result
+	node('master'){
 		try{
 			timeout(5){
 
@@ -27,22 +28,23 @@ def call(Closure body) {
 				def imagefile = 'j2-result-' + env.BUILD_NUMBER + '.png'
 
 				def headline = globalUtils.urlDecode(
-						"J2:${env.JOB_NAME}:${env.BUILD_NUMBER}-> ${currentBuild.result}")
+						"J2:${env.JOB_NAME}:${env.BUILD_NUMBER}-> ${result}")
 
-				utils.snapshotStatus(imagefile, config.path)
+				utils.snapshotRelativeURL(imagefile, path)
 				echo "TRYING: Email Notification to ${recipients}"
-				emailSender.sendImage(	env.WORKSPACE + '/'+ imagefile,
+				emailSender.sendImage(env.WORKSPACE +'/'+ imagefile,
 						recipients,
 						headline,
 						env.BUILD_URL)
 				echo "SUCCESS: Email Notification to ${recipients}"
 			}
-		}catch(error) {
-			echo error.message
-			echo "ERROR: Email Notification to ${recipients}. Not fatal, Onwards!"
+		} catch(error) {
+			   echo error.message
+			   echo "ERROR: Email Notification to ${recipients}. Not fatal, Onwards!"
 		} finally {
-			step([$class: 'WsCleanup', notFailBuild: true])
+			   step([$class: 'WsCleanup', notFailBuild: true])
 		}
 	}
 }
+
 return this;

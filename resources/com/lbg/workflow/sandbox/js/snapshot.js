@@ -1,25 +1,26 @@
-	var system = require('system');
+var system = require('system');
 var env = system.env;
 
 var resourceWait  = 300,
-    maxRenderWait = 10000,
-    url           = 'http://jenkins2.sandbox.extranet.group/jenkins2/j_acegi_security_check';
+    maxRenderWait = 10000;
 
 var page          = require('webpage').create(),
     count         = 5,
     forcedRenderTimeout,
     transitions	  = 0,
     renderTimeout;
+
+var url = env['JENKINS_URL'] +'j_acegi_security_check'
 var buildPath = env['BUILD_PATH']
 var jenkinsuser = env['JENKINS_USER']
 var jenkinspass = env['JENKINS_PASS']
 var imagefile = env['IMAGEFILE']
 //console.log('buildPath: ' + buildPath)
-var postBody = 'j_username='+ jenkinsuser  +'&j_password='+ jenkinspass +'&remember_me=on&json=init&from=/' + buildPath
+var postBody = 'j_username='+ jenkinsuser +'&j_password='+ jenkinspass +'&remember_me=on&json=init&from=/'+ buildPath
 
 
 page.viewportSize = { width: 1200, height : 50000 };
-function doRender(filename) {
+function doRender(filename){
 	console.log('rendering png ' + filename);
 
 	page.zoomFactor = 1;
@@ -32,20 +33,20 @@ function doRender(filename) {
     page.render(filename, {format: 'png', quality: '0'});
 };
 
-page.onInitialized = function() {
+page.onInitialized = function(){
      if(page.injectJs('node_modules/babel-polyfill/browser.js')){
          console.log("Babel-Polyfill loaded");
      }
 };
 
-page.onResourceRequested = function (req) {
+page.onResourceRequested = function (req){
    count += 1;
   // console.log('> ' + req.id + ' - ' + req.url);
    clearTimeout(renderTimeout);
 };
 
-page.onResourceReceived = function (res) {
-    if (!res.stage || res.stage === 'end') {
+page.onResourceReceived = function (res){
+    if (!res.stage || res.stage === 'end'){
         count -= 1;
       //  console.log(res.id + ' ' + res.status + ' - ' + res.url);
         if (count === 0) {
@@ -54,7 +55,7 @@ page.onResourceReceived = function (res) {
     }
 };
 
- page.onLoadFinished = function(status){
+page.onLoadFinished = function(status){
 	console.log('Load Finished');
 	 if (status !== "success") {
         console.log('Unable to load url');
@@ -68,7 +69,8 @@ page.onResourceReceived = function (res) {
      	transitions -= 1;
      }
 };
- page.onPageReady = function(status){
+
+page.onPageReady = function(status){
        	doRender('onReady_' + imagefile);
 };
 
