@@ -85,8 +85,24 @@ invokeBuildPipelineHawk( 'your-api-codebase', handlers, configuration )
 	passTests (String changeID, String revision) 
 	findTargetBranch(String targetCommit)
 
+### gavNexusUploader
+	
+	Provides custom step to uload artifacts to a Nexus repository using (GAV) upload
+```
+	nexusPublisher {
+			  nexusAPI = Upload API for nexus. Defaults to http(s)://NEXUSSERVER/service/local/artifact/maven/content'
+              artifactPath = Full path to the uploadable file
+              groupId = (G)  maven groupId
+              artifactId = (A) maven artifactId
+              version = (V) maven version of the artifact
+              packaging = packaging/extension of the uploadable file. Tested for tar.gz,zip,war,jar
+
+	}
+```
+
 ### nexusPublisher
-	Provides custom step to publish nexus artifacts as per Lloyds practice
+	Provides custom step to do a simple upload of an artifact to a Nexus url
+	
 ```
 	nexusPublisher {
 			targetURL = "Target URL"
