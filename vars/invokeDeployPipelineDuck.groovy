@@ -33,7 +33,7 @@ def call(String application, handlers, configuration) {
                 allTests.addAll(unitTests)
                 try {
                     deployContext = new DatabaseDeployContext(readFile(configuration))
-                    validate(deployContext)
+                   // validate(deployContext)
                     integrationEnvironment = "${deployContext.application}-${targetBranch}"
 
                 } catch (error) {
