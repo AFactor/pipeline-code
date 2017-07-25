@@ -1,9 +1,6 @@
 import com.lbg.workflow.sandbox.deploy.duck.DatabaseDeployContext
 
 
-def call(String application, handlers, String configuration){
-    this.call(application, handlers, configuration
-}
 
 def call(String application, handlers, configuration) {
     def unitTests = []
