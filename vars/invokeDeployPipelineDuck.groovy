@@ -30,12 +30,7 @@ def call(String application, handlers, configuration) {
                     echo "Loading ${test}"
                     unitTests.add( load("${test}"))
                 }
-                for (String test: handlers.getIntegrationTests()) {
-                    echo "Loading ${test}"
-                    integrationTests.add( load("${test}"))
-                }
                 allTests.addAll(unitTests)
-                allTests.addAll(integrationTests)
                 try {
                     deployContext = new DatabaseDeployContext(readFile(configuration))
                     validate(deployContext)
