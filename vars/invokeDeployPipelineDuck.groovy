@@ -5,12 +5,12 @@ def call(String application, handlers, String configuration){
     this.call(application, handlers, configuration
 }
 
-def call(DatabaseDeployContext context, handlers, configuration) {
+def call(String application, handlers, configuration) {
     def unitTests = []
     def allTests = []
 
     def appDeployer
-
+    String integrationEnvironment
     def success = false
 
     def targetEnv="integration"
@@ -18,7 +18,7 @@ def call(DatabaseDeployContext context, handlers, configuration) {
 
     def epoch
 
-    String integrationEnvironment = "${context.application}-${targetBranch}"
+
 
     stage("Initialize"){
         node('framework'){
@@ -42,6 +42,8 @@ def call(DatabaseDeployContext context, handlers, configuration) {
                 try {
                     deployContext = new DatabaseDeployContext(readFile(configuration))
                     validate(deployContext)
+                    integrationEnvironment = "${deployContext.application}-${targetBranch}"
+
                 } catch (error) {
                     echo "Invalid job configuration $error.message"
                     currentBuild.result = 'FAILURE'
