@@ -103,70 +103,6 @@ def call(String application, handlers, configuration) {
 
 private def notify(deployContext) {
 
-    if (currentBuild.result == 'SUCCESS' &&
-            null != deployContext?.metadata?.confluence?.server &&
-            null != deployContext?.metadata?.confluence?.page &&
-            deployContext.metadata.confluence.server.trim() &&
-            deployContext.metadata.confluence.page.trim()) {
-        echo "confluence notification"
-        node {
-            withCredentials([
-                    usernameColonPassword(credentialsId: 'confluence-publisher', variable: 'CONFLUENCE_CREDENTIALS')
-            ]) {
-                try {
-                    confluencePublisher(
-                            deployContext.metadata.confluence.server,
-                            deployContext.metadata.confluence.page,
-                            "${env.CONFLUENCE_CREDENTIALS}",
-                            buildConfluencePage(deployContext)
-                    )
-                } catch (error) {
-                    echo "Confluence publisher failure $error.message"
-                    currentBuild.result = 'FAILURE'
-                    throw error
-                }
-            }
-        }
-    }
-
-    // jira notifier
-    if (currentBuild.result == 'SUCCESS' &&
-            null != deployContext?.metadata?.jira?.server &&
-            deployContext.metadata.jira.server.trim())  {
-        echo "JIRA notification"
-        node {
-            withCredentials([
-                    usernameColonPassword(credentialsId: 'confluence-publisher', variable: 'CONFLUENCE_CREDENTIALS')
-                    //shared jira/confluence credentials
-            ]) {
-                try {
-
-                  def headline = globalUtils.urlDecode(
-                      "J2:${env.JOB_NAME}:${env.BUILD_NUMBER}-> ${currentBuild.result}")
-                      fullBranch= ${env.BRANCH_NAME}
-                      int index = fullBranch.lastIndexOf("/");
-                      String issueKey = fullBranch.substring(index + 1);
-
-                      if(issueKey != null && !issueKey.isEmpty()) {
-                        jiraPublisher.addJiraComment(deployContext.metadata.jira.server,
-                          jiraKey,
-                          "${env.CONFLUENCE_CREDENTIALS}",
-                          headline)
-                        echo "SUCCESS: Jira Notification submitted "
-                      }else
-                      {
-                        echo "FAILED: Jira, Couldn't find index key "
-                      }
-
-                } catch (error) {
-                    echo "Jira publisher failure $error.message"
-                    currentBuild.result = 'FAILURE'
-                    throw error
-                }
-            }
-        }
-    }
-
 
     if (null != deployContext.metadata.notifyList && deployContext.metadata.notifyList?.trim()) {
         echo "email notification"
@@ -174,31 +110,6 @@ private def notify(deployContext) {
     }
 
 
-}
-
-private def buildConfluencePage(deployContext) {
-    String artifacts = ""
-    for (Service service : deployContext.services) {
-        if (service.deploy) {
-            def artifact = service.runtime.binary.artifact
-            def artifactName = artifact.substring(artifact.lastIndexOf('/') + 1, artifact.length())
-            artifacts = artifacts + "<a href='$artifact'>$artifactName</a>" + "<br/>"
-        }
-    }
-    def page = """
-    <table border="1">
-    <tr>
-        <td><strong>Date</strong><br/>${new Date().format("yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone('UTC'))}</td>
-        <td><strong>Job</strong><br/><a href="${env.BUILD_URL}">${env.JOB_BASE_NAME}</a></td>
-        <td><strong>Environment</strong><br/>$deployContext.env</td>
-        <td><strong>Target</strong><br/>$deployContext.target</td>
-        <td><strong>Release Name</strong><br/>${deployContext?.metadata?.name}</td>
-        <td><strong>Description</strong><br/>${deployContext?.metadata?.description}</td>
-        <td><strong>Artifacts</strong><br/>$artifacts</td>
-    </tr>
-    </table>
-    """
-    return page
 }
 
 
