@@ -12,7 +12,7 @@ def call(String application, handlers, configuration, String notifyList) {
 
     def targetEnv="integration"
     def targetBranch= "master"
-
+    def deployContext
     def epoch
 
 
@@ -70,7 +70,7 @@ def call(String application, handlers, configuration, String notifyList) {
         lock(inversePrecedence: true, quantity: 1, resource: integrationEnvironment ) {
 
                 stage("Deploy"){
-                    appDeployer.deploy(targetBranch, context)  //Hardcoded to DEV as current practice
+                    appDeployer.deploy(targetBranch, deployContext)
                 }
 
             }
@@ -85,7 +85,7 @@ def call(String application, handlers, configuration, String notifyList) {
         // Clean up environments/workspaces ----------------------//
         stage("Cleanup"){
             try{
-                appDeployer.purge(targetBranch, context)
+                appDeployer.purge(targetBranch, deployContext)
             }catch(error) {
                 echo "Notice: Cleanup failed. Onwards!"
             } finally {}
