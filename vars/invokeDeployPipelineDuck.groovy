@@ -1,6 +1,11 @@
 import com.lbg.workflow.sandbox.deploy.duck.DatabaseDeployContext
 
-def call(BuildContext context, handlers, String targetBranch) {
+
+def call(String application, handlers, String configuration){
+    this.call(application, handlers, configuration
+}
+
+def call(DatabaseDeployContext context, handlers, configuration) {
     def unitTests = []
     def allTests = []
 
@@ -9,6 +14,7 @@ def call(BuildContext context, handlers, String targetBranch) {
     def success = false
 
     def targetEnv="integration"
+    def targetBranch= "master"
 
     def epoch
 
