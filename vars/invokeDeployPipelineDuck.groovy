@@ -2,7 +2,7 @@ import com.lbg.workflow.sandbox.deploy.duck.DatabaseDeployContext
 
 
 
-def call(String application, handlers, configuration) {
+def call(String application, handlers, configuration, String notifyList) {
     def unitTests = []
     def allTests = []
 
@@ -92,20 +92,12 @@ def call(String application, handlers, configuration) {
         }
         stage("End"){ echo "Phew!. Finally Finished" }
     }
-}
 
-
-
-private def notify(deployContext) {
-
-
-    if (null != deployContext.metadata.notifyList && deployContext.metadata.notifyList?.trim()) {
-        echo "email notification"
-        emailNotify { to = deployContext.metadata.notifyList }
+    if(notifyList?.trim()){
+        emailNotify { to = notifyList }
     }
-
-
 }
+
 
 
 private def validate(deployContext) {
