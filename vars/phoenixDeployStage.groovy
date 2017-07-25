@@ -84,6 +84,10 @@ private def artifactTag(service) {
             def appName = service.runtime.binary.artifactName
             return appName.split(/\./)[0]
             break
+        case 'ob-aisp':
+            def appName = service.runtime.binary.artifactName
+            return appName.split(/\./)[0]
+            break
         case 'bluemix':
             def artifact = service.runtime.binary.artifact
             def artifactName = artifact.substring(artifact.lastIndexOf('/') + 1, artifact.length())

@@ -12,6 +12,7 @@ private def apiBddTests (deployContext, stage) {
                     case 'api':
                     case 'mca':
                     case 'salsa':
+                    case 'ob-aisp':
                     case 'cwa':
                         switch (stage) {
                             case 'pre-BDD':

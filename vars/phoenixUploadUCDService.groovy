@@ -11,6 +11,7 @@ def call(service, deployContext, ucdToken) {
         case 'api':
         case 'salsa':
         case 'mca':
+        case 'ob-aisp':
             apiUpload(service,deployContext,ucdToken)
             break
         default:

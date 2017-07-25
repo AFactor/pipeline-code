@@ -22,6 +22,9 @@ def call(service, deployContext, jobType) {
                                     cwaExtract(service, deployContext)
                                     cwaSetComponentPaths(service)
                                     break
+                                case 'ob-aisp':
+                                    obaispArtifactPath(service)
+                                    obaispExtract(service, deployContext)
                                 case 'api':
                                 case 'salsa':
                                 case 'mca':
@@ -82,6 +85,25 @@ private void cwaExtract(service, deployContext) {
     phoenixLogger(3, "Revision :: ${revision}", 'star')
     srvBin.revision = revision
     echo "All Done - Extraction Complete"
+}
+
+private void obaispExtract(service, deployContext) {
+    def artifact = service.runtime.binary.artifact
+    def artifactName = service.runtime.binary.artifactName
+    def distsPath = deployContext.deployment.work_dir
+    def wgetCmd = 'wget --no-check-certificate --quiet'
+    srvBin = service.runtime.binary
+    def verScript = "cat ${distsPath}/package.json|grep version|awk -F\\\" '{print \$4}'"
+    sh """mkdir -p ${distsPath} && \\
+          ${wgetCmd} ${artifact} && \\
+          tar -xvzf ${artifactName} -C ${distsPath} """
+    def version = sh(returnStdout:true, script: verScript).trim()
+    phoenixLogger(3, "Version :: ${version}", 'star')
+    srvBin.version = version
+    sh """rm -rf ${distsPath} && \\
+          mkdir -p ${distsPath} && \\
+          mv ${artifactName} ${distsPath} """
+    echo "All Done - Artifact ready for upload"
 }
 
 private void apiExtract(service, deployContext) {
@@ -207,4 +229,19 @@ private def cwaSetComponentPaths(service) {
     phoenixLogger(3, "Components : Updated Configuration ::  ${service}", 'dash' )
 }
 
+private void obaispArtifactPath(service) {
+    srvBin = service.runtime.binary
+    if (!srvBin.artifact) {
+        def nameComp = srvBin.artifactName.split(/\./)
+        srvBin.extension = srvBin.artifactName.split(nameComp[0]).last()
+        def lastDash = nameComp[0].split('-').last()
+        def buildNum = nameComp[0].split('-')[-2]
+        srvBin.revision = lastDash
+        def revDash = '-' + buildNum + '-' + srvBin.revision
+        srvBin.name = nameComp[0].split(revDash)[0]
+        srvBin.artifact = srvBin.nexus_url + "/" + srvBin.artifactName
+    }
+}
+
 return this;
+
