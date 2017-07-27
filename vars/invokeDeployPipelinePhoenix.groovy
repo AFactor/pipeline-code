@@ -37,6 +37,7 @@ def call(String configuration) {
                     }
                 }
             }
+            archiveArtifacts configuration
             echo "Deploy Context " + deployContext.toString()
         }
     }
