@@ -200,6 +200,9 @@ private void apiArtifactPath(service) {
         def verDash = '-' + srvBin.version
         srvBin.name = artifactName.split(verDash)[0]
         srvBin.artifact = srvBin.nexus_url + "/" + srvBin.version + "/" + srvBin.artifactName
+        createScript = "touch version_${srvBin.version}"
+        sh(returnStdout:true, script: createScript)
+        archiveArtifacts "version_${srvBin.version}"
     }
 }
 
