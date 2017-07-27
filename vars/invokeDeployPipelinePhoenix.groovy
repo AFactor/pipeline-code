@@ -32,6 +32,11 @@ def call(String configuration) {
                     service.upload = convertYesNoToBoolean(params.upload)
                     service.onlyChanged = convertYesNoToBoolean(params.onlyChanged)
                     service.runtime.binary.artifactName = params.artifactName
+                    nexusUrlParts = service.runtime.binary.nexus_url.split('/')
+                    nexusUrl = nexusUrlParts.join('#')
+                    createScript = "touch nexus_${nexusUrl}"
+                    sh(returnStdout:true, script: createScript)
+                    archiveArtifacts "nexus_${nexusUrl}"
                     if (service.name == "Digital - MCA Sales") {
                         service.wasVersion = params.wasVersion
                     }
