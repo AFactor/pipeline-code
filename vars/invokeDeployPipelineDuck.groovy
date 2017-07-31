@@ -60,7 +60,7 @@ def call(String application, handlers, configuration, String notifyList) {
             stage("Unit Tests"){
                 for (Object testClass: unitTests) {
                     def currentTest = testClass
-                    currentTest.runTest(targetBranch, context)
+                    currentTest.runTest(targetBranch, deployContext)
                 }
             }
             milestone (label: 'UnitTests')
