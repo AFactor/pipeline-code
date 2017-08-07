@@ -82,6 +82,8 @@ def callHandler(String application, handlers, String configuration) {
 		  hawkIntegrationWorkflow(context, handlers, utils.friendlyName(branch, 40))
 	} else if (branch =~ /^develop$/ ) {
 		  hawkIntegrationWorkflow(context, handlers, 'develop')
+	} else if ( branch =~ /^bugfix\/.*$/ ) {
+		  hawkIntegrationWorkflow(context, handlers, utils.friendlyName(branch, 20))
 	} else {
       echo "We dont know how to build this branch. Stopping."
 	}
