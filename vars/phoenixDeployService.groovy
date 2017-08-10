@@ -192,7 +192,7 @@ private void apiArtifactPath(service) {
             }
         }
         def lastDash = artifactName.split('-').last()
-        if (lastDash =~ /\w{7}/) {
+        if (lastDash =~ /^\w{7}$/) {
             srvBin.version = artifactName.split('-')[-2]
         } else {
             srvBin.version = lastDash
