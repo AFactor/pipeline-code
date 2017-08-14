@@ -214,20 +214,28 @@ private def cwaSetComponentPaths(service) {
     for (def comp in service.components) {
         def baseVersion = comp.baseDir + "/" + versionPath
         def baseVerPath = comp.baseDir + "/" + version
+        def baseRevPath = comp.baseDir + "/" + revision
         if (comp.baseDir.contains(version)) {
             break
         }
+
         def baseVerPathScript = "if [ -d ${baseVerPath} ] ; then echo yes ;else echo no; fi"
+        def baseRevPathScript = "if [ -d ${baseRevPath} ] ; then echo yes ;else echo no; fi"
         def baseVerScript = "if [ -d ${baseVersion} ] ; then echo yes ;else echo no; fi"
         def bvpExists = sh(returnStdout:true, script: baseVerPathScript).trim()
         def bvExists = sh(returnStdout:true, script: baseVerScript).trim()
+        def brExists = sh(returnStdout:true, script: baseRevPathScript).trim()
 
-        phoenixLogger (4, "baseVerPath: ${baseVerPath} :: Exists: ${bvpExists}", 'star')
-        phoenixLogger (4, "baseVersion: ${baseVersion} :: Exists: ${bvExists}", 'star')
+        phoenixLogger(4, "baseVerPath: ${baseVerPath} :: Exists: ${bvpExists}", 'star')
+        phoenixLogger(4, "baseVersion: ${baseVersion} :: Exists: ${bvExists}", 'star')
+        phoenixLogger(4, "baseRevPath: ${baseRevPath} :: Exists: ${brExists}", 'star')
+
         if (bvpExists == 'yes') {
             comp.baseDir = baseVerPath
         } else if (bvExists == 'yes') {
             comp.baseDir = baseVersion
+        } else if (brExists == 'yes') {
+            comp.baseDir = baseRevPath
         }
     }
     phoenixLogger(3, "Components : Updated Configuration ::  ${service}", 'dash' )
