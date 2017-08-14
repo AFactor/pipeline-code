@@ -219,20 +219,9 @@ private def cwaSetComponentPaths(service) {
             break
         }
 
-        echo "DEBUG: variables"
-        echo "baseVersion is ${baseVersion}"
-        echo "baseVerPath is ${baseVerPath}"
-        echo "baseRevPath is ${baseRevPath}"
-
         def baseVerPathScript = "if [ -d ${baseVerPath} ] ; then echo yes ;else echo no; fi"
         def baseRevPathScript = "if [ -d ${baseRevPath} ] ; then echo yes ;else echo no; fi"
         def baseVerScript = "if [ -d ${baseVersion} ] ; then echo yes ;else echo no; fi"
-
-        echo "DEBUG: scripts"
-        echo "baseVerPathScript is ${baseVerPathScript}"
-        echo "baseRevPathScript is ${baseRevPathScript}"
-        echo "baseVerScript is ${baseVerScript}"
-
         def bvpExists = sh(returnStdout:true, script: baseVerPathScript).trim()
         def bvExists = sh(returnStdout:true, script: baseVerScript).trim()
         def brExists = sh(returnStdout:true, script: baseRevPathScript).trim()
@@ -267,3 +256,4 @@ private void obaispArtifactPath(service) {
 }
 
 return this;
+
