@@ -19,6 +19,7 @@ private void libertyBuildPack(deployContext, service) {
 	def appName = "${deployContext.journey}-${service.name}-${deployContext.env}"
 	def manifestBuilder = new ManifestBuilder()
 	def manifest = manifestBuilder.build(appName, service, deployContext)
+	manifest = manifestBuilder.buildEnvs(manifest, buildAnalyticsEnvs(deployContext))
 
 	sh "mkdir -p ${service.name}/pipelines/conf"
 	writeFile file: "${service.name}/pipelines/conf/manifest.yml", text: manifest
@@ -56,7 +57,7 @@ private void nodeBuildPack(deployContext, service) {
 	def appName = "${deployContext.journey}-${service.name}-${deployContext.env}"
 	def manifestBuilder = new ManifestBuilder()
 	def manifest = manifestBuilder.build(appName, service, deployContext)
-	manifest = manifestBuilder.buildEnvs(manifest, buildAnalyticsEnvs())
+	manifest = manifestBuilder.buildEnvs(manifest, buildAnalyticsEnvs(deployContext))
 	sh "mkdir -p ${service.name}/pipelines/conf"
 	writeFile file: "${service.name}/pipelines/conf/manifest.yml", text: manifest
 
@@ -92,7 +93,7 @@ private void staticfileBuildPack(deployContext, service) {
 	def appName = "${deployContext.journey}-${service.name}-${deployContext.env}"
 	def manifestBuilder = new ManifestBuilder()
 	def manifest = manifestBuilder.build(appName, service, deployContext)
-	manifest = manifestBuilder.buildEnvs(manifest, buildAnalyticsEnvs())
+	manifest = manifestBuilder.buildEnvs(manifest, buildAnalyticsEnvs(deployContext))
 	sh "mkdir -p ${service.name}/pipelines/conf"
 	writeFile file: "${service.name}/pipelines/conf/manifest.yml", text: manifest
 
@@ -124,18 +125,30 @@ private void staticfileBuildPack(deployContext, service) {
 	}
 }
 
-private def buildAnalyticsEnvs() {
+private def buildAnalyticsEnvs(deployContext) {
 	def envs = [:]
-	def analytics = [
-		"ANALYTICS_HOST_NAME",
-		"ANALYTICS_ACCOUNT_NAME",
-		"ANALYTICS_ACCESS_KEY",
-		"ANALYTICS_APP_NAME"
-	]
-	for (String credentialsId : analytics) {
-		def credentialsValue = getCredentials(credentialsId)
-		if (credentialsValue) {
-			envs[credentialsId] = credentialsValue
+	if (null != deployContext.bluemix.analytics && deployContext.bluemix.analytics == true) {
+		def analytics = [
+				"ANALYTICS_HOST_NAME" : "CI/users/OB/APPDYNAMICS/ANALYTICS_HOST_NAME",
+				"ANALYTICS_ACCOUNT_NAME" : "CI/users/OB/APPDYNAMICS/ANALYTICS_ACCOUNT_NAME",
+				"ANALYTICS_ACCESS_KEY" : "CI/users/OB/APPDYNAMICS/ANALYTICS_ACCESS_KEY",
+				"ANALYTICS_APP_NAME" : "CI/users/OB/APPDYNAMICS/ANALYTICS_APP_NAME",
+				"ENABLE_DEBUG_ANALYTICS" : "CI/users/OB/APPDYNAMICS/ENABLE_DEBUG_ANALYTICS",
+				"APPDYNAMICS_PORT" : "CI/users/OB/APPDYNAMICS/APPDYNAMICS_PORT"
+		]
+		try {
+			withCredentials([string(credentialsId: deployContext.bluemix.analytics_credentials, variable: 'VAULT_TOKEN')]) {
+				withGenericVaultSecrets(analytics) {
+					envs["ANALYTICS_HOST_NAME"] = env.ANALYTICS_HOST_NAME
+					envs["ANALYTICS_ACCOUNT_NAME"] = env.ANALYTICS_ACCOUNT_NAME
+					envs["ANALYTICS_ACCESS_KEY"] = env.ANALYTICS_ACCESS_KEY
+					envs["ANALYTICS_APP_NAME"] = env.ANALYTICS_APP_NAME
+					envs["ENABLE_DEBUG_ANALYTICS"] = env.ENABLE_DEBUG_ANALYTICS
+					envs["APPDYNAMICS_PORT"] = env.APPDYNAMICS_PORT
+				}
+			}
+		} catch (error) {
+			echo "Failed to locate secret with id : $id"
 		}
 	}
 	return envs
