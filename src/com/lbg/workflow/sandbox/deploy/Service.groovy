@@ -32,6 +32,11 @@ class Service implements Serializable {
      */
     HashMap env
 
+	/**
+	 * Token specific env
+	 */
+	HashMap tokens
+
     /**
      * bluemix env
      */
@@ -50,6 +55,7 @@ class Service implements Serializable {
                 ", runtime=" + runtime +
                 ", proxy=" + proxy +
                 ", env=" + env +
+				", tokens=" + tokens +
                 ", bluemix=" + bluemix +
                 '}'
     }

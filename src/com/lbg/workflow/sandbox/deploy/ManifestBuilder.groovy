@@ -2,49 +2,59 @@ package com.lbg.workflow.sandbox.deploy
 
 class ManifestBuilder implements Serializable {
 
-    String build(String appName, Service service, DeployContext deployContext) {
-        def bluemix = deployContext.bluemix
-        if (service.bluemix) {
-            for (e in service.bluemix) {
-                bluemix[e.key] = e.value
-            }
-        }
-        String manifest = defaultManifest(appName, bluemix)
-        if (service.env != null) {
-            for (e in service.env) {
-                if (!(manifest ==~ /(?s).*\s+${e.key}:.*/)) {
-                    manifest += "\n            ${e.key}: \"${e.value}\""
-                }
-            }
-        }
-        return manifest
-    }
+	String build(String appName, Service service, DeployContext deployContext) {
+		def bluemix = [:]
+		bluemix.putAll(deployContext.bluemix)
+		if (null != service.bluemix) {
+			for (e in service.bluemix) {
+				bluemix[e.key] = e.value
+			}
+		}
+		def manifest
+		if (service.buildpack == "Liberty") {
+			manifest = libertyManifest(appName, service.env['LIBERTY_SERVER'], bluemix)
+		}
+		else if (service.buildpack == "Staticfile") {
+			manifest = staticfileManifest(appName, bluemix)
+		}
+		else {
+			manifest = defaultManifest(appName, bluemix)
+		}
+		if (null != service.env) {
+			for (e in service.env) {
+				if (!(manifest ==~ /(?s).*\s+${e.key}:.*/)) {
+					manifest += "\n            ${e.key}: \"${e.value}\""
+				}
+			}
+		}
+		return manifest
+	}
 
-    String build(String appName, HashMap env, HashMap bluemix) {
-        String manifest = defaultManifest(appName, bluemix)
-        if (env != null) {
-            for (e in env) {
-                if (!(manifest ==~ /(?s).*\s+${e.key}:.*/)) {
-                    manifest += "\n            ${e.key}: \"${e.value}\""
-                }
-            }
-        }
-        return manifest
-    }
+	String build(String appName, HashMap env, HashMap bluemix) {
+		String manifest = defaultManifest(appName, bluemix)
+		if (env != null) {
+			for (e in env) {
+				if (!(manifest ==~ /(?s).*\s+${e.key}:.*/)) {
+					manifest += "\n            ${e.key}: \"${e.value}\""
+				}
+			}
+		}
+		return manifest
+	}
 
-    String buildEnvs(String manifest, HashMap envs) {
-        if (envs != null) {
-            for (e in envs) {
-                if (!(manifest ==~ /(?s).*\s+${e.key}:.*/)) {
-                    manifest += "\n            ${e.key}: \"${e.value}\""
-                }
-            }
-        }
-        return manifest
-    }
+	String buildEnvs(String manifest, HashMap envs) {
+		if (envs != null) {
+			for (e in envs) {
+				if (!(manifest ==~ /(?s).*\s+${e.key}:.*/)) {
+					manifest += "\n            ${e.key}: \"${e.value}\""
+				}
+			}
+		}
+		return manifest
+	}
 
-    private String defaultManifest(appName, bluemix) {
-        return """
+	private String defaultManifest(appName, bluemix) {
+		return """
         applications:
         - name: ${appName}
           org: ${bluemix.org}
@@ -53,5 +63,38 @@ class ManifestBuilder implements Serializable {
           memory: ${bluemix.memory}
           env:
             NODE_MODULES_CACHE: false """
-    }
+	}
+
+	private String libertyManifest(appName, server, bluemix) {
+		return """
+        applications:
+        - name: ${appName}
+          command: wlp/bin/server run ${server}
+          buildpack: https://github.com/cloudfoundry/ibm-websphere-liberty-buildpack#v2.8.0.0
+          org: ${bluemix.org}
+          space: ${bluemix.env}
+          disk_quota: ${bluemix.disk}
+          memory: ${bluemix.memory}
+          env:
+            IBM_JVM_LICENSE: L-PMAA-A3Z8P2
+            IBM_LIBERTY_LICENSE:  L-SWIS-AEPPZP
+            JAVA_HOME: /home/vcap/app/.java/jre
+            IBM_JAVA_OPTIONS: >-
+                -Dspring.profiles.active=development
+                -Dhttp-port=\$PORT """
+	}
+
+	private String staticfileManifest(appName, bluemix) {
+		return """
+        applications:
+        - name: ${appName}
+          org: ${bluemix.org}
+          space: ${bluemix.env}
+          disk_quota: ${bluemix.disk}
+          memory: ${bluemix.memory}
+          buildpack: https://github.com/cloudfoundry/staticfile-buildpack.git
+          stack: cflinuxfs2
+          env:
+            NODE_MODULES_CACHE: false """
+	}
 }

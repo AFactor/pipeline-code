@@ -223,7 +223,13 @@ private def isValid(name, value) {
 private def artifactTag(service) {
     def artifact = service.runtime.binary.artifact
     def artifactName = artifact.substring(artifact.lastIndexOf('/') + 1, artifact.length())
-    return artifactName.split("artifact-")[1]
+    if (service.buildpack == "Node.js" && artifactName.contains("artifact-")) {
+        return artifactName.split("artifact-")[1]
+    }
+    else if (service.buildpack == "Liberty") {
+        return artifactName.replaceAll(service.name + "-", "")
+    }
+    return artifactName
 }
 
 return this;
