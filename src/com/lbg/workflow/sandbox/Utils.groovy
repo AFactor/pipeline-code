@@ -9,7 +9,7 @@ import com.cloudbees.groovy.cps.NonCPS
 
 @NonCPS
 def friendlyName(String branchName){
-	return branchName.trim().split('/').last().trim()
+	return branchName.trim().split('/').last().trim().replaceAll("\\.","-")
 }
 
 // return name of assembly jar in maven projects using maven assembly plugin
