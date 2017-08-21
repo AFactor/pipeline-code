@@ -85,7 +85,7 @@ private void cwaExtract(service, deployContext) {
     sh "rm -rf ${distsPath} || true"
     sh """mkdir -p ${distsPath} && \\
           ${wgetCmd} ${artifact} && \\
-          tar -xvzf ${artifactName} -C ${distsPath} """
+          tar -xzf ${artifactName} -C ${distsPath} """
     def revision = sh(returnStdout:true, script: verScript).trim().split('-').last().trim()
     phoenixLogger(3, "Revision :: ${revision}", 'star')
     srvBin.revision = revision
@@ -103,7 +103,7 @@ private void obaispExtract(service, deployContext) {
     def verScript = "cat ${distsPath}/package.json|grep version|awk -F\\\" '{print \$4}'"
     sh """mkdir -p ${distsPath} && \\
           ${wgetCmd} ${artifact} && \\
-          tar -xvzf ${artifactName} -C ${distsPath} """
+          tar -xzf ${artifactName} -C ${distsPath} """
     def version = sh(returnStdout:true, script: verScript).trim()
     phoenixLogger(3, "Version :: ${version}", 'star')
     srvBin.version = version + '.' + buildNum
@@ -121,7 +121,7 @@ private void apiExtract(service, deployContext) {
     def distsPath = deployContext.deployment.work_dir
     def workDir = distsPath + "/" + name + "." + extension
     def extractPath = workDir + "/Expanded"
-    def wgetCmd = 'wget --no-check-certificate'
+    def wgetCmd = 'wget --no-check-certificate --quiet'
     def verScript = "find . -name version.txt -exec cat '{}' \\; -quit"
     def date = new Date().format("ddMMyyyyHHMM", TimeZone.getTimeZone('UTC'))
     def revision = date
