@@ -106,7 +106,7 @@ private void obaispExtract(service, deployContext) {
           tar -xvzf ${artifactName} -C ${distsPath} """
     def version = sh(returnStdout:true, script: verScript).trim()
     phoenixLogger(3, "Version :: ${version}", 'star')
-    srvBin.version = version + '-' + buildNum
+    srvBin.version = version + '.' + buildNum
     sh """rm -rf ${distsPath} && \\
           mkdir -p ${distsPath} && \\
           mv ${artifactName} ${distsPath} """
