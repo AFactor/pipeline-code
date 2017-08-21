@@ -8,10 +8,12 @@ def call(service, deployContext, ucdToken) {
         case 'cwa':
             cwaUpload(service,deployContext,ucdToken)
             break
+        case 'ob-aisp':
+            obaispUpload(service,deployContext,ucdToken)
+            break
         case 'api':
         case 'salsa':
         case 'mca':
-        case 'ob-aisp':
             apiUpload(service,deployContext,ucdToken)
             break
         default:
@@ -67,6 +69,32 @@ private def apiUpload(service, deployContext, ucdToken) {
 
             def addVersion = utils.apiAddVersion(service, deployContext, ucdToken, comp.baseDir, name, date)
             phoenixLogger(3, "Add Version Output: ${addVersion}", 'dash')
+        }
+    }
+}
+
+
+private def obaispUpload(service, deployContext, ucdToken) {
+    def utils = new UtilsUCD()
+    def date = new Date().format("ddMMyyyyHHMM", TimeZone.getTimeZone('UTC'))
+    for (Object componentObject : service.components) {
+        Components comp = componentObject
+        def baseDir = "./" + comp.baseDir
+        def name = comp.name
+        phoenixLogger(5, "Base Dir: ${baseDir} :: Name: ${name}", "dash")
+
+        def getVersion = utils.ucdComponentVersion(deployContext, ucdToken, name)
+        println ("Version Information: " + getVersion.toString())
+        def versionStatus = utils.getVersionsJson(getVersion, service, name)
+        if (!versionStatus) {
+            def createVersion = utils.apiCreateVersion(service, deployContext, ucdToken, name, date)
+            phoenixLogger(3, "Create Version Output: ${createVersion}", 'dash')
+
+            def addVersion = utils.apiAddVersion(service, deployContext, ucdToken, comp.baseDir, name, date)
+            phoenixLogger(3, "Add Version Output: ${addVersion}", 'dash')
+
+            def setVersion = utils.ucdSetVersionTarProperty(service, deployContext, ucdToken, name, date)
+            phoenixLogger(3, "Set Version Property Output: ${setVersion}", 'dash')
         }
     }
 }

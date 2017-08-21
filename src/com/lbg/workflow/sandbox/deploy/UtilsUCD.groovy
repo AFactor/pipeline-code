@@ -264,6 +264,36 @@ def ucdSetVersionProperty(service, deployContext, ucdToken, name, date) {
     return request
 }
 
+
+@NonCPS
+def ucdSetVersionTarProperty(service, deployContext, ucdToken, name, date) {
+    println "**************************************"
+    println " UCD Set Version Property for ${name} "
+    println "**************************************"
+
+    def version = service.runtime.binary.version
+    def revision = service.runtime.binary.revision
+    def artifactName = service.runtime.binary.artifactName
+    def revisionTrunc = ''
+    if (service.runtime.binary.revision.size() > 9) {
+        revisionTrunc = service.runtime.binary.revision[0..9]
+    } else {
+        revisionTrunc = service.runtime.binary.revision
+    }
+    def ucdUrl = deployContext.deployment.ucd_url
+    def versionPath = "${version}-${revision}"
+    def udClient = "./udclient/udclient"
+    def componentSet = "-component '${name}'"
+    def versionSet = "-version ${version}-${revisionTrunc}"
+    def valueSet = "-value ${artifactName}"
+    def command = "setVersionProperty ${componentSet} ${versionSet} -name application.tar.filename ${valueSet}"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+
+    def request = sh(returnStdout: true, script: ucdCmd).trim()
+    return request
+}
+
+
 def install(deployContext) {
     def ucdUrl = deployContext.deployment.ucd_url
     def wgetCmd = 'wget --no-check-certificate --quiet'
