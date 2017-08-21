@@ -44,6 +44,7 @@ def call(service, deployContext, jobType) {
                             }
                         }
                     }
+                    step([$class: 'WsCleanup', notFailBuild: true])
                 }
             }
             break
@@ -62,6 +63,7 @@ def call(service, deployContext, jobType) {
                 }
                 // deploy using bluemix functions
                 eagleDeployBluemixService(service, deployContext)
+                step([$class: 'WsCleanup', notFailBuild: true])
             }
             break
         default:
@@ -78,6 +80,8 @@ private void cwaExtract(service, deployContext) {
     def wgetCmd = 'wget --no-check-certificate --quiet'
     def verScript = "find . -name version.txt -exec cat '{}' \\; -quit"
     srvBin = service.runtime.binary
+
+    sh "rm -rf ${distsPath} || true"
     sh """mkdir -p ${distsPath} && \\
           ${wgetCmd} ${artifact} && \\
           tar -xvzf ${artifactName} -C ${distsPath} """
