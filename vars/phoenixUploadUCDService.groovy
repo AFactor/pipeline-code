@@ -93,9 +93,9 @@ private def obaispUpload(service, deployContext, ucdToken) {
             def addVersion = utils.apiAddVersion(service, deployContext, ucdToken, comp.baseDir, name, date)
             phoenixLogger(3, "Add Version Output: ${addVersion}", 'dash')
 
-            def setVersion = utils.ucdSetVersionTarProperty(service, deployContext, ucdToken, name, date)
-            phoenixLogger(3, "Set Version Property Output: ${setVersion}", 'dash')
         }
+        def setVersion = utils.ucdSetVersionTarProperty(service, deployContext, ucdToken, name, date)
+        phoenixLogger(3, "Set Version Property Output: ${setVersion}", 'dash')
     }
 }
 
