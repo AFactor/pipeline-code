@@ -48,7 +48,7 @@ def call(String configuration) {
     }
     milestone(label: 'Initialized')
 
-    lock(inversePrecedence: true, quantity: 1, resource: "j2-${deployContext.journey}-deploy") {
+    lock(inversePrecedence: true, quantity: 1, resource: "j2-${deployContext.journey}-${deployContext.tests.repo}-${deployContext.env}-deploy") {
         testStage = new phoenixTestStage()
         deployStage = new phoenixDeployStage()
         notifyStage = new phoenixNotifyStage()
