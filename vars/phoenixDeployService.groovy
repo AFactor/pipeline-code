@@ -231,10 +231,11 @@ private def apiGerritRevision(deployContext) {
             gerritBranch = deployContext.tests.branch
         }
         def gerritUrl = "http://gerrit.sandbox.extranet.group/a/projects/${gerritRepo}/branches/${gerritBranch}"
-        def gerritScriptRevision = "curl -v -k --digest --user ${GAUTH} ${gerritUrl}|grep revision|awk -F\\\" '{print \$4}'"
+        def gerritScriptRevision = "curl -s -k --digest --user ${GAUTH} ${gerritUrl}|grep revision|awk -F\\\" '{print \$4}'"
         try {
-            testRevision = sh(returnStdout:true, script: gerritScriptRevision).trim()
-            println "Test Revision info :: ${testRevision}"
+            revision = sh(returnStdout:true, script: gerritScriptRevision).trim()[0..8]
+            fullRevision = sh(returnStdout:true, script: gerritScriptRevision).trim()
+            println "Full Revision info :: ${fullRevision} :: Actual Revision: ${revision}"
         } catch (error) {
             println "Could not get Revision from Gerrit :: Error: ${error.message}"
             println "Skipping"
