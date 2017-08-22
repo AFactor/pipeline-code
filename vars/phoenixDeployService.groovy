@@ -125,6 +125,7 @@ private void apiExtract(service, deployContext) {
     def verScript = "find . -name version.txt -exec cat '{}' \\; -quit"
     def date = new Date().format("ddMMyyyyHHMM", TimeZone.getTimeZone('UTC'))
     def revision = date
+    def gerritRevision = apiGerritRevision(deployContext)
     srvBin = service.runtime.binary
     sh """if [ -e dist ]; then rm -rfv dist; fi; \\
           mkdir -p "${extractPath}" && \\
@@ -146,10 +147,15 @@ private void apiExtract(service, deployContext) {
         phoenixLogger(4, "Revision :: ${revision}", 'dash')
         if (!revision) {
             revision = date
+            if(gerritRevision != null && !gerritRevision.isEmpty()) {
+                revision = gerritRevision
+            }
             phoenixLogger(1, "Revision Not Found :: Revision Now: ${revision}", 'star')
         }
     } catch (error) {
-        revision = date
+        if(gerritRevision != null && !gerritRevision.isEmpty()) {
+            revision = gerritRevision
+        }
         phoenixLogger(1, "Revision Not Found :: Revision Now: ${revision}", 'star')
     }
     srvBin.revision = revision
@@ -211,6 +217,28 @@ private void apiArtifactPath(service) {
         createScript = "touch version_${srvBin.version}"
         sh(returnStdout:true, script: createScript)
         archiveArtifacts "version_${srvBin.version}"
+    }
+}
+
+private def apiGerritRevision(deployContext) {
+    withCredentials([
+            usernameColonPassword(credentialsId: 'GERRIT_HTTP_CREDS', variable: 'GAUTH')
+    ]) {
+        def gerritRepo = deployContext.tests.repo
+        def gerritBranch = 'master'
+        def revision = ''
+        if (deployContext.tests.branch) {
+            gerritBranch = deployContext.tests.branch
+        }
+        def gerritUrl = "http://gerrit.sandbox.extranet.group/a/projects/${gerritRepo}/branches/${gerritBranch}"
+        def gerritScriptRevision = "curl -s -k --digest --user ${GAUTH} ${gerritUrl}|grep revision|awk -F\\\" '{print \$4}'"
+        try {
+            revision = sh(returnStdout:true, script: gerritScriptRevision).trim()[0..8]
+        } catch (error) {
+            println "Could not get Revision from Gerrit :: Error: ${error.message}"
+            println "Skipping"
+        }
+        return revision
     }
 }
 
