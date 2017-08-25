@@ -24,9 +24,8 @@ def call(String configuration) {
             // overriding deploy context values with the values provided via params above
             if(params.containsKey('artifactName')) {
                 if(params.artifactName == null || params.artifactName.isEmpty()) {
-                    phoenixLogger(3, "BUILD Parameters Should Now Be Built and Available - Please Re-Run This Job", 'star')
-                    currentBuild.result = 'SUCCESS'
-                    phoenixNotifyStage().buildParamsNotify(deployContext)
+                    phoenixLogger(3, "BUILD Parameters Should Now Be Built and Available", 'star')
+                    deployContext.deployment.type = 'params'
                     return null
                 }
                 deployContext.deployment.process = params.process
@@ -48,9 +47,8 @@ def call(String configuration) {
                     }
                 }
             } else {
-                phoenixLogger(3, "BUILD Parameters Should Now Be Built and Available - Please Re-Run This Job", 'star')
-                currentBuild.result = 'SUCCESS'
-                phoenixNotifyStage().buildParamsNotify(deployContext)
+                phoenixLogger(3, "BUILD Parameters Should Now Be Built and Available", 'star')
+                deployContext.deployment.type = 'params'
                 return null
             }
             archiveArtifacts configuration
@@ -110,6 +108,9 @@ def call(String configuration) {
                 stage('Notify') {
                     notifyStage.deployNotify(deployContext)
                 }
+                break
+            case 'params':
+                phoenixLogger(3, "Finished :: SUCCESS :: PLEASE RE-RUN THIS JOB", 'equal')
                 break
             default:
                 phoenixLogger(1, " Error: No Deployment Type provided  ", 'star')
