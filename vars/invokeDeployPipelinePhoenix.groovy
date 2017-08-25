@@ -25,7 +25,7 @@ def call(String configuration) {
             if(params.containsKey('artifactName')) {
                 if(params.artifactName == null || params.artifactName.isEmpty()) {
                     phoenixLogger(3, "BUILD Parameters Should Now Be Built and Available - Please Re-Run This Job", 'star')
-                    System.exit(0)
+                    return "Built Params"
                 }
                 deployContext.deployment.process = params.process
                 deployContext.tests.pre_bdd = convertYesNoToBoolean(params.pre_bdd)
@@ -47,7 +47,7 @@ def call(String configuration) {
                 }
             } else {
                 phoenixLogger(3, "BUILD Parameters Should Now Be Built and Available - Please Re-Run This Job", 'star')
-                System.exit(0)
+                return "Built Params"
             }
             archiveArtifacts configuration
             echo "Deploy Context " + deployContext.toString()
