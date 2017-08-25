@@ -23,6 +23,10 @@ def call(String configuration) {
             }
             // overriding deploy context values with the values provided via params above
             if(params.containsKey('artifactName')) {
+                if(params.artifactName == null || params.artifactName.isEmpty()) {
+                    phoenixLogger(3, "BUILD Parameters Should Now Be Built and Available - Please Re-Run This Job", 'star')
+                    System.exit(0)
+                }
                 deployContext.deployment.process = params.process
                 deployContext.tests.pre_bdd = convertYesNoToBoolean(params.pre_bdd)
                 deployContext.tests.post_bdd = convertYesNoToBoolean(params.post_bdd)
@@ -41,6 +45,9 @@ def call(String configuration) {
                         service.wasVersion = params.wasVersion
                     }
                 }
+            } else {
+                phoenixLogger(3, "BUILD Parameters Should Now Be Built and Available - Please Re-Run This Job", 'star')
+                System.exit(0)
             }
             archiveArtifacts configuration
             echo "Deploy Context " + deployContext.toString()
@@ -48,7 +55,7 @@ def call(String configuration) {
     }
     milestone(label: 'Initialized')
 
-    lock(inversePrecedence: true, quantity: 1, resource: "j2-${deployContext.journey}-${deployContext.tests.repo}-${deployContext.env}-deploy") {
+    lock(inversePrecedence: true, quantity: 1, resource: "j2-${deployContext.env}-deploy") {
         testStage = new phoenixTestStage()
         deployStage = new phoenixDeployStage()
         notifyStage = new phoenixNotifyStage()
