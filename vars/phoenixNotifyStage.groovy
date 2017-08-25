@@ -15,6 +15,11 @@ private def splunkNotify(String endPoint) {
             'jenkins-read-all', currentBuild.result, endPoint)
 }
 
+private def buildParamsNotify(deployContext) {
+    milestone(label: 'Notify')
+    phoenixLogger(3, "Finished :: BUILT PARAMETERS :: SUCCESS", 'equal')
+}
+
 private def notify(deployContext) {
     phoenixLogger(3, "Running Notifications", 'equal')
     if (currentBuild.result == 'SUCCESS' &&
