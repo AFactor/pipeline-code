@@ -161,11 +161,70 @@ and supports colour output (although currently disabled)
 
 ### Jenkinsfile
 
-The Jenkinsfile usage is the exact same as Eagle, with the exception that workflowlib-ucd-global is also invoked.
+The Jenkinsfile currently is very similar to Eagle, however we also deal with parameterized builds here.
+
+UCD Pipeline supports 2 types of parameterized builds:
+
+Method 1: Through job codebase,  
+
+Method 2: Through devops-jenkins2-jobspec ucd_params.groovy calls
+
+We are currently using method 1, an example Jenkinsfile used in job codebases is as follows:
+
 
 Example:
 
+```groovy
+
+@Library(['workflowlib-ucd-global', 'workflowlib-sandbox'])
+import com.lbg.workflow.ucd.*
+import com.lbg.workflow.sandbox.*
+import com.lbg.workflow.sandbox.deploy.UtilsUCD
+
+def utils = new UtilsUCD()
+String artifactNames = utils.getNexusArtifactNameFromMetadata('sales-pca-api-ear-v1','http://nexus.sandbox.extranet.group/nexus/content/repositories/releases/com/lbg/ib/api/sales/sales-pca-api-ear-v1')
+
+String choices = 'yes\nno'
+String defaultNoChoices = 'no\nyes'
+String deployChoices = 'Deploy application/cluster and restart WAS'
+
+properties([
+        buildDiscarder(logRotator(artifactDaysToKeepStr: '30', artifactNumToKeepStr: '5', daysToKeepStr: '30', numToKeepStr: '5')),
+        [$class: 'RebuildSettings', autoRebuild: true, rebuildDisabled: false],
+        parameters([
+        string(defaultValue: '',description: 'Please select the name of the artifact you wish to deploy', name: 'artifactName'),
+        choice(choices: choices, description: 'Do you wish to deploy?', name: 'deploy'),
+        choice(choices: ucdWASHandler('DigitalMC_Sales WAS Cluster'), description: 'Please Provide the WAS Version for Deployment', name: 'wasVersion'),
+        choice(choices: choices, description: 'Upload the selected artifact from nexus to UrbanCode', name: 'upload'),
+        choice(choices: defaultNoChoices, description: 'Execute PreBDD phase?', name: 'pre_bdd'),
+        choice(choices: defaultNoChoices, description: 'Execute PostBDD phase?', name: 'post_bdd'),
+        choice(choices: deployChoices, description: 'Which deployment process do you wish to execute?', name: 'process'),
+        choice(choices: defaultNoChoices, description: 'Deploy changes only? (If unsure leave as-is)', name: 'onlyChanged')
+        ])
+])
+
+def configuration
+
+node {
+    checkout scm
+    def jobName = "${env.JOB_NAME}"
+    def targetEnv = jobName.split('/').last()
+    configuration = "pipelines/conf/${targetEnv}/job-configuration.json"
+    echo "Job: ${jobName} :: ENV: ${targetEnv} :: Configuration: ${configuration}"
+    if (!configuration) {
+        error "Invalid job configuration :: ${configuration}"
+    }
+}
+
+invokeDeployPipelinePhoenix(configuration)
+
 ```
+
+If Parameterized build options are not required the following structure can be used:
+
+
+```groovy
+
 @Library(['workflowlib-ucd-global', 'workflowlib-sandbox@master'])
 import com.lbg.workflow.ucd.*
 import com.lbg.workflow.sandbox.*
@@ -193,6 +252,7 @@ invokeDeployPipelinePhoenix(configuration)
 
 ```    
 
+
 ### Json Configuration Data
 This is the biggest departure from the Eagle pipeline, the json file has been reconfigured to handle different types of deployments.
 
@@ -200,63 +260,63 @@ The json File is as follows:
 
 ```
 {
-  "journey": "ucd-cwa",
-  "env": "DEV",
+  "journey": "ucd-mca",
+  "env": "ST04 (ST04b)",
   "label": "lbg_slave",
   "metadata": {
     "confluence": {
-      "type": "ucd-cwa",
-      "server": "http://confluence.sandbox.extranet.group",
+      "type": "ucd-mca",
+      "server": "https://confluence.devops.lloydsbanking.com",
       "page": "26784379",
       "credentials": "confluence-publisher"
     },
-    "notifyList": "vhedayati@sapient.com"
+    "notifyList": "lloydscjtdevops@sapient.com"
   },
   "services": [
     {
       "components": [
         {
-          "baseDir": "dist/bos/content/46-7cd599c733aa46c1687a45ebe04b6e60b2923eea",
-          "name": "IB-PB-CWA-B-PCA-AVA"
-        },
-        {
-          "baseDir": "dist/halifax/content/46-7cd599c733aa46c1687a45ebe04b6e60b2923eea",
-          "name": "IB-PB-CWA-H-PCA-AVA"
-        },
-        {
-          "baseDir": "dist/lloyds/content/46-7cd599c733aa46c1687a45ebe04b6e60b2923eea",
-          "name": "IB-PB-CWA-L-PCA-AVA"
+          "name": "DigitalMC_sales-api-savings Application",
+          "baseDir": "dist/urbancode"
         }
       ],
-      "type": "cwa",
+      "type": "api",
       "deploy": true,
       "upload": true,
-      "name": "Digital - CWA - Personal Current Account - AVA",
-      "description": "Personal Current Account Opening for AVA versions to stage and Activate on DEV",
+      "name": "Digital - MCA Sales",
+      "description": "MCA Sales",
       "runtime": {
         "binary": {
-          "nexus_url": "http://nexus.sandbox.extranet.group/nexus/content/repositories/releases/pca-ava-artifacts",
-          "version": "46",
-          "name": "pca-cwa-packaged-accounts-master-artifact",
-          "extension": "tar.gz",
-          "revision": "7cd599c733aa46c1687a45ebe04b6e60b2923eea"
+          "nexus_url": "http://nexus.sandbox.extranet.group/nexus/content/repositories/releases/com/lbg/ib/api/pao/sales-api-savings-ear",
+          "version": "",
+          "name": "",
+          "extension": "",
+          "revision": ""
         }
       },
       "env": {
-        "NODE_ENV": "DEV"
+        "NODE_ENV": "ST04 (ST04b)"
       }
     }
   ],
   "deployment": {
     "type": "ucd",
     "ucd_url": "https://ucd.intranet.group",
-    "work_dir": "dist",
+    "work_dir": "dist/urbancode",
     "process": "Stage and Activate",
-    "credentials": "UC_TOKEN_CWA",
-    "timeout": 60
+    "credentials": "UC_TOKEN_MCA",
+    "timeout": 120
   },
   "proxy": {
     "deploy": false
+  },
+  "tests": {
+    "type": "api",
+    "repo": "pao-savings-api",
+    "pre_bdd": true,
+    "post_bdd": true,
+    "branch": "",
+    "credentials": "gerrit-admin"
   }
 }
 ```
@@ -272,16 +332,21 @@ deployment is a hashmap, so you can add any key: value pair and as long as the d
 understands the keys then the deployment will be carried out. 
 
 #### Service
-This is a bit more complicated as there can be multiple different services, 
+There is a service.type that defines the type of service and this will be up to each individual team to correctly identify and setup.
+Most types will actually fall into the predefined api / cwa or ob-aisp, if what is being deployed is slightly please add this new service type in. 
+The Service flows as follows:
 
-This is defined in:
+```groovy
+vars/phoenixDeployStage
+    _|----> vars/phoenixDeployService.groovy
+```
+
+
+The actual service fields are defined in:
 ```
 src.com.lbg.workflow.sandbox.deploy.phoenix.deployContext.groovy 
-```
-
-which is further defined in:
-```
-src.com.lbg.workflow.sandbox.deploy.phoenix.Service.groovy
+            |
+           _|----->src.com.lbg.workflow.sandbox.deploy.phoenix.Service.groovy
 ```
 
 As service is an array of hashes, the Service.groovy defines the further types the service can offer, it is run through the constructor
@@ -289,7 +354,8 @@ of deployContext to ensure it is not lazymapped. Lazy maps are not serialiazable
 
 bluemix information is defined here as well as ucd information. if you would like different keys to be defined for a service
 you wish to deploy it will need to be added here, there is also the metadata hash which can take any key/value pair if you dont
-wish to explicitly define anything. 
+wish to explicitly define anything. Generally speaking these shouldnt need to be modified and should cover everything necessary for ucd deployments,
+if in the future another type of deployment is to be added, then the extra fields required for the deployment, can be defined in the above files. 
 
 ##### Artifact Information
 Within service the following extras are defined:
@@ -312,23 +378,53 @@ the artifact is split into multiple sections, which are as follows:
     String artifact
 ```
 
+Only the nexus_url needs to be specified as the artifactName is passed as a parameter and the rest of the fields are then filled out from the artifact. 
+
 Within vars/phoenixDeployService.groovy there are methods defined for api and cwa:
 
-```
+
+```groovy
 private void apiArtifactPath(service) {
     srvBin = service.runtime.binary
+    def artifactName = ''
     if (!srvBin.artifact) {
-        srvBin.artifactName = srvBin.name + "-" + srvBin.version + "." + srvBin.extension
+        def nameComp = srvBin.artifactName.split(/\./)
+        println ("Name Components == " + nameComp)
+        if (nameComp.size() >= 2) {
+            if ('tar' == nameComp[-2]) {
+                srvBin.extension = srvBin.artifactName.split(nameComp[0]).last()
+                artifactName = srvBin.artifactName.split("[.]" + srvBin.extension)[0]
+            } else {
+                srvBin.extension = nameComp.last()
+                artifactName = srvBin.artifactName.split("[.]" + srvBin.extension)[0]
+            }
+        }
+        def lastDash = artifactName.split('-').last()
+        if (lastDash =~ /^\w{7}$/) {
+            srvBin.version = artifactName.split('-')[-2]
+        } else {
+            srvBin.version = lastDash
+        }
+        def verDash = '-' + srvBin.version
+        srvBin.name = artifactName.split(verDash)[0]
         srvBin.artifact = srvBin.nexus_url + "/" + srvBin.version + "/" + srvBin.artifactName
+        echo "Artifact Name: ${artifactName} :: Last Dash: ${lastDash} :: Version: ${srvBin.version} :: artifact: ${srvBin.artifact}"
+        createScript = "touch version_${srvBin.version}"
+        sh(returnStdout:true, script: createScript)
+        archiveArtifacts "version_${srvBin.version}"
     }
+}
 ```
-This constructs the artifact from the component parts and fills artifactName and artifact and this then works the same
-way as the bluemix method where artifact contains the full nexus path and artifactName contains just the name, this allows
-any specific naming scheme or nexus path to work and doesnt rely on what can be a problematic split to try and work out
-how the naming scheme for the artifact and the nexus upload path is defined. 
+
+This deconstructs the artifact name which is passed in as a parameter and then uses the various identifiers in the name to fill out all of the information required
+This then works the same way as the bluemix method, where artifact contains the full nexus path and artifactName contains just the name, this is further augmented with 
+the apiExtract method - which gathers anything missing directly from the artifact and prepares the artifact for upload to UCD.
+
 
 ##### Service Componenets
+
 For ucd there is a further :
+
 ```
 src.com.lbg.workflow.sandbox.phoenix.Components.groovy
 ```
@@ -337,7 +433,34 @@ which is again an array of hashes and determines what components are part of the
 it should be deployed to within the environment defined within the json file. The basedir and name must exist in UCD for the deployment
 to succeed.
 
+
+##### Tests
+
+The Tests section is for pre and post-bdd testing. The pre-bdd side has been deprecated for API and CWA atleast, as it was deemed unneccessary to test pre-existing deployments, 
+but for post-bdd this is used. The fields are as follows:
+
+```json
+"tests": {
+    "type": "api",
+    "repo": "pao-savings-api",
+    "pre_bdd": true,
+    "post_bdd": true,
+    "branch": "",
+    "credentials": "gerrit-admin"
+  }
+```
+
+the type again determines what sort of testing can be carried out and the tests are defined in /vars/phoenixTestStage.groovy. 
+
+The repo is important, this is the code repo that the artifact was built from and the repo which should contain the code tests, the other important field is
+branch and this defines what branch the artifact was built from. The pre-bdd and post-bdd options are both parameterized build options which are presented at build time. 
+The credentials shouldnt need to be changed. 
+
+If you would like to add custom steps please modify phoenixTestStage.grooovy. 
+
+
 ##### Deploy / Upload Service
+
 Finally within service there is a deploy and upload boolean flags. Deploy works for both bluemix and ucd, upload is ucd only. 
 If deployment is false and upload is true the artifact will only be uploaded to ucd, vice-versa and the artifact will only be deployed. 
 
