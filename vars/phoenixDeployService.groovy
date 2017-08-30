@@ -230,7 +230,7 @@ private def apiGerritRevision(deployContext) {
         if (deployContext.tests.branch) {
             gerritBranch = deployContext.tests.branch
         }
-        def gerritUrl = "http://gerrit.sandbox.extranet.group/a/projects/${gerritRepo}/branches/${gerritBranch}"
+        def gerritUrl = "https://gerrit.sandbox.extranet.group/a/projects/${gerritRepo}/branches/${gerritBranch}"
         def gerritScriptRevision = "curl -s -k --digest --user ${GAUTH} ${gerritUrl}|grep revision|awk -F\\\" '{print \$4}'"
         try {
             revision = sh(returnStdout:true, script: gerritScriptRevision).trim()[0..8]

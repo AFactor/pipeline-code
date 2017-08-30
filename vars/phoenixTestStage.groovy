@@ -48,7 +48,7 @@ private def preBddCheck(deployContext, service) {
     withCredentials([string(credentialsId: deployContext.deployment.credentials, variable: 'ucdToken')]) {
         withEnv(['PATH+bin=/bin', 'PATH+usr=/usr/bin', 'PATH+local=/usr/local/bin', 'JAVA_HOME=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64']) {
             UtilsUCD utils = new UtilsUCD()
-            String gitUrl = "http://gerrit.sandbox.extranet.group/${deployContext.tests.repo}"
+            String gitUrl = "https://gerrit.sandbox.extranet.group/${deployContext.tests.repo}"
             String name = ''
 
             //What is going on here what are we setting cos only getting done once
@@ -69,7 +69,7 @@ private def preBddCheck(deployContext, service) {
 
 private def postBddCheck(deployContext, service) {
     withEnv(['PATH+bin=/bin', 'PATH+usr=/usr/bin', 'PATH+local=/usr/local/bin', 'JAVA_HOME=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64']) {
-        def gitUrl = "http://gerrit.sandbox.extranet.group/${deployContext.tests.repo}"
+        def gitUrl = "https://gerrit.sandbox.extranet.group/${deployContext.tests.repo}"
         def gitRef = service.runtime.binary.revision
         def branch = deployContext.tests.branch
         def credentials = deployContext.tests.credentials

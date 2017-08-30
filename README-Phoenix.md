@@ -182,7 +182,7 @@ import com.lbg.workflow.sandbox.*
 import com.lbg.workflow.sandbox.deploy.UtilsUCD
 
 def utils = new UtilsUCD()
-String artifactNames = utils.getNexusArtifactNameFromMetadata('sales-pca-api-ear-v1','http://nexus.sandbox.extranet.group/nexus/content/repositories/releases/com/lbg/ib/api/sales/sales-pca-api-ear-v1')
+String artifactNames = utils.getNexusArtifactNameFromMetadata('sales-pca-api-ear-v1','https://nexus.sandbox.extranet.group/nexus/content/repositories/releases/com/lbg/ib/api/sales/sales-pca-api-ear-v1')
 
 String choices = 'yes\nno'
 String defaultNoChoices = 'no\nyes'
@@ -287,7 +287,7 @@ The json File is as follows:
       "description": "MCA Sales",
       "runtime": {
         "binary": {
-          "nexus_url": "http://nexus.sandbox.extranet.group/nexus/content/repositories/releases/com/lbg/ib/api/pao/sales-api-savings-ear",
+          "nexus_url": "https://nexus.sandbox.extranet.group/nexus/content/repositories/releases/com/lbg/ib/api/pao/sales-api-savings-ear",
           "version": "",
           "name": "",
           "extension": "",

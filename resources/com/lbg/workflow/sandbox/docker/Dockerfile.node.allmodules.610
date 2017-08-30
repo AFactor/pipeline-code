@@ -3,12 +3,12 @@ FROM 10.112.159.88:40007/node:6.10.2
 RUN 	useradd -u 1500 --create-home jenkins2 && umask 002 && mkdir -p workspace;
 WORKDIR /home/jenkins2
 
-ADD 	http://nexus.sandbox.extranet.group/nexus/content/repositories/binaries/node-sass/v4.5.1/linux-x64-46_binding.node   linux-x64-46_binding.node
+ADD 	https://nexus.sandbox.extranet.group/nexus/content/repositories/binaries/node-sass/v4.5.1/linux-x64-46_binding.node   linux-x64-46_binding.node
 
-ADD	http://nexus.sandbox.extranet.group/nexus/content/repositories/binaries/oracle/instantclient/122010/instantclient_12_2.tar.gz instantclient_12_2.tar.gz
+ADD	https://nexus.sandbox.extranet.group/nexus/content/repositories/binaries/oracle/instantclient/122010/instantclient_12_2.tar.gz instantclient_12_2.tar.gz
 
 ENV 	SASS_BINARY_PATH=/home/jenkins2/linux-x64-46_binding.node \
-		NVM_NODEJS_ORG_MIRROR=http://nexus.sandbox.extranet.group/nexus/content/sites/binaries/node \
+		NVM_NODEJS_ORG_MIRROR=https://nexus.sandbox.extranet.group/nexus/content/sites/binaries/node \
 		HTTP_PROXY=http://10.113.140.187:3128 \
 		HTTPS_PROXY=http://10.113.140.187:3128 \
 		http_proxy=http://10.113.140.187:3128 \
@@ -22,7 +22,8 @@ RUN 	chown jenkins2:jenkins2  * -R && \
 		tar -xvzf instantclient_12_2.tar.gz && \
 		ln -s /home/jenkins2/instantclient_12_2/libclntsh.so.12.1 /home/jenkins2/instantclient_12_2/libclntsh.so  && \
 		ls -l /home/jenkins2/instantclient_12_2/* && \
-		npm config set registry http://nexus.sandbox.extranet.group/nexus/content/groups/npm-master/ && \
+		npm config set registry https://nexus.sandbox.extranet.group/nexus/content/groups/npm-master/ && \
+		npm config set strict-ssl false && \
 		npm install npm3 gulp eslint -g && \
 		npm cache clean && \
 		rm -rf ~/.npm
@@ -32,9 +33,10 @@ WORKDIR /home/jenkins2/workspace
 
 COPY 	package.json  /home/jenkins2/
 RUN 	npm config set progress false && \
-		npm config set phantomjs_cdnurl http://nexus.sandbox.extranet.group/nexus/content/repositories/binaries/phantomjs && \
-		npm config set registry http://nexus.sandbox.extranet.group/nexus/content/groups/npm-master && \
-		npm config set chromedriver_cdnurl http://nexus.sandbox.extranet.group/nexus/content/sites/binaries/chromedriver && \
+		npm config set strict-ssl false && \
+		npm config set phantomjs_cdnurl https://nexus.sandbox.extranet.group/nexus/content/repositories/binaries/phantomjs && \
+		npm config set registry https://nexus.sandbox.extranet.group/nexus/content/groups/npm-master && \
+		npm config set chromedriver_cdnurl https://nexus.sandbox.extranet.group/nexus/content/sites/binaries/chromedriver && \
 		cd /home/jenkins2 && \
 		npm3 install && \
 		npm cache clean && \

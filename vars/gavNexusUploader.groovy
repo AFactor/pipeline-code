@@ -11,7 +11,7 @@ def call(Closure body) {
 	body.delegate = config
 	body()
 
-	def nexus = config.nexusAPI ?: 'http://nexus.sandbox.extranet.group/nexus/service/local/artifact/maven/content'
+	def nexus = config.nexusAPI ?: 'https://nexus.sandbox.extranet.group/nexus/service/local/artifact/maven/content'
 	def file = config.artifactPath ?: 'missing artifact'
 	def userpass = config.credentialsId?: 'nexus-uploader'
 	def group = config.groupId ?: 'no-group-id'

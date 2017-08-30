@@ -17,7 +17,7 @@ class eagleDeployServiceSpec extends PipelineSpockTestBase {
         given:
         Service service = new Service()
         service.name = "service-name"
-        def artifact = "http://nexus/artifact-9-deb9b7e.tar.gz"
+        def artifact = "https://nexus/artifact-9-deb9b7e.tar.gz"
         ServiceRuntimeBinary binary = new ServiceRuntimeBinary()
         binary.artifact = artifact
         ServiceRuntime runtime = new ServiceRuntime()
@@ -42,7 +42,7 @@ class eagleDeployServiceSpec extends PipelineSpockTestBase {
         }.any {
             call -> callArgsToString(call)
                     .equals("mkdir -p service-name && \\\n" +
-                    "                  wget --quiet http://nexus/artifact-9-deb9b7e.tar.gz && \\\n" +
+                    "                  wget --quiet https://nexus/artifact-9-deb9b7e.tar.gz && \\\n" +
                     "                  tar -xf artifact-9-deb9b7e.tar.gz -C service-name")
         }).isTrue()
 

@@ -32,7 +32,7 @@ class invokeDeployPipelineEagleSpec extends PipelineSpockTestBase {
                 deployContext.metadata = ["notifyList":"email", "confluence": confluence]
                 Service service = new Service()
                 service.name = "service-name"
-                def artifact = "http://nexus/artifact-9-deb9b7e.tar.gz"
+                def artifact = "https://nexus/artifact-9-deb9b7e.tar.gz"
                 ServiceRuntimeBinary binary = new ServiceRuntimeBinary()
                 binary.artifact = artifact
                 ServiceRuntime runtime = new ServiceRuntime()
