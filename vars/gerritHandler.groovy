@@ -78,9 +78,10 @@ Created/modified on: $curr_date'"
 			sed -i '/UUID/d;/21f95d8f37c529dd5822a9ba062ef6fa4a15adcd/d;/bc998b3f76ce681ac0d7f0ed0ce58489d060aba2/d;/global:Anonymous-Users/d;/global:Project-Owners/d;/global:Registered-Users/d' groups
 			echo -e "# UUID				Group Name\n#\n21f95d8f37c529dd5822a9ba062ef6fa4a15adcd				Non-Interactive Users\nbc998b3f76ce681ac0d7f0ed0ce58489d060aba2				Administrators\nglobal:Anonymous-Users				Anonymous Users\nglobal:Project-Owners				Project Owners\nglobal:Registered-Users				Users" >> groups
 			if [ "$(grep $journey groups)" == "" ];then
-				journey_id=$(curl -X GET --digest -u $GERRIT_HTTP_CREDS https://gerrit.sandbox.extranet.group/a/groups/ | sed 1d | /apps/tools/jq .\\"$journey\\"."id" | sed 's/"//g')
-				journey_reviewer_id=$(curl -X GET --digest -u $GERRIT_HTTP_CREDS https://gerrit.sandbox.extranet.group/a/groups/ | sed 1d | /apps/tools/jq .\\"$journey-reviewer\\"."id" | sed 's/"//g')
-				journey_admin_id=$(curl -X GET --digest -u $GERRIT_HTTP_CREDS https://gerrit.sandbox.extranet.group/a/groups/ | sed 1d | /apps/tools/jq .\\"$journey-admin\\"."id" |sed 's/"//g')
+
+				journey_id=$(curl --insecure -X GET --digest -u $GERRIT_HTTP_CREDS https://gerrit.sandbox.extranet.group/a/groups/ | sed 1d | /apps/tools/jq .\\"$journey\\"."id" | sed 's/"//g')
+				journey_reviewer_id=$(curl --insecure -X GET --digest -u $GERRIT_HTTP_CREDS https://gerrit.sandbox.extranet.group/a/groups/ | sed 1d | /apps/tools/jq .\\"$journey-reviewer\\"."id" | sed 's/"//g')
+				journey_admin_id=$(curl --insecure -X GET --digest -u $GERRIT_HTTP_CREDS https://gerrit.sandbox.extranet.group/a/groups/ | sed 1d | /apps/tools/jq .\\"$journey-admin\\"."id" |sed 's/"//g')
 				echo -e "$journey_id				$journey" >> groups
 				echo -e "$journey_reviewer_id				$journey-reviewer" >> groups
 				echo -e "$journey_admin_id				$journey-admin" >> groups

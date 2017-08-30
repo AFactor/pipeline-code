@@ -68,7 +68,7 @@ String getNexusArtifactNameFromMetadata(artifactBaseName, nexusURL){
     def cmd = [
             'bash',
             '-c',
-            '''if [ "" != "" ];then for artifact in $(cat /maven-metadata.xml | grep "<version>.*</version>"  | cut -d "<" -f2 | cut -d ">" -f2 | sort -t. -nk1,1 -k2,2 -k3,3 -k 4,4 -r | sed 's/^/''' + artifactBaseName + '''-/g;s/$/.ear/g');do echo $artifact; done; else for artifact in $(curl ''' + nexusURL + '''/maven-metadata.xml | grep "<version>.*</version>"  | cut -d "<" -f2 | cut -d ">" -f2 | sort -t. -nk1,1 -k2,2 -k3,3 -k 4,4 -r | sed 's/^/''' + artifactBaseName + '''-/g;s/$/.ear/g');do echo $artifact; done ; fi''' ]
+            '''if [ "" != "" ];then for artifact in $(cat /maven-metadata.xml | grep "<version>.*</version>"  | cut -d "<" -f2 | cut -d ">" -f2 | sort -t. -nk1,1 -k2,2 -k3,3 -k 4,4 -r | sed 's/^/''' + artifactBaseName + '''-/g;s/$/.ear/g');do echo $artifact; done; else for artifact in $(curl --insecure ''' + nexusURL + '''/maven-metadata.xml | grep "<version>.*</version>"  | cut -d "<" -f2 | cut -d ">" -f2 | sort -t. -nk1,1 -k2,2 -k3,3 -k 4,4 -r | sed 's/^/''' + artifactBaseName + '''-/g;s/$/.ear/g');do echo $artifact; done ; fi''' ]
     def resultant = cmd.execute().text
     " \n" + resultant.readLines().join('\n')
 
@@ -78,7 +78,7 @@ String getNexusArtifactNameFromRegex(artifactRegex, nexusURL) {
     def cmd = [
             'bash',
             '-c',
-            '''unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY; for file in $(curl -s ''' + nexusURL + '''/ | grep 'href=\"''' + nexusURL + '''/' | sed 's/.*href="//'| sed 's/".*//' |  grep -oE ''' + artifactRegex + ''')
+            '''unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY; for file in $(curl --insecure -s ''' + nexusURL + '''/ | grep 'href=\"''' + nexusURL + '''/' | sed 's/.*href="//'| sed 's/".*//' |  grep -oE ''' + artifactRegex + ''')
     |do
     |    echo $file
     |done'''.stripMargin()]

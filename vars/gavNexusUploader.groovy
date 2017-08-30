@@ -25,7 +25,7 @@ def call(Closure body) {
 		usernameColonPassword(	credentialsId: userpass,
 		variable: 'NEXUS_CREDS')
 	]) {
-		sh """curl 	-sS -u $NEXUS_CREDS \\
+		sh """curl 	--insecure -sS -u $NEXUS_CREDS \\
 						-F r=${repo}  \\
 						-F p=${pack}   \\
 						-F g=${group}   \\

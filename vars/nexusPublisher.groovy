@@ -18,7 +18,7 @@ def call(Closure body) {
 	withCredentials([
 		usernameColonPassword(	credentialsId: credentialsID,
 		variable: 'NEXUS_CREDS')
-	]) { sh 	"""curl 	-sS \
+	]) { sh 	"""curl --insecure	-sS \
 							-u $NEXUS_CREDS \
 							--upload-file \
 							${artifact} \
