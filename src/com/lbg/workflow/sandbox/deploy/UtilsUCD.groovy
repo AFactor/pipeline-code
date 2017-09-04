@@ -426,6 +426,24 @@ def ucdSnapshot(deployContext, ucdToken, jsonFile) {
 }
 
 @NonCPS
+def ucdSnapshotEnvironment(deployContext, ucdToken, userInput) {
+    println "**********************"
+    println " Running UCD Snapshot "
+    println "**********************"
+    snapshot = userInput.snapshot_name
+    application = userInput.app_name
+    def udClient = "./udclient/udclient"
+    def ucdUrl = deployContext.deployment.ucd_url
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
+    def setEnv = "-environment '${userInput.ucd_env}"
+    def setApp = "-application '${userInput.app_name}"
+    def setName = "-name '${userInput.snapshot_name}"
+    def ucdScript = "${ucdCmd} createSnapshotOfEnvironment ${setEnv} ${setApp} ${setName}"
+    def request = sh(returnStdout:true, script: ucdScript).trim()
+    return request
+}
+
+@NonCPS
 def ucdLockSnapshotConfig(deployContext, ucdToken, userInput) {
     println "**********************"
     println " Running UCD Snapshot "
