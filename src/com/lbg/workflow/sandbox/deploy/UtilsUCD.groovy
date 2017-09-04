@@ -420,7 +420,7 @@ def ucdSnapshot(deployContext, ucdToken, jsonFile) {
     def udClient = "./udclient/udclient"
     def ucdUrl = deployContext.deployment.ucd_url
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
-    def ucdScript = "${ucdCmd} createSnapshot - ${jsonFile} "
+    def ucdScript = "${ucdCmd} createSnapshot ${jsonFile}"
     def request = sh(returnStdout:true, script: ucdScript).trim()
     return request
 }
