@@ -435,7 +435,7 @@ def ucdLockSnapshotConfig(deployContext, ucdToken, userInput) {
     def udClient = "./udclient/udclient"
     def ucdUrl = deployContext.deployment.ucd_url
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
-    def ucdScript = "${ucdCmd} lockSnapshotConfiguration -snapshot ${snapshot} -application ${application}"
+    def ucdScript = "${ucdCmd} lockSnapshotConfiguration -snapshot '${snapshot}' -application '${application}'"
     def request = sh(returnStdout:true, script: ucdScript).trim()
     return request
 }
