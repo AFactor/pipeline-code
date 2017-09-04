@@ -425,6 +425,21 @@ def ucdSnapshot(deployContext, ucdToken, jsonFile) {
     return request
 }
 
+@NonCPS
+def ucdLockSnapshotConfig(deployContext, ucdToken, userInput) {
+    println "**********************"
+    println " Running UCD Snapshot "
+    println "**********************"
+    snapshot = userInput.snapshot_name
+    application = userInput.app_name
+    def udClient = "./udclient/udclient"
+    def ucdUrl = deployContext.deployment.ucd_url
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
+    def ucdScript = "${ucdCmd} lockSnapshotConfiguration -snapshot ${snapshot} -application ${application}"
+    def request = sh(returnStdout:true, script: ucdScript).trim()
+    return request
+}
+
 /**
  * @param getVersion
  * @param service
