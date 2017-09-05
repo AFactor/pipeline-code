@@ -3,6 +3,8 @@ package com.lbg.workflow.sandbox.deploy
 import com.lbg.workflow.ucd.UDClient
 import com.lbg.workflow.ucd.UCDVersions
 import com.lbg.workflow.ucd.UCDVersionParser
+import com.lbg.workflow.ucd.UCDEnvironments
+import com.lbg.workflow.ucd.UCDEnvironmentParser
 import com.cloudbees.groovy.cps.NonCPS
 
 /**
@@ -62,6 +64,30 @@ String ucdMCAComponentVersion(ucdToken, name) {
     }
     println(versions)
     return versions.join('\n')
+}
+
+String ucdApplicationEnvironments(ucdToken, name) {
+    println "**********************************************"
+    println " Get UCD Application Environments for ${name} "
+    println "**********************************************"
+
+    def ucdUrl = 'https://ucd.intranet.group'
+    def udClient = "./udclient/udclient"
+    def appSet = "-application '${name}'"
+    def command = "getEnvironmentsInApplication $appSet"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+    install_by_url(ucdUrl)
+    def response = sh(returnStdout: true, script: ucdCmd).trim()
+    def envData = "{ \"environments\": " + response + "}"
+    def environmentParser = new UCDEnvironmentParser(envData)
+    def envs = []
+    envs.add('')
+
+    for (def ucdEnv in environmentParser.environments) {
+        envs.add(ucdEnv.name)
+    }
+    println(envs)
+    return envs.join('\n')
 }
 
 String getNexusArtifactNameFromMetadata(artifactBaseName, nexusURL){
