@@ -148,7 +148,7 @@ private def buildAnalyticsEnvs(deployContext) {
 				}
 			}
 		} catch (error) {
-			echo "Failed to locate secret with id : $id"
+			echo "Failed to fetch vault keys : ${error.message}"
 		}
 	}
 	return envs
