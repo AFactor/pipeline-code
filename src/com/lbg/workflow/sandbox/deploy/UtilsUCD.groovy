@@ -461,7 +461,7 @@ def ucdSnapshotEnvironment(deployContext, ucdToken, userInput) {
     def udClient = "./udclient/udclient"
     def ucdUrl = deployContext.deployment.ucd_url
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
-    def setEnv = "-environment '${userInput.ucd_env}"
+    def setEnv = "-environment '${deployContext.env}"
     def setApp = "-application '${userInput.app_name}"
     def setName = "-name '${userInput.snapshot_name}"
     def ucdScript = "${ucdCmd} createSnapshotOfEnvironment ${setEnv} ${setApp} ${setName}"
