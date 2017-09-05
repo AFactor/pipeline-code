@@ -1,11 +1,10 @@
 import com.lbg.workflow.sandbox.deploy.UtilsUCD
 
 
-def call(String name) {
+def call(String name, deployContext) {
     def envsChoice = ''
-    node('lbg_slave') {
-        def ucdTokenKey = 'UC_TOKEN_MCA'
-        withCredentials([string(credentialsId: ucdTokenKey, variable: 'ucdToken')]) {
+    node(deployContext.label) {
+        withCredentials([string(credentialsId: deployContext.deployment.credentials, variable: 'ucdToken')]) {
             withEnv(['PATH+bin=/bin', 'PATH+usr=/usr/bin', 'PATH+local=/usr/local/bin', 'JAVA_HOME=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64']) {
                 def utils = new UtilsUCD()
                 envsChoice = utils.ucdApplicationEnvironments(ucdToken, name)
