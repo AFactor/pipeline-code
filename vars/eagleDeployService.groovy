@@ -33,6 +33,7 @@ def call(service, deployContext) {
 			}
 		} catch(error){
 			echo error.message
+			throw error
 		}finally {
 			step([$class: 'WsCleanup', notFailBuild: true])
 		}
