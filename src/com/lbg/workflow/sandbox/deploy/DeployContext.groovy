@@ -4,6 +4,7 @@ import groovy.json.JsonSlurperClassic
 
 class DeployContext implements Serializable {
 
+    HashMap schema
     /**
      * deployment journey
      */
@@ -58,12 +59,14 @@ class DeployContext implements Serializable {
         this.proxy = config.proxy
         def dc = new DeployContext(config) // avoid lazymap issues
         this.services = dc.services
+        this.schema = dc.schema
     }
 
     @Override
     String toString() {
         return "DeployContext{" +
                 "journey='" + journey + '\'' +
+                ", schema='" + schema + '\'' +
                 ", env='" + env + '\'' +
                 ", target='" + target + '\'' +
                 ", metadata='" + metadata + '\'' +
