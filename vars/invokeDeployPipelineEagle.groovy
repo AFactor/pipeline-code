@@ -205,8 +205,11 @@ private def validate(deployContext) {
     if (deployContext.target == "bluemix") {
         isValid("bluemix", deployContext.bluemix)
     }
-    if (deployContext.target == "apiconnect") {
+    else if (deployContext.target == "apiconnect") {
         isValid("apiconnect", deployContext.apiconnect)
+    }
+    else if (deployContext.target == "cmc") {
+        isValid("cmc", deployContext.cmc)
     }
     // TODO enforce stricter service validation?
     if (deployContext.services == null) {

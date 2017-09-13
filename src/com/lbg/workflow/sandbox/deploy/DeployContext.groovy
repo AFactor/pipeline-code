@@ -41,6 +41,11 @@ class DeployContext implements Serializable {
     HashMap apiconnect
 
     /**
+     * cmc config
+     */
+    HashMap cmc
+
+    /**
      * deployment proxy config
      */
     HashMap proxy
@@ -56,6 +61,7 @@ class DeployContext implements Serializable {
         this.metadata = config.metadata
         this.bluemix = config.bluemix
         this.apiconnect = config.apiconnect
+        this.cmc = config.cmc
         this.proxy = config.proxy
         def dc = new DeployContext(config) // avoid lazymap issues
         this.services = dc.services
@@ -73,6 +79,7 @@ class DeployContext implements Serializable {
                 ", services=" + services +
                 ", bluemix=" + bluemix +
                 ", apiconnect=" + apiconnect +
+                ", cmc=" + cmc +
                 ", proxy=" + proxy +
                 '}'
     }

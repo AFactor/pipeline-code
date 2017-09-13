@@ -28,6 +28,8 @@ def call(service, deployContext) {
 			// deploy
 			if (deployContext.target == "apiconnect") {
 				eagleDeployApiConnectService(service, deployContext)
+			} else if (deployContext.target == "cmc") {
+				eagleDeployCmcService(service, deployContext)
 			} else if (deployContext.target == "bluemix") {
 				eagleDeployBluemixService(service, deployContext)
 			}
