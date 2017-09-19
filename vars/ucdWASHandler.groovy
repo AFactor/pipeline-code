@@ -8,7 +8,7 @@ def call(String name) {
         withCredentials([string(credentialsId: ucdTokenKey, variable: 'ucdToken')]) {
             withEnv(['PATH+bin=/bin', 'PATH+usr=/usr/bin', 'PATH+local=/usr/local/bin', 'JAVA_HOME=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64']) {
                 def utils = new UtilsUCD()
-                versionsChoice = utils.ucdComponentVersionGather(ucdToken, name)
+                versionsChoice = utils.ucdMCAComponentVersion(ucdToken, name)
             }
         }
     }

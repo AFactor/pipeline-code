@@ -15,12 +15,6 @@ class DeployContext implements Serializable {
     String env
 
     /**
-     * User Input Step -- Should we use the User Input Method or Params Method ??
-     *  This is a temporary thing until everything is migrated across
-     */
-    String user_input_step
-
-    /**
      * deployment restrict to label / node(s)
      */
     String label
@@ -61,7 +55,6 @@ class DeployContext implements Serializable {
     DeployContext(String configuration) {
         def config = (new HashMap(new JsonSlurperClassic().parseText(configuration))).asImmutable()
         this.journey = config.journey
-        this.user_input_step = config.user_input_step
         this.env = config.env
         this.label = config.label
         this.deployment = config.deployment
@@ -87,7 +80,6 @@ class DeployContext implements Serializable {
     String toString() {
         return "DeployContext{" +
                 "journey='" + journey + '\'' +
-                ", user_input_step='" + user_input_step + '\'' +
                 ", env='" + env + '\'' +
                 ", label='" + label + '\'' +
                 ", metadata='" + metadata + '\'' +
