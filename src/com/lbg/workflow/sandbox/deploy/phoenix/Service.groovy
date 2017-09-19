@@ -67,6 +67,11 @@ class Service implements Serializable {
      */
     String description
 
+    /**
+     * Service Snapshot
+     */
+    String snapshot
+
     Service() {
     }
 
@@ -75,6 +80,7 @@ class Service implements Serializable {
         return "Service{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", snapshot='" + snapshot + '\'' +
                 ", wasVersion='" + wasVersion + '\'' +
                 ", buildpack=" + buildpack+
                 ", deploy=" + deploy +

@@ -3,6 +3,7 @@ package com.lbg.workflow.sandbox.deploy
 import com.lbg.workflow.ucd.UDClient
 import com.lbg.workflow.ucd.UCDVersions
 import com.lbg.workflow.ucd.UCDVersionParser
+import com.lbg.workflow.ucd.UCDSnapshotParser
 import com.lbg.workflow.ucd.UCDEnvironments
 import com.lbg.workflow.ucd.UCDEnvironmentParser
 import com.cloudbees.groovy.cps.NonCPS
@@ -42,7 +43,7 @@ def ucdComponentVersion(deployContext, ucdToken, name) {
  * @param name
  * @return
  **/
-String ucdMCAComponentVersion(ucdToken, name) {
+String ucdComponentVersionGather(ucdToken, name) {
     println "***************************************"
     println " Get UCD Component Version for ${name} "
     println "***************************************"
@@ -61,6 +62,30 @@ String ucdMCAComponentVersion(ucdToken, name) {
 
     for (def ucdVersion in versionParser.versions) {
         versions.add(ucdVersion.name)
+    }
+    println(versions)
+    return versions.join('\n')
+}
+
+String ucdSnapshotVersionGather(ucdToken, name) {
+    println "***************************************"
+    println " Get UCD Component Version for ${name} "
+    println "***************************************"
+
+    def ucdUrl = 'https://ucd.intranet.group'
+    def udClient = "./udclient/udclient"
+    def applicationSet = "-application '${name}'"
+    def command = "getSnapshotsInApplication ${applicationSet}"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+    install_by_url(ucdUrl)
+    def response = sh(returnStdout: true, script: ucdCmd).trim()
+    def versionData = "{ \"versions\": " + response + "}"
+    def snapshotParser = new UCDVersionParser(versionData)
+    def versions = []
+    versions.add('')
+
+    for (def snapVersion in snapshotParser.versions) {
+        versions.add(snapVersion.name)
     }
     println(versions)
     return versions.join('\n')
@@ -88,33 +113,6 @@ String ucdApplicationEnvironments(ucdToken, name) {
     }
     println(envs)
     return envs.join('\n')
-}
-
-String getNexusArtifactNameFromMetadata(artifactBaseName, nexusURL){
-    def cmd = [
-            'bash',
-            '-c',
-            '''if [ "" != "" ];then for artifact in $(cat /maven-metadata.xml | grep "<version>.*</version>"  | cut -d "<" -f2 | cut -d ">" -f2 | sort -t. -nk1,1 -k2,2 -k3,3 -k 4,4 -r | sed 's/^/''' + artifactBaseName + '''-/g;s/$/.ear/g');do echo $artifact; done; else for artifact in $(curl --insecure ''' + nexusURL + '''/maven-metadata.xml | grep "<version>.*</version>"  | cut -d "<" -f2 | cut -d ">" -f2 | sort -t. -nk1,1 -k2,2 -k3,3 -k 4,4 -r | sed 's/^/''' + artifactBaseName + '''-/g;s/$/.ear/g');do echo $artifact; done ; fi''' ]
-    def resultant = cmd.execute().text
-    " \n" + resultant.readLines().join('\n')
-
-}
-
-String getNexusArtifactNameFromRegex(artifactRegex, nexusURL) {
-    def cmd = [
-            'bash',
-            '-c',
-            '''unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY; for file in $(curl --insecure -s ''' + nexusURL + '''/ | grep 'href=\"''' + nexusURL + '''/' | sed 's/.*href="//'| sed 's/".*//' |  grep -oE ''' + artifactRegex + ''')
-    |do
-    |    echo $file
-    |done'''.stripMargin()]
-
-    def resultList = cmd.execute().text.readLines()
-    def updatedResults = []
-    for (Object result : resultList) {
-        updatedResults.add(result.split('/').last())
-    }
-    " \n" + updatedResults.unique().join('\n')
 }
 
 /**
@@ -549,3 +547,4 @@ def getLatestVersionUploadJson(getVersion, service, name) {
         }
     }
 }
+
