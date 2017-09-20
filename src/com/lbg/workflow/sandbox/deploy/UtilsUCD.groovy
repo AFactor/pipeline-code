@@ -563,6 +563,6 @@ String getNexusArtifactNameFromRegex(artifactRegex, nexusURL) {
         updatedResults.add(result.split('/').last())
     }
     " \n" + updatedResults.unique().join('\n')
-    return updatedResults
+    return resultList
 }
 
