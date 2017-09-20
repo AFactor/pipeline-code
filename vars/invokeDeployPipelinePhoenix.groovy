@@ -2,6 +2,7 @@ import com.lbg.workflow.sandbox.deploy.phoenix.DeployContext
 import com.lbg.workflow.sandbox.deploy.phoenix.Service
 import com.lbg.workflow.sandbox.JobStats
 
+
 def call(String configuration) {
 
     DeployContext deployContext
@@ -21,56 +22,77 @@ def call(String configuration) {
                 phoenixNotifyStage().notify(deployContext)
                 throw error
             }
-            // overriding deploy context values with the values provided via params above
-            if(params.containsKey('artifactName')) {
-                if(params.artifactName == null || params.artifactName.isEmpty()) {
+            def userInputChoice = deployContext['user_input_step'] ?: "no"
+            if (userInputChoice == "yes") {
+                echo "Skipping Parameter Build initialisation :: userInput Set"
+            } else {
+                // overriding deploy context values with the values provided via params
+                echo "Skipping User Input Method :: Using Params Method"
+                if (params.containsKey('artifactName')) {
+                    if (params.artifactName == null || params.artifactName.isEmpty()) {
+                        phoenixLogger(3, "BUILD Parameters Should Now Be Built and Available", 'star')
+                        deployContext.deployment.type = 'params'
+                        return null
+                    }
+                    deployContext.deployment.process = params.process
+                    deployContext.tests.pre_bdd = convertYesNoToBoolean(params.pre_bdd)
+                    deployContext.tests.post_bdd = convertYesNoToBoolean(params.post_bdd)
+
+                    for (def service in deployContext.services) {
+                        service.deploy = convertYesNoToBoolean(params.deploy)
+                        service.upload = convertYesNoToBoolean(params.upload)
+                        service.onlyChanged = convertYesNoToBoolean(params.onlyChanged)
+                        service.runtime.binary.artifactName = params.artifactName
+                        nexusUrlParts = service.runtime.binary.nexus_url.split('/')
+                        nexusUrl = nexusUrlParts.join('#')
+                        createScript = "touch nexus_${nexusUrl}"
+                        sh(returnStdout: true, script: createScript)
+                        archiveArtifacts "nexus_${nexusUrl}"
+                        if (service.name == "Digital - MCA Sales") {
+                            service.wasVersion = params.wasVersion
+                        }
+                    }
+                } else {
                     phoenixLogger(3, "BUILD Parameters Should Now Be Built and Available", 'star')
                     deployContext.deployment.type = 'params'
                     return null
                 }
-                deployContext.deployment.process = params.process
-                deployContext.tests.pre_bdd = convertYesNoToBoolean(params.pre_bdd)
-                deployContext.tests.post_bdd = convertYesNoToBoolean(params.post_bdd)
-
-                for (def service in deployContext.services) {
-                    service.deploy = convertYesNoToBoolean(params.deploy)
-                    service.upload = convertYesNoToBoolean(params.upload)
-                    service.onlyChanged = convertYesNoToBoolean(params.onlyChanged)
-                    service.runtime.binary.artifactName = params.artifactName
-                    nexusUrlParts = service.runtime.binary.nexus_url.split('/')
-                    nexusUrl = nexusUrlParts.join('#')
-                    createScript = "touch nexus_${nexusUrl}"
-                    sh(returnStdout:true, script: createScript)
-                    archiveArtifacts "nexus_${nexusUrl}"
-                    if (service.name == "Digital - MCA Sales") {
-                        service.wasVersion = params.wasVersion
-                    }
-                }
-            } else {
-                phoenixLogger(3, "BUILD Parameters Should Now Be Built and Available", 'star')
-                deployContext.deployment.type = 'params'
-                return null
             }
             archiveArtifacts configuration
             echo "Deploy Context " + deployContext.toString()
+            milestone(label: 'Initialized')
         }
     }
-    milestone(label: 'Initialized')
 
     lock(inversePrecedence: true, quantity: 1, resource: "j2-${deployContext.env}-deploy") {
         testStage = new phoenixTestStage()
         deployStage = new phoenixDeployStage()
         notifyStage = new phoenixNotifyStage()
+        inputStage = new phoenixInputStage()
+        def userInputChoice = deployContext['user_input_step'] ?: "no"
+        def choiceList
+        def userInput
         switch (deployContext.deployment.type) {
             case 'ucd':
+                if (userInputChoice == "yes") {
+                    stage('Gather Data') {
+                        choiceList = phoenixInputStage(deployContext)
+                    }
+                    milestone(label: 'Data Gathered')
+                    stage('User Input') {
+                        userInput = input(id: 'userInput', message: 'Please Enter Build Information Below', parameters: choiceList)
+                    }
+                    milestone(label: 'Gathered User Input')
+                    stage('Merge Data') {
+                        //merging in the data into deployContext
+                        inputStage.mergeData(deployContext, userInput)
+                    }
+                    milestone(label: 'Merged User Input ready to Begin Upload / Deployment')
+                }
                 stage('environment Check') {
                     phoenixLogger(3, "Environment Checks Carried out by PRE-BDD Stage", 'dash')
                 }
                 milestone(label: 'Environment Check')
-                stage('pre-BDD Check') {
-                    testStage.apiBddTests(deployContext, 'pre-BDD')
-                }
-                milestone(label: 'Pre BDD Checks Complete')
                 stage('upload Services') {
                     deployStage.uploadService(deployContext)
                 }
@@ -145,3 +167,4 @@ private boolean convertYesNoToBoolean(value){
 }
 
 return this;
+

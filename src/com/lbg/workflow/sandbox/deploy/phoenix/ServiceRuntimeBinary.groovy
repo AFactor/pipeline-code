@@ -10,6 +10,7 @@ class ServiceRuntimeBinary implements Serializable  {
     String artifactName
     String artifact
     String branch
+    String regex
 
     @Override
     String toString() {
@@ -20,6 +21,7 @@ class ServiceRuntimeBinary implements Serializable  {
                 ", version='" + version + '\'' +
                 ", git_branch(branch)='" + branch + '\'' +
                 ", extension='" + extension + '\'' +
+                ", regex='" + regex + '\'' +
                 ", name='" + name + '\'' +
                 '}'
     }
