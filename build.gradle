@@ -9,6 +9,7 @@ dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.4.11'
     compile 'com.cloudbees:groovy-cps:1.1'
     compile project('../devops-pipeline-workflowlib-global')
+    compile project('../devops-pipeline-ucdlibs-global')
 
     testCompile 'com.lesfurets:jenkins-pipeline-unit:0.11'
     testCompile 'org.spockframework:spock-core:1.1-groovy-2.4-rc-3'
