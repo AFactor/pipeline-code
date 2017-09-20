@@ -552,10 +552,11 @@ String getNexusArtifactNameFromRegex(artifactRegex, nexusURL) {
     def cmd = [
             'bash',
             '-c',
-            '''unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY; for file in $(curl -s {nexus_artifact_path} | grep 'href=\"{nexus_artifact_path}' | sed 's/.*href="//'| sed 's/".*//' |  grep -oE "/.*doc-retrieval.*gz"  | rev | cut -d "/" -f1 | rev   | sort -uVr )
-                  |do
-                  |    echo $file
-                  |done'''.stripMargin() ]
+            '''unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY; for file in $(curl --insecure -s ''' + nexusURL + '''/ | grep 'href=\"''' + nexusURL + '''/' | sed 's/.*href="//'| sed 's/".*//' |  grep -oE ''' + artifactRegex + ''')
+    |do
+    |    echo $file
+    |done'''.stripMargin()]
+
     def resultList = cmd.execute().text.readLines()
     def updatedResults = []
     for (Object result : resultList) {
