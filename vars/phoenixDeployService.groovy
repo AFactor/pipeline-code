@@ -12,6 +12,22 @@ def call(service, deployContext, jobType) {
                     withCredentials([string(credentialsId: deployContext.deployment.credentials, variable: 'ucdToken')]) {
                         withEnv(['PATH+bin=/bin', 'PATH+usr=/usr/bin', 'PATH+local=/usr/local/bin', 'JAVA_HOME=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64']) {
                             checkout scm
+                            def userInputChoice = deployContext['user_input_step'] ?: "no"
+                            if (userInputChoice == "yes") {
+                                def snapshot = service.snapshot
+                                def artifactName = service.runtime.binary.artifactName
+                                if(snapshot != null && !snapshot.isEmpty()) {
+                                    if (artifactName != null && !artifactName.isEmpty()) {
+                                        phoenixLogger(1, "Please select either Artifact or Snapshot, not BOTH", 'star')
+                                        currentBuild.result = 'FAILURE'
+                                        phoenixNotifyStage().notify(deployContext)
+                                    }
+                                    if (jobType == 'upload') {
+                                        phoenixLogger(3, "Running Snapshot Service :: Skipping Upload Processing", 'dash')
+                                        return null
+                                    }
+                                }
+                            }
                             phoenixLogger(3, "Downloading UCD Deployment", 'dash')
                             UtilsUCD utils = new UtilsUCD()
                             utils.install(deployContext)
