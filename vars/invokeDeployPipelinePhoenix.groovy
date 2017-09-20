@@ -79,7 +79,7 @@ def call(String configuration) {
                     }
                     milestone(label: 'Data Gathered')
                     stage('User Input') {
-                        timeout(time: 300, unit: 'SECONDS') {
+                        timeout(time: 120, unit: 'SECONDS') {
                             userInput = input(id: 'userInput', message: 'Please Enter Build Information Below', parameters: choiceList)
                         }
                     }
