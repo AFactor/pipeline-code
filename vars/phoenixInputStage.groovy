@@ -90,8 +90,9 @@ private def artifactGather(deployContext) {
             case 'cwa':
                 def nexusUrl = srvBin.nexus_url
                 def regex = "'${srvBin.regex}'"
-                echo "CWA :: NexusUrl: ${nexusUrl} :: regex: ${regex}"
-                artifactNames[srvName] = utils.getNexusArtifactNameFromRegex(regex, nexusUrl)
+                def artifactList = utils.getNexusArtifactNameFromRegex(regex, nexusUrl)
+                echo "CWA :: NexusUrl: ${nexusUrl} :: regex: ${regex} :: Artifact List: ${artifactList}"
+                artifactNames[srvName] = artifactList
                 break
             case 'api':
                 def nexusUrl = srvBin.nexus_url
