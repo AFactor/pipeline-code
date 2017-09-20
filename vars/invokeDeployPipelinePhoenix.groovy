@@ -79,7 +79,32 @@ def call(String configuration) {
                     }
                     milestone(label: 'Data Gathered')
                     stage('User Input') {
-                        userInput = input(id: 'userInput', message: 'Please Enter Build Information Below', parameters: choiceList)
+                        def timeoutElapsed = false
+                        def userInputSelection = true
+                        try {
+                            timeout(time: 300, unit: 'SECONDS') {
+                                userInput = input(id: 'userInput', message: 'Please Enter Build Information Below', parameters: choiceList)
+                            }
+                        } catch(error) {
+                            def user = error.getCauses()[0].getUser()
+                            // SYSTEM user == timeout reached
+                            if('SYSTEM' == user.toString()) {
+                                timeoutElapsed = true
+                            } else {
+                                userInputSelection = false
+                                echo "User Input Selection ABORTED by: [${user}]"
+                            }
+                        }
+                        node {
+                            if (timeoutElapsed) {
+                                echo "TIME OUT ELAPSED :: Exiting"
+                                currentBuild.result = 'FAILURE'
+                            }
+                            if (!userInputSelection) {
+                                echo "USER INPUT SELECTION ABORTED :: Exiting"
+                                currentBuild.result = 'FAILURE'
+                            }
+                        }
                     }
                     milestone(label: 'Gathered User Input')
                     stage('Merge Data') {
