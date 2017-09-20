@@ -89,10 +89,12 @@ private def artifactGather(deployContext) {
         switch(service.type) {
             case 'cwa':
                 def nexusUrl = srvBin.nexus_url
-                def regex = "'${srvBin.regex}'"
-                def artifactList = utils.getNexusArtifactNameFromRegex(regex, nexusUrl)
-                echo "CWA :: NexusUrl: ${nexusUrl} :: regex: ${regex} :: Artifact List: ${artifactList}"
-                artifactNames[srvName] = artifactList
+                def regex = srvBin.regex
+                HTTPConnector connect = new HTTPConnector(deployContext, nexusUrl, regex)
+                def artifactList = connect.GetNexusArtifactFromHttp()
+                //def artifactList = utils.getNexusArtifactNameFromRegex(regex, nexusUrl)
+                //echo "CWA :: NexusUrl: ${nexusUrl} :: regex: ${regex} :: Artifact List: ${artifactList}"
+                artifactNames[srvName] = artifactList.join('\n')
                 break
             case 'api':
                 def nexusUrl = srvBin.nexus_url
@@ -105,12 +107,6 @@ private def artifactGather(deployContext) {
                     artifactList += artifactBaseName.toString() + '-' + version.toString() + '.ear'
                 }
                 artifactNames[srvName] = artifactList.join('\n')
-                /*
-                for (artifact in artifactNames) {
-                    echo "Artifact: ${artifact.value}"
-                    echo "Artifact Keys: ${artifact.key}"
-                }
-                */
                 break
         }
     }
