@@ -7,8 +7,6 @@ def call(String configuration) {
 
     DeployContext deployContext
 
-    print "--------------------------------- $params -----------------------------------------"
-
     stage('Initialize') {
         node() {
             deleteDir()
@@ -28,6 +26,7 @@ def call(String configuration) {
             } else {
                 // overriding deploy context values with the values provided via params
                 echo "Skipping User Input Method :: Using Params Method"
+                print "--------------------------------- $params -----------------------------------------"
                 if (params.containsKey('artifactName')) {
                     if (params.artifactName == null || params.artifactName.isEmpty()) {
                         phoenixLogger(3, "BUILD Parameters Should Now Be Built and Available", 'star')

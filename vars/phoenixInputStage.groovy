@@ -76,6 +76,7 @@ private def call(deployContext) {
             }
         }
     }
+    echo "Provided Choices for User Input :: ${choiceList}"
     return choiceList
 }
 
@@ -88,7 +89,7 @@ private def artifactGather(deployContext) {
         switch(service.type) {
             case 'cwa':
                 def nexusUrl = srvBin.nexus_url
-                def regex = "'${srvBin.regex}'"
+                def regex = srvBin.regex
                 artifactNames[srvName] = utils.getNexusArtifactNameFromRegex(regex, nexusUrl)
                 break
             case 'api':
@@ -134,6 +135,7 @@ private def snapshotVersionGather(deployContext, ucdToken) {
 def mergeData(deployContext, userInput) {
     deployContext.deployment.process = userInput.process
     deployContext.tests.post_bdd = convertYesNoToBoolean(userInput.post_bdd)
+    echo "Selected User Input :: ${userInput}"
     for (def service in deployContext.services) {
         service.deploy = convertYesNoToBoolean(userInput.deploy)
         service.upload = convertYesNoToBoolean(userInput.upload)
