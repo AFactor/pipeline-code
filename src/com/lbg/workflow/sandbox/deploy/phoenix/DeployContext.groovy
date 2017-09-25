@@ -73,6 +73,10 @@ class DeployContext implements Serializable {
         this.components = dc.services.components
     }
 
+    boolean hasUserInputStep() {
+        this.user_input_step == "yes"
+    }
+
     /* unused
     @NonCPS
     static def parseJsonText(String json) {

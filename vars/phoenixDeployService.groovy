@@ -12,8 +12,7 @@ def call(service, deployContext, jobType) {
                     withCredentials([string(credentialsId: deployContext.deployment.credentials, variable: 'ucdToken')]) {
                         withEnv(['PATH+bin=/bin', 'PATH+usr=/usr/bin', 'PATH+local=/usr/local/bin', 'JAVA_HOME=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64']) {
                             checkout scm
-                            def userInputChoice = deployContext['user_input_step'] ?: "no"
-                            if (userInputChoice == "yes") {
+                            if (deployContext.hasUserInputStep()) {
                                 def snapshot = service.snapshot
                                 def artifactName = service.runtime.binary.artifactName
                                 if(snapshot != null && !snapshot.isEmpty()) {

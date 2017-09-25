@@ -20,8 +20,7 @@ def call(String configuration) {
                 phoenixNotifyStage().notify(deployContext)
                 throw error
             }
-            def userInputChoice = deployContext['user_input_step'] ?: "no"
-            if (userInputChoice == "yes") {
+            if (deployContext.hasUserInputStep()) {
                 echo "Skipping Parameter Build initialisation :: userInput Set"
             } else {
                 // overriding deploy context values with the values provided via params
@@ -68,12 +67,11 @@ def call(String configuration) {
         deployStage = new phoenixDeployStage()
         notifyStage = new phoenixNotifyStage()
         inputStage = new phoenixInputStage()
-        def userInputChoice = deployContext['user_input_step'] ?: "no"
         def choiceList
         def userInput
         switch (deployContext.deployment.type) {
             case 'ucd':
-                if (userInputChoice == "yes") {
+                if (deployContext.hasUserInputStep()) {
                     stage('Gather Data') {
                         choiceList = phoenixInputStage(deployContext)
                     }
