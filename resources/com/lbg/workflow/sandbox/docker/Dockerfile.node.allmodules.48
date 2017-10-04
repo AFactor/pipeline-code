@@ -32,7 +32,7 @@ RUN 	chown jenkins2:jenkins2  * -R && \
 USER 	jenkins2 
 WORKDIR /home/jenkins2/workspace
 
-COPY 	package.json npm-shrinkwrap.json /home/jenkins2/
+COPY 	*.json /home/jenkins2/
 RUN 	npm config set progress false && \
 		npm config set strict-ssl false && \
 		npm config set phantomjs_cdnurl https://nexus.sandbox.extranet.group/nexus/content/repositories/binaries/phantomjs && \
