@@ -483,6 +483,27 @@ def ucdLockSnapshotConfig(deployContext, ucdToken, userInput) {
 }
 
 /**
+ * @param deployContext
+ * @param ucdToken
+ * @param userInput
+ * @return
+ */
+@NonCPS
+def ucdLockSnapshotVersions(deployContext, ucdToken, userInput) {
+    println "**********************"
+    println " Running UCD Lock Snapshot Versions"
+    println "**********************"
+    snapshot = userInput.snapshot_name
+    application = userInput.app_name
+    def udClient = "./udclient/udclient"
+    def ucdUrl = deployContext.deployment.ucd_url
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
+    def ucdScript = "${ucdCmd} lockSnapshotVersions -snapshot '${snapshot}' -application '${application}'"
+    def request = sh(returnStdout:true, script: ucdScript).trim()
+    return request
+}
+
+/**
  * @param getVersion
  * @param service
  * @param name
