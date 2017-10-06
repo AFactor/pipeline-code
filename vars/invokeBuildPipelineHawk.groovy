@@ -69,23 +69,14 @@ def callHandler(String application, handlers, String configuration) {
   if (branch == null) {
     branch = localBranchName
   }
-
-	if (branch =~ /^patchset\/[0-9]*\/[0-9]*\/[0-9]*/ ) {
+	if (isPatchsetBranch(branch) ) {
 		  hawkPatchsetWorkflow(context, handlers, targetCommit)
-	} else if (branch =~ /^sprint[0-9]+\/.+$/ || branch =~ /^epic\/.+$/ ) {
+	} else if (isFeatureBranch(branch) ) {
 		  hawkFeatureWorkflow(context, handlers, "ft-" + utils.friendlyName(branch, 20))
-	} else if (branch =~ /^release-prod.*$/ || branch =~ /^releases\/.*$/ ) {
+	} else if (isIntegrationBranch(branch) ) {
 		  hawkIntegrationWorkflow(context, handlers, utils.friendlyName(branch, 40))
-	} else if (branch =~ /^master$/ ) {
-		  hawkIntegrationWorkflow(context, handlers, 'master')
-	} else if (branch =~ /^hotfixes.*$/ ) {
-		  hawkIntegrationWorkflow(context, handlers, utils.friendlyName(branch, 40))
-	} else if (branch =~ /^develop$/ ) {
-		  hawkIntegrationWorkflow(context, handlers, 'develop')
-	} else if ( branch =~ /^bugfix\/.*$/ ) {
-		  hawkIntegrationWorkflow(context, handlers, utils.friendlyName(branch, 20))
 	} else {
-      echo "We dont know how to build this branch. Stopping."
+      		echo "We dont know how to build this branch. Stopping."
 	}
 	echo "End deployment cycle"
 }
