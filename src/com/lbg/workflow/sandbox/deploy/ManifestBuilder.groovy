@@ -62,7 +62,7 @@ class ManifestBuilder implements Serializable {
           disk_quota: ${bluemix.disk}
           memory: ${bluemix.memory}
           env:
-            GENERATED_BY_WORKFLOWLIB: true """
+            NODE_MODULES_CACHE: false """
 	}
 
 	private String libertyManifest(appName, server, bluemix) {
