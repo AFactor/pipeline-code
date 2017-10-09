@@ -50,6 +50,16 @@ class DeployContext implements Serializable {
      */
     HashMap proxy
 
+    /**
+     * ucd config
+     */
+    HashMap ucd
+
+    /**
+     * deployment restrict to label / node(s)
+     */
+    String label
+
     DeployContext() {
     }
 
@@ -63,9 +73,22 @@ class DeployContext implements Serializable {
         this.apiconnect = config.apiconnect
         this.cmc = config.cmc
         this.proxy = config.proxy
-        def dc = new DeployContext(config) // avoid lazymap issues
+        this.schema = config.schema
+        this.ucd = config.ucd
+        this.label = config.label
+
+        def dc = new DeployContext(config) // avoid jenkins serialization issues
         this.services = dc.services
-        this.schema = dc.schema
+
+        // Unfortunately this does not work - getting jenkins serialization errors
+        // leaving the code for now, hopefully when we upgrade our jenkins, we can revisit this.
+        // manually parse services & binaries
+//        ArrayList services = new ArrayList()
+//        for (def s in config.services) {
+//            Service service = new Service(s)
+//            services.add(service)
+//        }
+//        this.services = services
     }
 
     @Override

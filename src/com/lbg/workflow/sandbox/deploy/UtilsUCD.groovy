@@ -587,3 +587,98 @@ String getNexusArtifactNameFromRegex(artifactRegex, nexusURL) {
     return resultList
 }
 
+/**
+ *  These methods are DeployContext agnostic - all information is explicitly passed in as vars (no reading from deployContext).
+ *  Hopefully this way we can achieve greater re-usability
+ */
+
+def getComponentVersions(ucdUrl, ucdToken, componentName) {
+    println "***************************************"
+    println " Get UCD Component Versions for ${componentName} "
+    println "***************************************"
+
+    def udClient = "./udclient/udclient"
+    def componentSet = "-component '${componentName}'"
+    def command = "getComponentVersions ${componentSet}"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+
+    def response = sh(returnStdout: true, script: ucdCmd).trim()
+    response
+}
+
+boolean componentVersionAlreadyUploaded(getComponentVersionsJson, componentName, componentVersion) {
+    println "**************************"
+    println " Parsing UCD Version Info "
+    println "**************************"
+
+    def versionData = "{ \"versions\": " + getComponentVersionsJson + "}"
+    def versionParser = new UCDVersionParser(versionData)
+
+    for (Object versionObject : versionParser.versions) {
+        UCDVersions ucdVersion = versionObject
+        println "Version Name :: " + ucdVersion.name
+        println "Version ID :: " + ucdVersion.id
+        if (ucdVersion.name == componentVersion) {
+            println "Component: ${componentName} :: Version: ${componentVersion} :: Already Uploaded :: Skipping"
+            return true
+        }
+    }
+    return false
+}
+
+def createComponentVersion(ucdUrl, ucdToken, componentName, componentVersion) {
+    println "********************************"
+    println " UCD Create Version for ${componentName} "
+    println "********************************"
+
+    def udClient = "./udclient/udclient"
+    def componentSet = "-component '${componentName}'"
+    def nameSet = "-name ${componentVersion}"
+    def descSet = "-description ${componentVersion}"
+    def command = "createVersion ${componentSet} ${nameSet} ${descSet}"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+
+    def response = sh(returnStdout: true, script: ucdCmd).trim()
+    response
+}
+
+def addFilesToVersion(ucdUrl, ucdToken, componentName, artifactVersion, artifactFolder) {
+    println "*****************************"
+    println " UCD Add Version for ${componentName} "
+    println "*****************************"
+
+    def udClient = "./udclient/udclient"
+    def componentSet = "-component '${componentName}'"
+    def versionSet = "-version ${artifactVersion}"
+    def baseSet = "-base ${artifactFolder}"
+    def command = "addVersionFiles ${componentSet} ${versionSet} ${baseSet}"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+
+    def response = sh(returnStdout: true, script: ucdCmd).trim()
+    response
+}
+
+/**
+ *  returns a map of component env properties: ["property_name": "property_value", ...]
+ */
+def getComponentEnvironmentProperties(ucdUrl, ucdToken, applicationName, componentName, environment) {
+    println "*****************************"
+    println " UCD get component: ${componentName} environment: ${environment} properties"
+    println "*****************************"
+
+    def udClient = "./udclient/udclient"
+    def command = "getComponentEnvironmentProperties -application '${applicationName}' -component '${componentName}' -environment '${environment}'"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+
+    def response = sh(returnStdout: true, script: ucdCmd).trim()
+    def parsedResponse = UDClient.mapFromJson(response)
+    def result = [:]
+    for (def property in parsedResponse) {
+        result[property.name] = property.value
+    }
+    result
+}
+
+/**
+ *  End of DeployContext agnostic methods
+ */

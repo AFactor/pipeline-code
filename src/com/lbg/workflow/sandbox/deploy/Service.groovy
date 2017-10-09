@@ -23,6 +23,11 @@ class Service implements Serializable {
     ServiceRuntime runtime
 
     /**
+     * UCD details
+     */
+    HashMap ucd
+
+    /**
      * proxy config
      */
     HashMap proxy
@@ -57,6 +62,7 @@ class Service implements Serializable {
                 ", env=" + env +
 				", tokens=" + tokens +
                 ", bluemix=" + bluemix +
+                ", ucd=" + ucd +
                 '}'
     }
 }
