@@ -1,5 +1,6 @@
 def call(service, deployContext) {
-	node {
+	def nodeLabel = getNodeLabel(service, deployContext)
+	node(nodeLabel) {
 		try {
 			checkout scm
 			echo "deploying service ${service.name}"
@@ -25,13 +26,17 @@ def call(service, deployContext) {
 				error "Skipping service deployment, no implementation for buildpack ${service.buildpack}"
 			}
 
-			// deploy
-			if (deployContext.target == "apiconnect") {
-				eagleDeployApiConnectService(service, deployContext)
-			} else if (deployContext.target == "cmc") {
-				eagleDeployCmcService(service, deployContext)
-			} else if (deployContext.target == "bluemix") {
-				eagleDeployBluemixService(service, deployContext)
+			// deploy - service platform has highest order
+			if (null != service.deployment && service.deployment.openam) {
+				eagleDeployOpenAMService(service, deployContext)
+			} else {
+				if (deployContext.target == "apiconnect") {
+					eagleDeployApiConnectService(service, deployContext)
+				} else if (deployContext.target == "cmc") {
+					eagleDeployCmcService(service, deployContext)
+				} else if (deployContext.target == "bluemix") {
+					eagleDeployBluemixService(service, deployContext)
+				}
 			}
 		} catch(error){
 			echo error.message
@@ -39,6 +44,17 @@ def call(service, deployContext) {
 		}finally {
 			step([$class: 'WsCleanup', notFailBuild: true])
 		}
+	}
+}
+
+def getNodeLabel(service, deployContext) {
+	if (null != service.deployment) {
+		if (service.deployment.openam) {
+			return service.deployment.openam['node-label']
+		}
+		return ""
+	} else {
+		return ""
 	}
 }
 

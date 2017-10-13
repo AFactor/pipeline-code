@@ -47,6 +47,10 @@ class Service implements Serializable {
      */
     HashMap bluemix
 
+    /**
+     * deployment env
+     */
+    HashMap deployment
 
     Service() {
     }
@@ -63,6 +67,7 @@ class Service implements Serializable {
 				", tokens=" + tokens +
                 ", bluemix=" + bluemix +
                 ", ucd=" + ucd +
+                ", deployment=" + deployment +
                 '}'
     }
 }

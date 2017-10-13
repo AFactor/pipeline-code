@@ -60,6 +60,11 @@ class DeployContext implements Serializable {
      */
     String label
 
+    /**
+     * deployment env
+     */
+    HashMap deployment
+
     DeployContext() {
     }
 
@@ -75,6 +80,7 @@ class DeployContext implements Serializable {
         this.proxy = config.proxy
         this.schema = config.schema
         this.ucd = config.ucd
+        this.deployment = config.deployment
         this.label = config.label
 
         def dc = new DeployContext(config) // avoid jenkins serialization issues
@@ -103,6 +109,7 @@ class DeployContext implements Serializable {
                 ", bluemix=" + bluemix +
                 ", apiconnect=" + apiconnect +
                 ", cmc=" + cmc +
+                ", deployment=" + deployment +
                 ", proxy=" + proxy +
                 '}'
     }
