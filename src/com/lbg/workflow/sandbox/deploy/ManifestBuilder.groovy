@@ -61,6 +61,7 @@ class ManifestBuilder implements Serializable {
           space: ${bluemix.env}
           disk_quota: ${bluemix.disk}
           memory: ${bluemix.memory}
+          services: [${bluemix.services ?: ''}]
           env:
             NODE_MODULES_CACHE: false """
 	}
@@ -75,6 +76,7 @@ class ManifestBuilder implements Serializable {
           space: ${bluemix.env}
           disk_quota: ${bluemix.disk}
           memory: ${bluemix.memory}
+          services: [${bluemix.services ?: ''}]
           env:
             JAVA_HOME: /home/vcap/app/.java/jre """
 	}
@@ -89,6 +91,7 @@ class ManifestBuilder implements Serializable {
           memory: ${bluemix.memory}
           buildpack: https://github.com/cloudfoundry/staticfile-buildpack.git
           stack: cflinuxfs2
+          services: [${bluemix.services ?: ''}]
           env:
             NODE_MODULES_CACHE: false """
 	}
