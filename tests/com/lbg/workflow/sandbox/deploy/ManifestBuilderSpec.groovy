@@ -26,7 +26,8 @@ class ManifestBuilderSpec extends Specification {
                 "org": "POC35_PSD2AISP",
                 "env": "Test",
                 "disk": "256M",
-                "memory": "256M"
+                "memory": "256M",
+                "services": "bluemixSplunk"
         ]
         deployContext.bluemix = deployContextBluemix
 
@@ -43,6 +44,7 @@ class ManifestBuilderSpec extends Specification {
         assert yamlResult.applications.space == [deployContextBluemix.env]
         assert yamlResult.applications.disk_quota == [serviceBluemix.disk]
         assert yamlResult.applications.memory == [serviceBluemix.memory]
+        assert yamlResult.applications.services == [['bluemixSplunk']]
         assert yamlResult.applications.env[0]["NODE_MODULES_CACHE"] == false
         assert yamlResult.applications.env[0]["ENTERPRISE"] == "lbg"
         assert yamlResult.applications.env[0]['NODE_ENV'] == "test"
