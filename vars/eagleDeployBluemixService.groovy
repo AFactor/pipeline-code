@@ -30,7 +30,8 @@ private void libertyBuildPack(deployContext, service) {
 	def bluemixEnvs = utils.buildServiceBluemixEnv(service.bluemix, deployContext.bluemix)
 	bluemixEnvs["deployable"] = "${env.WORKSPACE}/${service.name}"
 	bluemixEnvs["APP"] = "${deployContext.journey}-${service.name}-${deployContext.env}"
-	bluemixEnvs["ZIPFILE"] = sh(script: "cd  ${env.WORKSPACE}/${service.name} && ls *.zip| head -1", returnStdout: true).trim()
+	def artifactName = sh(script: "cd  ${env.WORKSPACE}/${service.name} && ls *.zip| head -1", returnStdout: true).trim()
+	bluemixEnvs["ZIPFILE"] = artifactName
 	withCredentials([
 		usernamePassword(credentialsId: deployContext.bluemix.credentials,
 		passwordVariable: 'BM_PASS',
@@ -38,6 +39,14 @@ private void libertyBuildPack(deployContext, service) {
 	]) {
 		withEnv(utils.toWithEnv(bluemixEnvs)) {
 			try {
+				def tokens = service.tokens?: [:]
+				if (tokens.size() > 0) {
+					dir("${env.WORKSPACE}/${service.name}") {
+						sh "unzip ${artifactName} wlp/usr/servers/* "
+						replaceTokens('wlp/usr/servers', tokens)
+						sh "zip ${artifactName}  wlp -r"
+					}
+				}
 				sh "mkdir -p pipelines/scripts/"
 				writeFile file: "pipelines/scripts/deploy.sh", text: deployLibertyAppScript()
 				sh 'source pipelines/scripts/deploy.sh; deployApp'

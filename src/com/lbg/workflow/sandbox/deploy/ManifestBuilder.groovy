@@ -69,19 +69,14 @@ class ManifestBuilder implements Serializable {
 		return """
         applications:
         - name: ${appName}
-          command: wlp/bin/server run ${server}
-          buildpack: https://github.com/cloudfoundry/ibm-websphere-liberty-buildpack#v2.8.0.0
+          command: export IBM_JAVA_OPTIONS="\$IBM_JAVA_OPTIONS -Dhttp-port=\$PORT"; wlp/bin/server run ${server}
+          buildpack: liberty-for-java
           org: ${bluemix.org}
           space: ${bluemix.env}
           disk_quota: ${bluemix.disk}
           memory: ${bluemix.memory}
           env:
-            IBM_JVM_LICENSE: L-PMAA-A3Z8P2
-            IBM_LIBERTY_LICENSE:  L-SWIS-AEPPZP
-            JAVA_HOME: /home/vcap/app/.java/jre
-            IBM_JAVA_OPTIONS: >-
-                -Dspring.profiles.active=development
-                -Dhttp-port=\$PORT """
+            JAVA_HOME: /home/vcap/app/.java/jre """
 	}
 
 	private String staticfileManifest(appName, bluemix) {

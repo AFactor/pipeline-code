@@ -6,10 +6,17 @@ def call(service, deployContext) {
 			def artifactName = sh(script: "ls *.zip| head -1", returnStdout: true).trim()
 			def appHostName = sh(script: "hostname", returnStdout: true).trim()
 			def appPort = service.deployment.openam['docker-port']
-			def authenticationAppUrl = service.env['authentication-url']
-			def adpApiUrl = service.env['adp-url']
-			def ardApiUrl = service.env['ard-url']
-			def paymentServiceUrl = service.env['payment-service-url']
+			def authenticationAppUrl = service.env['AUTHENTICATION_API_URL']
+			def adpApiUrl = service.env['ADP_API_URL']
+			def ardApiUrl = service.env['ARD_API_URL']
+			def paymentServiceUrl = service.env['PAYMENT_SERVICE_API_URL']
+			def outboundTlsTrustStore = service.env['OUTBOUND_TLS_TRUSTSTORE']
+			def outboundTlsTrustStorePwd = service.env['OUTBOUND_TLS_TRUSTSTORE_PASSWORD']
+			def outboundTlsKeyStore = service.env['OUTBOUND_TLS_KEYSTORE']
+			def outboundTlsKeyStorePwd = service.env['OUTBOUND_TLS_KEYSTORE_PASSWORD']
+			def amCryptoDescriptor = service.env['AM_CRYPTO_DESCRIPTOR']
+			def amKeyDescriptor = service.env['AM_KEY_DESCRIPTOR']
+
 			withEnv([
 					"APP=${appName}",
 					"APP_HOSTNAME=${appHostName}",
@@ -18,7 +25,13 @@ def call(service, deployContext) {
 					"AUTHENTICATION_API_URL=${authenticationAppUrl}",
 					"ADP_API_URL=${adpApiUrl}",
 					"ARD_API_URL=${ardApiUrl}",
-					"PAYMENT_URL=${paymentServiceUrl}"
+					"PAYMENT_SERVICE_API_URL=${paymentServiceUrl}",
+					"OUTBOUND_TLS_TRUSTSTORE=${outboundTlsTrustStore}",
+					"OUTBOUND_TLS_TRUSTSTORE_PASSWORD=${outboundTlsTrustStorePwd}",
+					"OUTBOUND_TLS_KEYSTORE=${outboundTlsKeyStore}",
+					"OUTBOUND_TLS_KEYSTORE_PASSWORD=${outboundTlsKeyStorePwd}",
+					"AM_CRYPTO_DESCRIPTOR=${amCryptoDescriptor}",
+					"AM_KEY_DESCRIPTOR=${amKeyDescriptor}",
 			]) {
 				try {
 					def dockerFile = libraryResource 'com/lbg/workflow/sandbox/openam/Dockerfile'

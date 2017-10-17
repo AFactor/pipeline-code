@@ -12,7 +12,8 @@ RUN echo '\
 -Djavax.xml.soap.SOAPFactory=com.sun.xml.internal.messaging.saaj.soap.ver1_1.SOAPFactory1_1Impl\n\
 -Djavax.xml.soap.SOAPConnectionFactory=com.sun.xml.internal.messaging.saaj.client.p2p.HttpSOAPConnectionFactory\n\
 -Djavax.xml.soap.MetaFactory=com.sun.xml.internal.messaging.saaj.soap.SAAJMetaFactoryImpl\n\
-'>> /app/wlp/usr/servers/ob-cnf-access-mgmt-api/jvm.options
+'> /app/wlp/usr/servers/ob-cnf-access-mgmt-api/jvm.options
 
+ADD http://nexus.sandbox.extranet.group/nexus/content/repositories/binaries/lbg-bluemix-certs/lbgcacerts /app/wlp/usr/servers/ob-cnf-access-mgmt-api/resources/security/default_trust.jks
 
 CMD ["/app/docker/docker-server", "run", "ob-cnf-access-mgmt-api"]
