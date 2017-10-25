@@ -20,6 +20,7 @@ def call(service, deployContext) {
 			def minimum_request_for_heath_check = service.env['MINIMUM_REQUEST_FOR_HEATH_CHECK']
 			def request_timeout_in_milliseconds = service.env['REQUEST_TIMEOUT_IN_MILLISECONDS']
 			def open_circuit_timeout_in_milliseconds = service.env['OPEN_CIRCUIT_TIMEOUT_IN_MILLISECONDS']
+			def openam_cookie_domain = service.env['OPENAM_COOKIE_DOMAIN']
 
 			withEnv([
 					"APP=${appName}",
@@ -39,7 +40,8 @@ def call(service, deployContext) {
 					"ERROR_THRESHOLD_PERCENTAGE=${error_threshold_percentage}",
 					"MINIMUM_REQUEST_FOR_HEATH_CHECK=${minimum_request_for_heath_check}",
 					"REQUEST_TIMEOUT_IN_MILLISECONDS=${request_timeout_in_milliseconds}",
-					"OPEN_CIRCUIT_TIMEOUT_IN_MILLISECONDS=${open_circuit_timeout_in_milliseconds}"
+					"OPEN_CIRCUIT_TIMEOUT_IN_MILLISECONDS=${open_circuit_timeout_in_milliseconds}",
+					"OPENAM_COOKIE_DOMAIN=${openam_cookie_domain}"
 			]) {
 				try {
 					def dockerFile = libraryResource 'com/lbg/workflow/sandbox/openam/Dockerfile'

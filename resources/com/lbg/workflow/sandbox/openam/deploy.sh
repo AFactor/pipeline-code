@@ -11,7 +11,7 @@ function deployApp() {
 
     docker build -t 10.112.159.88:40007/${APP} .
 
-    docker run -d -p ${APP_PORT}:9080 -e JAVA_HOME="/opt/ibm/java/jre/" -e OPENAM_SERVER_URL="http://${APP_HOSTNAME}:${APP_PORT}" -e OPENAM_DOMAIN="localhost" -e OPENAM_PASSWORD="password" -e OPENAM_COOKIE_DOMAIN=${APP_HOSTNAME} -e OPENAM_SSL_OPTS="-DamCryptoDescriptor.provider=IBMJCE -DamKeyGenDescriptor.provider=IBMJCE" -e OPENAM_LB_OPTS=" " --name ${APP} 10.112.159.88:40007/${APP}
+    docker run -d -p ${APP_PORT}:9080 -e JAVA_HOME="/opt/ibm/java/jre/" -e OPENAM_SERVER_URL="http://${APP_HOSTNAME}:${APP_PORT}" -e OPENAM_DOMAIN="localhost" -e OPENAM_PASSWORD="password" -e OPENAM_COOKIE_DOMAIN=${OPENAM_COOKIE_DOMAIN} -e OPENAM_SSL_OPTS="-DamCryptoDescriptor.provider=IBMJCE -DamKeyGenDescriptor.provider=IBMJCE" -e OPENAM_LB_OPTS=" " --name ${APP} 10.112.159.88:40007/${APP}
 
     sleep 180
 
