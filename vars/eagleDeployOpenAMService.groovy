@@ -16,6 +16,10 @@ def call(service, deployContext) {
 			def outboundTlsKeyStorePwd = service.env['OUTBOUND_TLS_KEYSTORE_PASSWORD']
 			def amCryptoDescriptor = service.env['AM_CRYPTO_DESCRIPTOR']
 			def amKeyDescriptor = service.env['AM_KEY_DESCRIPTOR']
+			def error_threshold_percentage = service.env['ERROR_THRESHOLD_PERCENTAGE']
+			def minimum_request_for_heath_check = service.env['MINIMUM_REQUEST_FOR_HEATH_CHECK']
+			def request_timeout_in_milliseconds = service.env['REQUEST_TIMEOUT_IN_MILLISECONDS']
+			def open_circuit_timeout_in_milliseconds = service.env['OPEN_CIRCUIT_TIMEOUT_IN_MILLISECONDS']
 
 			withEnv([
 					"APP=${appName}",
@@ -32,6 +36,10 @@ def call(service, deployContext) {
 					"OUTBOUND_TLS_KEYSTORE_PASSWORD=${outboundTlsKeyStorePwd}",
 					"AM_CRYPTO_DESCRIPTOR=${amCryptoDescriptor}",
 					"AM_KEY_DESCRIPTOR=${amKeyDescriptor}",
+					"ERROR_THRESHOLD_PERCENTAGE=${error_threshold_percentage}",
+					"MINIMUM_REQUEST_FOR_HEATH_CHECK=${minimum_request_for_heath_check}",
+					"REQUEST_TIMEOUT_IN_MILLISECONDS=${request_timeout_in_milliseconds}",
+					"OPEN_CIRCUIT_TIMEOUT_IN_MILLISECONDS=${open_circuit_timeout_in_milliseconds}"
 			]) {
 				try {
 					def dockerFile = libraryResource 'com/lbg/workflow/sandbox/openam/Dockerfile'
