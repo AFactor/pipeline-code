@@ -23,7 +23,11 @@ function deployApp() {
     sed -i -e \"s|default-trust-store=.*|default-trust-store=$OUTBOUND_TLS_TRUSTSTORE|\" /app/wlp/usr/servers/ob-cnf-access-mgmt-api/bootstrap.properties && \
     sed -i -e \"s|default-trust-store-password=.*|default-trust-store-password=$OUTBOUND_TLS_TRUSTSTORE_PASSWORD|\" /app/wlp/usr/servers/ob-cnf-access-mgmt-api/bootstrap.properties && \
     sed -i -e \"s|default-key-store=.*|default-key-store=$OUTBOUND_TLS_KEYSTORE|\" /app/wlp/usr/servers/ob-cnf-access-mgmt-api/bootstrap.properties && \
-    sed -i -e \"s|default-key-store-password=.*|default-key-store-password=$OUTBOUND_TLS_KEYSTORE_PASSWORD|\" /app/wlp/usr/servers/ob-cnf-access-mgmt-api/bootstrap.properties \
+    sed -i -e \"s|default-key-store-password=.*|default-key-store-password=$OUTBOUND_TLS_KEYSTORE_PASSWORD|\" /app/wlp/usr/servers/ob-cnf-access-mgmt-api/bootstrap.properties && \
+    sed -i -e \"s|ERROR_THRESHOLD_PERCENTAGE=.*|ERROR_THRESHOLD_PERCENTAGE=$ERROR_THRESHOLD_PERCENTAGE|\" /app/wlp/usr/servers/ob-cnf-access-mgmt-api/bootstrap.properties && \
+    sed -i -e \"s|MINIMUM_REQUEST_FOR_HEATH_CHECK=.*|MINIMUM_REQUEST_FOR_HEATH_CHECK=$MINIMUM_REQUEST_FOR_HEATH_CHECK|\" /app/wlp/usr/servers/ob-cnf-access-mgmt-api/bootstrap.properties && \
+    sed -i -e \"s|REQUEST_TIMEOUT_IN_MILLISECONDS=.*|REQUEST_TIMEOUT_IN_MILLISECONDS=$REQUEST_TIMEOUT_IN_MILLISECONDS|\" /app/wlp/usr/servers/ob-cnf-access-mgmt-api/bootstrap.properties && \
+    sed -i -e \"s|OPEN_CIRCUIT_TIMEOUT_IN_MILLISECONDS=.*|OPEN_CIRCUIT_TIMEOUT_IN_MILLISECONDS=$OPEN_CIRCUIT_TIMEOUT_IN_MILLISECONDS|\" /app/wlp/usr/servers/ob-cnf-access-mgmt-api/bootstrap.properties \
     "
 
     docker exec -i ${APP} sh -c 'cd /app/wlp/dev/tools/openam && chmod +x register_module.sh && ./register_module.sh'
