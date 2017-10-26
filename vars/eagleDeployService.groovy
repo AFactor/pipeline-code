@@ -11,15 +11,15 @@ def call(service, deployContext) {
 
 			if (service.buildpack == "Node.js") {
 				sh """mkdir -p ${service.name} && \\
-                  wget --quiet ${artifact} && \\
+                  wget --quiet --no-check-certificate ${artifact} && \\
                   tar -xf ${artifactName} -C ${service.name}"""
 			} else if (service.buildpack == "Liberty") {
 				sh """mkdir -p ${service.name} && \\
                   cd ${service.name} && \\
-                  wget --quiet ${artifact}"""
+                  wget --quiet --no-check-certificate ${artifact}"""
 			} else if (service.buildpack == "Staticfile") {
 				sh """mkdir -p ${service.name} && \\
-					wget --quiet ${artifact} &&	 \\
+					wget --quiet --no-check-certificate ${artifact} &&	 \\
 					tar -xf ${artifactName} -C ${service.name}"""
 
 			} else {
