@@ -4,7 +4,7 @@
  */
 
 Boolean call(String branch){
-	if (branch =~ /^sprint[0-9]+\/.+$/ || branch =~ /^epic\/.+$/ ) {
+	if (branch =~ /^sprint[0-9]+\/.+$/ || branch =~ /^epic\/.+$/ || branch =~ /^feature\/.*$/ ) {
 		return true ;
 	} else {
 		return false ;
