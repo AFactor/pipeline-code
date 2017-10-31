@@ -51,11 +51,10 @@ sleep 200
     sed -i -e \"s|OPEN_CIRCUIT_TIMEOUT_IN_MILLISECONDS=.*|OPEN_CIRCUIT_TIMEOUT_IN_MILLISECONDS=$OPEN_CIRCUIT_TIMEOUT_IN_MILLISECONDS|\" /app/wlp/usr/servers/ob-cnf-access-mgmt-api/bootstrap.properties \
     "
 
-docker exec -i ${APP} sh -c 'find /app -name bootstrap.properties | xargs cat' >  bootstrap.properties
-docker exec -i ${APP} sh -c 'set' >  environment.properties
-docker exec -i ${APP} sh -c 'cd /app/wlp/dev/tools/openam && chmod +x configure_openam.sh && ./configure_openam.sh '  || exit_code=1
-docker exec -i ${APP} sh -c 'find /app/wlp -name install.log | xargs cat ' > install.log
-error_generate "Testing success of configure step"
+    docker exec -i ${APP} sh -c 'find /app -name bootstrap.properties | xargs cat' >  bootstrap.properties
+    docker exec -i ${APP} sh -c 'set' >  environment.properties
+    docker exec -i ${APP} sh -c 'cd /app/wlp/dev/tools/openam && chmod +x configure_openam.sh && ./configure_openam.sh '  || exit_code=1
+    docker exec -i ${APP} sh -c 'find /app/wlp -name install.log | xargs cat ' > install.log
     sleep 5
 
     docker restart  ${APP}
