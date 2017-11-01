@@ -32,9 +32,17 @@ function deployApp() {
     -e OPENAM_DIRECTORY_PORT="${OPENAM_DIRECTORY_PORT}" \
     -e OPENAM_DIRECTORY_ADMIN_PORT="${OPENAM_DIRECTORY_ADMIN_PORT}" \
     -e OPENAM_DIRECTORY_JMX_PORT="${OPENAM_DIRECTORY_JMX_PORT}" \
+    -e LOG_CONSOLE_OUTPUT="${LOG_CONSOLE_OUTPUT}" \
+    -e APP_LOG_DIR="${APP_LOG_DIR}" \
+    -e LOG_FILE_SIZE_IN_MBS="${LOG_FILE_SIZE_IN_MBS}" \
+    -e LOG_FILE_PREFIX="${LOG_FILE_PREFIX}" \
+    -e LOG_INFO_LEVEL="${LOG_INFO_LEVEL}" \
+    -e LOG_DEBUG_LEVEL="${LOG_DEBUG_LEVEL}" \
+    -e LOG_ROLL_INTERVAL="${LOG_ROLL_INTERVAL}" \
+    -e LOG_FILE_AGE="${LOG_FILE_AGE}" \
     --name ${APP} 10.112.159.88:40007/${APP}
 
-sleep 200
+    sleep 200
 
     docker exec -i ${APP} sh -c "\
     sed -i -e \"s|authentication-url=.*|authentication-url=$AUTHENTICATION_API_URL|\" /app/wlp/usr/servers/ob-cnf-access-mgmt-api/bootstrap.properties && \
