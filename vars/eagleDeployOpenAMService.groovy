@@ -19,8 +19,6 @@ def call(service, deployContext) {
 					"OUTBOUND_TLS_TRUSTSTORE_PASSWORD=${service.env['OUTBOUND_TLS_TRUSTSTORE_PASSWORD']}",
 					"OUTBOUND_TLS_KEYSTORE=${service.env['OUTBOUND_TLS_KEYSTORE']}",
 					"OUTBOUND_TLS_KEYSTORE_PASSWORD=${service.env['OUTBOUND_TLS_KEYSTORE_PASSWORD']}",
-					"AM_CRYPTO_DESCRIPTOR=${service.env['AM_CRYPTO_DESCRIPTOR']}",
-					"AM_KEY_DESCRIPTOR=${service.env['AM_KEY_DESCRIPTOR']}",
 					"ERROR_THRESHOLD_PERCENTAGE=${service.env['ERROR_THRESHOLD_PERCENTAGE']}",
 					"MINIMUM_REQUEST_FOR_HEATH_CHECK=${service.env['MINIMUM_REQUEST_FOR_HEATH_CHECK']}",
 					"REQUEST_TIMEOUT_IN_MILLISECONDS=${service.env['REQUEST_TIMEOUT_IN_MILLISECONDS']}",
@@ -39,7 +37,15 @@ def call(service, deployContext) {
 					"OPENAM_DIRECTORY_ADMIN_PORT=${service.env['OPENAM_DIRECTORY_ADMIN_PORT']}",
 					"OPENAM_DIRECTORY_PORT=${service.env['OPENAM_DIRECTORY_PORT']}",
 					"OPENAM_DIRECTORY_ADMIN_PORT=${service.env['OPENAM_DIRECTORY_ADMIN_PORT']}",
-					"OPENAM_DIRECTORY_JMX_PORT=${service.env['OPENAM_DIRECTORY_JMX_PORT']}"
+					"OPENAM_DIRECTORY_JMX_PORT=${service.env['OPENAM_DIRECTORY_JMX_PORT']}",
+					"LOG_CONSOLE_OUTPUT=${service.env['LOG_CONSOLE_OUTPUT']}",
+					"APP_LOG_DIR=${service.env['APP_LOG_DIR']}",
+					"LOG_FILE_SIZE_IN_MBS=${service.env['LOG_FILE_SIZE_IN_MBS']}",
+					"LOG_FILE_PREFIX=${service.env['LOG_FILE_PREFIX']}",
+					"LOG_INFO_LEVEL=${service.env['LOG_INFO_LEVEL']}",
+					"LOG_DEBUG_LEVEL=${service.env['LOG_DEBUG_LEVEL']}",
+					"LOG_ROLL_INTERVAL=${service.env['LOG_ROLL_INTERVAL']}",
+					"LOG_FILE_AGE=${service.env['LOG_FILE_AGE']}"
 			]) {
 				try {
 					def dockerFile = libraryResource 'com/lbg/workflow/sandbox/openam/Dockerfile'
