@@ -3,8 +3,6 @@ package com.lbg.workflow.sandbox.deploy
 import com.lbg.workflow.ucd.UDClient
 import com.lbg.workflow.ucd.UCDVersions
 import com.lbg.workflow.ucd.UCDVersionParser
-import com.lbg.workflow.ucd.UCDSnapshotParser
-import com.lbg.workflow.ucd.UCDEnvironments
 import com.lbg.workflow.ucd.UCDEnvironmentParser
 import com.cloudbees.groovy.cps.NonCPS
 
@@ -642,6 +640,22 @@ def createComponentVersion(ucdUrl, ucdToken, componentName, componentVersion) {
     response
 }
 
+def importComponentVersions(ucdUrl, ucdToken, componentName) {
+    println "********************************"
+    println " UCD Import Component Versions for ${componentName} "
+    println "********************************"
+
+    def requestJson = UDClient.jsonFromMap(["component": componentName])
+    sh("echo \'${requestJson}\' > ucd_import_component_versions.json")
+
+    def udClient = "./udclient/udclient"
+    def command = "importVersions ucd_import_component_versions.json"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+
+    def response = sh(returnStdout: true, script: ucdCmd).trim()
+    response
+}
+
 def addFilesToVersion(ucdUrl, ucdToken, componentName, artifactVersion, artifactFolder) {
     println "*****************************"
     println " UCD Add Version for ${componentName} "
@@ -674,11 +688,109 @@ def getComponentEnvironmentProperties(ucdUrl, ucdToken, applicationName, compone
     def parsedResponse = UDClient.mapFromJson(response)
     def result = [:]
     for (def property in parsedResponse) {
-        result[property.name] = property.value
+        result[property.name] = ["value": property.value, "secure": property.secure]
     }
     result
 }
 
+def setComponentEnvironmentProperty(ucdUrl, ucdToken, applicationName, componentName, environment, name, value) {
+    println "*****************************"
+    println " UCD set component: ${componentName} environment: ${environment} property: ${name} value: ${value}"
+    println "*****************************"
+
+    def udClient = "./udclient/udclient"
+    def command = "setComponentEnvironmentProperty -application '${applicationName}' -component '${componentName}' -environment '${environment}' -name '${name}' -value '${value}'"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+
+    def responseJson = sh(returnStdout: true, script: ucdCmd).trim()
+    echo("Response json: ${responseJson}")
+    def response = UDClient.mapFromJson(responseJson)
+    response
+}
+
+def createSnapshot(ucdUrl, ucdToken, requestJson) {
+    println "**********************"
+    println " Running UCD create snapshot, request: ${requestJson}"
+    println "**********************"
+
+    sh("echo \'${requestJson}\' > ucd_snapshot.json")
+
+    def udClient = "./udclient/udclient"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
+    def ucdScript = "${ucdCmd} createSnapshot ucd_snapshot.json"
+    def response = sh(returnStdout: true, script: ucdScript).trim()
+    response
+}
+
+def lockSnapshotVersions(ucdUrl, ucdToken, appName, snapshotName) {
+    println "**********************"
+    println " Running UCD Lock Snapshot Versions"
+    println "**********************"
+
+    def udClient = "./udclient/udclient"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
+    def ucdScript = "${ucdCmd} lockSnapshotVersions -snapshot '${snapshotName}' -application '${appName}'"
+    def response = sh(returnStdout:true, script: ucdScript).trim()
+    response
+}
+
+def getSnapshot(ucdUrl, ucdToken, appName, snapshotName) {
+    println "**********************"
+    println " Running UCD Get Snapshot"
+    println "**********************"
+
+    def udClient = "./udclient/udclient"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
+    def ucdScript = "${ucdCmd} getSnapshot -snapshot '${snapshotName}' -application '${appName}'"
+    def response = sh(returnStdout:true, script: ucdScript).trim()
+    response
+}
+
+def snapshotAlreadyExists(ucdUrl, ucdToken, appName, snapshotName) {
+    def alreadyExists = true
+    try {
+        getSnapshot(ucdUrl, ucdToken, appName, snapshotName)
+    } catch (Exception e) {
+        // when there is no such snapshot an exception is thrown
+        alreadyExists = false
+    }
+    alreadyExists
+}
+
+def deploy(ucdUrl, ucdToken, requestJson) {
+    println "**************************"
+    println " Running UCD deploy, request: ${requestJson}"
+    println "**************************"
+
+    sh("echo \'${requestJson}\' > ucd_deploy.json")
+
+    def udClient = "./udclient/udclient"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
+    def ucdScript = "${ucdCmd} requestApplicationProcess ucd_deploy.json"
+    def response = sh(returnStdout: true, script: ucdScript).trim()
+    response
+}
+
+def getDeploymentStatus(ucdUrl, ucdToken, requestId) {
+    println "********************"
+    println " Running UCD Status "
+    println "********************"
+    def udClient = "./udclient/udclient"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
+    def ucdScript = "${ucdCmd} getApplicationProcessRequestStatus -request ${requestId} "
+    def response = sh(returnStdout: true, script: ucdScript).trim()
+    response
+}
+
+def getRequestTrace(ucdUrl, ucdToken, requestId) {
+    println "***************************"
+    println " Running UCD Request Trace "
+    println "***************************"
+    def udClient = "./udclient/udclient"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
+    def ucdScript = "${ucdCmd} getApplicationProcessExecution -request ${requestId} "
+    sh "${ucdScript}"
+}
 /**
  *  End of DeployContext agnostic methods
  */

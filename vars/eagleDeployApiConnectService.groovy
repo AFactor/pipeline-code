@@ -1,14 +1,14 @@
 import com.lbg.workflow.sandbox.deploy.UtilsBluemix
 
 def call(service, deployContext) {
-    if (service.buildpack == "Node.js") {
+    if (service.type == "Node.js") {
         // deploy service
         echo "deploy service"
         def utils = new UtilsBluemix()
         def envs = [:]
         envs["deployable"] = "${env.WORKSPACE}/${service.name}"
-        envs["APIC_SERVER"] = deployContext.apiconnect.server
-        envs["APIC_ORG"] = deployContext.apiconnect.org
+        envs["APIC_SERVER"] = deployContext.platforms.apiconnect.server
+        envs["APIC_ORG"] = deployContext.platforms.apiconnect.org
         if (service.env != null) {
             for (e in service.env) {
                 envs[e.key] = e.value
@@ -17,7 +17,7 @@ def call(service, deployContext) {
         def task = service.env["NPM_SETUP_TASK"]
         def envConfig = getEnvironmentConfig()
         withCredentials([
-                usernamePassword(credentialsId: deployContext.apiconnect.credentials,
+                usernamePassword(credentialsId: deployContext.platforms.apiconnect.credentials,
                         passwordVariable: 'APIC_PASS',
                         usernameVariable: 'APIC_USER')
         ]) {
@@ -38,7 +38,7 @@ def call(service, deployContext) {
             }
         }
     } else {
-        error "Skipping service deployment, no implementation for buildpack $service.buildpack"
+        error "Skipping service deployment, no implementation for buildpack $service.type"
     }
 }
 

@@ -2,12 +2,12 @@ import com.lbg.workflow.sandbox.deploy.UtilsBluemix
 
 def call(proxyName, deployContext) {
     def utils = new UtilsBluemix()
-    def bluemixEnvs = utils.buildBluemixEnv(deployContext.bluemix)
+    def bluemixEnvs = utils.buildBluemixEnv(deployContext.platforms.bluemix)
     bluemixEnvs["APP"] = proxyName
     bluemixEnvs["deployable"] = proxyName
 
     withCredentials([
-            usernamePassword(credentialsId: deployContext.bluemix.credentials,
+            usernamePassword(credentialsId: deployContext.platforms.bluemix.credentials,
                     passwordVariable: 'BM_PASS',
                     usernameVariable: 'BM_USER')
     ]) {

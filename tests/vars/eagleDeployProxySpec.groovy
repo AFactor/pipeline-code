@@ -15,11 +15,10 @@ class eagleDeployProxySpec extends PipelineSpockTestBase {
     def "deploy given service"() {
         given:
         DeployContext deployContext = new DeployContext()
-        deployContext.journey= "journey"
-        deployContext.target = "bluemix"
-        deployContext.env = "test"
-        deployContext.bluemix = [:]
-        deployContext.bluemix['domain'] = 'domain'
+        deployContext.release.journey= "journey"
+        deployContext.release.environment = "test"
+        deployContext.platforms.bluemix = [:]
+        deployContext.platforms.bluemix['domain'] = 'domain'
         Service service = new Service()
         service.name = "service-name"
         service.proxy = ["/service-target": "/service-source"]

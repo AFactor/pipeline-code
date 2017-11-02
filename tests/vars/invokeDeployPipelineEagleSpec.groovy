@@ -22,14 +22,14 @@ class invokeDeployPipelineEagleSpec extends PipelineSpockTestBase {
             if (file == configuration) {
 
                 DeployContext deployContext = new DeployContext()
-                deployContext.journey = "journey"
-                deployContext.target = "target"
-                deployContext.env = "env"
-                deployContext.target = "bluemix"
+                deployContext.release.journey = "journey"
+                deployContext.platforms.target = "target"
+               deployContext.release.environment = "env"
+                deployContext.platforms.target = "bluemix"
                 Map confluence = [:]
                 confluence["server"] = "server"
                 confluence["page"] = "page"
-                deployContext.metadata = ["notifyList":"email", "confluence": confluence]
+                deployContext.release.notifications= ["notifyList":"email", "confluence": confluence]
                 Service service = new Service()
                 service.name = "service-name"
                 def artifact = "https://nexus/artifact-9-deb9b7e.tar.gz"
@@ -39,10 +39,10 @@ class invokeDeployPipelineEagleSpec extends PipelineSpockTestBase {
                 runtime.binary = binary
                 service.runtime = runtime
                 deployContext.services = [service]
-                deployContext.bluemix = [:]
-                deployContext.bluemix['domain'] = 'domain'
-                deployContext.proxy = [:]
-                deployContext.proxy['deploy'] = true
+                deployContext.platforms.bluemix = [:]
+                deployContext.platforms.bluemix['domain'] = 'domain'
+                deployContext.platforms.proxy = [:]
+                deployContext.platforms.proxy['deploy'] = true
 
                 def json = JsonOutput.toJson(deployContext)
                 println json

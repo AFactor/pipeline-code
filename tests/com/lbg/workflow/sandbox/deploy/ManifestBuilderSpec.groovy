@@ -16,7 +16,7 @@ class ManifestBuilderSpec extends Specification {
         ]
         Service service = new Service()
         service.env = envs
-        service.bluemix = serviceBluemix
+        service.platforms.bluemix = serviceBluemix
 
         DeployContext deployContext = new DeployContext()
         def deployContextBluemix = [
@@ -29,7 +29,7 @@ class ManifestBuilderSpec extends Specification {
                 "memory": "256M",
                 "services": "bluemixSplunk"
         ]
-        deployContext.bluemix = deployContextBluemix
+        deployContext.platforms.bluemix = deployContextBluemix
 
         when:
         ManifestBuilder manifestBuilder = new ManifestBuilder()

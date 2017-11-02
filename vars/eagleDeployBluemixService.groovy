@@ -2,21 +2,19 @@ import com.lbg.workflow.sandbox.deploy.ManifestBuilder
 import com.lbg.workflow.sandbox.deploy.UtilsBluemix
 
 def call(service, deployContext) {
-	if (service.buildpack == "Node.js") {
-		nodeBuildPack(deployContext, service)
-	} else if (service.buildpack == "Liberty") {
-		libertyBuildPack(deployContext, service)
-	} else if (service.buildpack == "Staticfile") {
-		staticfileBuildPack(deployContext, service)
-	} else {
-		error "Skipping service deployment, no implementation for buildpack $service.buildpack"
+	echo "deploy service to bluemix"
+	switch (service.type) {
+		case "Node.js": nodeBuildPack(service, deployContext); break
+		case "Liberty": libertyBuildPack(service, deployContext); break
+		case "Staticfile": staticfileBuildPack(service, deployContext); break
+		default: error "Service type $service.type not supported"; break
 	}
 }
 
-private void libertyBuildPack(deployContext, service) {
+private void libertyBuildPack(service, deployContext) {
 	// build manifest
 	echo "build service manifest"
-	def appName = "${deployContext.journey}-${service.name}-${deployContext.env}"
+	def appName = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
 	def manifestBuilder = new ManifestBuilder()
 	def manifest = manifestBuilder.build(appName, service, deployContext)
 	manifest = manifestBuilder.buildEnvs(manifest, buildAnalyticsEnvs(deployContext))
@@ -27,19 +25,19 @@ private void libertyBuildPack(deployContext, service) {
 	// deploy service
 	echo "deploy service"
 	def utils = new UtilsBluemix()
-	def bluemixEnvs = utils.buildServiceBluemixEnv(service.bluemix, deployContext.bluemix)
+	def bluemixEnvs = utils.buildServiceBluemixEnv(service.platforms.bluemix, deployContext.platforms.bluemix)
 	bluemixEnvs["deployable"] = "${env.WORKSPACE}/${service.name}"
-	bluemixEnvs["APP"] = "${deployContext.journey}-${service.name}-${deployContext.env}"
+	bluemixEnvs["APP"] = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
 	def artifactName = sh(script: "cd  ${env.WORKSPACE}/${service.name} && ls *.zip| head -1", returnStdout: true).trim()
 	bluemixEnvs["ZIPFILE"] = artifactName
 	withCredentials([
-		usernamePassword(credentialsId: deployContext.bluemix.credentials,
+		usernamePassword(credentialsId: deployContext.platforms.bluemix.credentials,
 		passwordVariable: 'BM_PASS',
 		usernameVariable: 'BM_USER')
 	]) {
 		withEnv(utils.toWithEnv(bluemixEnvs)) {
 			try {
-				def tokens = service.tokens?: [:]
+				def tokens = buildTokens(service, deployContext)
 				if (tokens.size() > 0) {
 					dir("${env.WORKSPACE}/${service.name}") {
 						sh "unzip ${artifactName} wlp/usr/servers/* "
@@ -60,10 +58,10 @@ private void libertyBuildPack(deployContext, service) {
 	}
 }
 
-private void nodeBuildPack(deployContext, service) {
+private void nodeBuildPack(service, deployContext) {
 	// build manifest
 	echo "build service manifest"
-	def appName = "${deployContext.journey}-${service.name}-${deployContext.env}"
+	def appName = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
 	def manifestBuilder = new ManifestBuilder()
 	def manifest = manifestBuilder.build(appName, service, deployContext)
 	manifest = manifestBuilder.buildEnvs(manifest, buildAnalyticsEnvs(deployContext))
@@ -73,16 +71,25 @@ private void nodeBuildPack(deployContext, service) {
 	// deploy service
 	echo "deploy service"
 	def utils = new UtilsBluemix()
-	def bluemixEnvs = utils.buildServiceBluemixEnv(service.bluemix, deployContext.bluemix)
+	def bluemixEnvs = utils.buildServiceBluemixEnv(service.platforms.bluemix, deployContext.platforms.bluemix)
 	bluemixEnvs["deployable"] = "${env.WORKSPACE}/${service.name}"
-	bluemixEnvs["APP"] = "${deployContext.journey}-${service.name}-${deployContext.env}"
+	bluemixEnvs["APP"] = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
 	withCredentials([
-		usernamePassword(credentialsId: deployContext.bluemix.credentials,
+		usernamePassword(credentialsId: deployContext.platforms.bluemix.credentials,
 		passwordVariable: 'BM_PASS',
 		usernameVariable: 'BM_USER')
 	]) {
 		withEnv(utils.toWithEnv(bluemixEnvs)) {
 			try {
+				def tokens = buildTokens(service, deployContext)
+				if (tokens.size() > 0) {
+					if (fileExists("${env.WORKSPACE}/${service.name}/urbanCode")) {
+						replaceTokens("${env.WORKSPACE}/${service.name}/urbanCode", tokens)
+							sh("cp -rf ${env.WORKSPACE}/${service.name}/urbanCode/* ${env.WORKSPACE}/${service.name}/  2>/dev/null || : && cp -rf ${env.WORKSPACE}/${service.name}/urbanCode/.* ${env.WORKSPACE}/${service.name}/ 2>/dev/null || :")
+					} else {
+						replaceTokens("${env.WORKSPACE}/${service.name}", tokens)
+					}
+				}
 				sh "mkdir -p pipelines/scripts/"
 				writeFile file: "pipelines/scripts/deploy.sh", text: deployNodeAppScript()
 				sh 'source pipelines/scripts/deploy.sh; deployApp'
@@ -96,10 +103,10 @@ private void nodeBuildPack(deployContext, service) {
 	}
 }
 
-private void staticfileBuildPack(deployContext, service) {
+private void staticfileBuildPack(service, deployContext) {
 	// build manifest
 	echo "build service manifest"
-	def appName = "${deployContext.journey}-${service.name}-${deployContext.env}"
+	def appName = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
 	def manifestBuilder = new ManifestBuilder()
 	def manifest = manifestBuilder.build(appName, service, deployContext)
 	manifest = manifestBuilder.buildEnvs(manifest, buildAnalyticsEnvs(deployContext))
@@ -109,11 +116,11 @@ private void staticfileBuildPack(deployContext, service) {
 	// deploy service
 	echo "deploy service"
 	def utils = new UtilsBluemix()
-	def bluemixEnvs = utils.buildServiceBluemixEnv(service.bluemix, deployContext.bluemix)
+	def bluemixEnvs = utils.buildServiceBluemixEnv(service.platforms.bluemix, deployContext.platforms.bluemix)
 	bluemixEnvs["deployable"] = "${env.WORKSPACE}/${service.name}"
-	bluemixEnvs["APP"] = "${deployContext.journey}-${service.name}-${deployContext.env}"
+	bluemixEnvs["APP"] = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
 	withCredentials([
-		usernamePassword(credentialsId: deployContext.bluemix.credentials,
+		usernamePassword(credentialsId: deployContext.platforms.bluemix.credentials,
 		passwordVariable: 'BM_PASS',
 		usernameVariable: 'BM_USER')
 	]) {
@@ -136,7 +143,7 @@ private void staticfileBuildPack(deployContext, service) {
 
 private def buildAnalyticsEnvs(deployContext) {
 	def envs = [:]
-	if (null != deployContext.bluemix.analytics && deployContext.bluemix.analytics == true) {
+	if (null != deployContext.platforms.bluemix.analytics && deployContext.platforms.bluemix.analytics == true) {
 		def analytics = [
 				"ANALYTICS_HOST_NAME" : "CI/users/OB/APPDYNAMICS/ANALYTICS_HOST_NAME",
 				"ANALYTICS_ACCOUNT_NAME" : "CI/users/OB/APPDYNAMICS/ANALYTICS_ACCOUNT_NAME",
@@ -146,7 +153,7 @@ private def buildAnalyticsEnvs(deployContext) {
 				"APPDYNAMICS_PORT" : "CI/users/OB/APPDYNAMICS/APPDYNAMICS_PORT"
 		]
 		try {
-			withCredentials([string(credentialsId: deployContext.bluemix.analytics_credentials, variable: 'VAULT_TOKEN')]) {
+			withCredentials([string(credentialsId: deployContext.platforms.bluemix.analytics_credentials, variable: 'VAULT_TOKEN')]) {
 				withGenericVaultSecrets(analytics) {
 					envs["ANALYTICS_HOST_NAME"] = env.ANALYTICS_HOST_NAME
 					envs["ANALYTICS_ACCOUNT_NAME"] = env.ANALYTICS_ACCOUNT_NAME
@@ -161,6 +168,14 @@ private def buildAnalyticsEnvs(deployContext) {
 		}
 	}
 	return envs
+}
+
+
+private def buildTokens(service, deployContext) {
+	def tokens = deployContext.platforms?.bluemix?.types?."$service.type"?.tokens ?: [:]
+	tokens.putAll(service.platforms?.bluemix?.tokens ?: [:])
+	tokens.putAll(service?.tokens ?: [:])
+	return tokens
 }
 
 private String deployLibertyAppScript() {

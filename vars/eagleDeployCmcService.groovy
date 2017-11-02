@@ -1,16 +1,16 @@
 import com.lbg.workflow.sandbox.deploy.UtilsBluemix
 
 def call(service, deployContext) {
-    if (service.buildpack == "Node.js") {
+    if (service.type == "Node.js") {
         // deploy service
         echo "deploy service"
         def utils = new UtilsBluemix()
         def envs = [:]
         envs["deployable"] = "${env.WORKSPACE}/${service.name}"
-        envs["CMC_SERVER"] = deployContext.cmc.server
-        envs["CMC_GATEWAY_CLUSTER_ID"] = deployContext.cmc.gateway_cluster_id
-        if (service.env != null) {
-            for (e in service.env) {
+        envs["CMC_SERVER"] = deployContext.platforms.cmc.server
+        envs["CMC_GATEWAY_CLUSTER_ID"] = deployContext.platforms.cmc.gateway_cluster_id
+        if (service.tokens != null) {
+            for (e in service.tokens) {
                 envs[e.key] = e.value
             }
         }
@@ -34,7 +34,7 @@ def call(service, deployContext) {
             }
         }
     } else {
-        error "Skipping service deployment, no implementation for buildpack $service.buildpack"
+        error "Skipping service deployment, no implementation for buildpack $service.type"
     }
 }
 

@@ -1,0 +1,26 @@
+{
+  "services": [
+    {
+      "name": "aisp-agreements-channel-service",
+      "deploy": true,
+      "type": "Node.js",
+      "scm": "ob-aisp-agreements-channel-service",
+      "runtime": {
+        "binary": {
+          "artifact": "http://nexus.sandbox.extranet.group/nexus/content/repositories/releases/com/lbg/ob/aisp/agreements-channel-service/1.0.0-15.1.210c1ca/agreements-channel-service-1.0.0-15.1.210c1ca.tar.gz"
+        }
+      }
+    },
+    {
+      "name": "aisp-account-info-enterprise-direct-api",
+      "deploy": true,
+      "type": "Node.js",
+      "scm": "ob-aisp-account-info-enterprise-direct-api",
+      "runtime": {
+        "binary": {
+          "artifact": "http://nexus.sandbox.extranet.group/nexus/content/repositories/releases/com/lbg/ob/aisp/account-info-enterprise-direct-api/1.0.0-15.2.4544590/account-info-enterprise-direct-api-1.0.0-15.2.4544590.tar.gz"
+        }
+      }
+    }
+  ]
+}

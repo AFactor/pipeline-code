@@ -8,7 +8,7 @@ def buildBluemixEnv(HashMap bluemix) {
             "BM_API"   : "${bluemix.api}",
             "BM_DOMAIN": "${bluemix.domain}",
             "BM_ORG"   : "${bluemix.org}",
-            "BM_ENV"   : "${bluemix.env}",
+            "BM_ENV"   : "${bluemix.space ?: bluemix.env}",
             "DISK"     : "${bluemix.disk}",
             "MEMORY"   : "${bluemix.memory}"
     ]

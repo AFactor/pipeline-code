@@ -1,0 +1,28 @@
+{
+  "release": {
+    "journey": "ob",
+    "description": "Release description",
+    "schema": {
+      "type": "ob-release"
+    },
+    "version": {
+      "major": "1",
+      "minor": "0",
+      "patch": "0"
+    },
+    "notifications": {
+      "email": "rgudas@sapient.com",
+      "confluence": {
+        "server": "https://confluence.devops.lloydsbanking.com",
+        "page": "46651541"
+      }
+    },
+    "tests": {
+      "pre_deploy": "",
+      "post_deploy": ""
+    },
+    "scm": {
+      "git": "gerrit.sandbox.extranet.group"
+    }
+  }
+}

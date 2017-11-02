@@ -19,16 +19,16 @@ class eagleDeployApiConnectServiceSpec extends PipelineSpockTestBase {
         ServiceRuntime runtime = new ServiceRuntime()
         runtime.binary = binary
         service.runtime = runtime
-        service.buildpack = "Node.js"
+        service.type = "Node.js"
         service.env = [:]
         service.env["NPM_SETUP_TASK"] = "publish"
 
         DeployContext deployContext = new DeployContext()
-        deployContext.target = "apiconnect"
-        deployContext.apiconnect = [:]
-        deployContext.apiconnect["server"] = "management01.psd2.sandbox.extranet.group"
-        deployContext.apiconnect["credentials"] = "bluemix-global-deployer"
-        deployContext.apiconnect["org"] = "cma-phase-2-test"
+        deployContext.platforms.target = "apiconnect"
+        deployContext.platforms.apiconnect = [:]
+        deployContext.platforms.apiconnect["server"] = "management01.psd2.sandbox.extranet.group"
+        deployContext.platforms.apiconnect["credentials"] = "bluemix-global-deployer"
+        deployContext.platforms.apiconnect["org"] = "cma-phase-2-test"
 
 
         helper.registerAllowedMethod(MethodSignature.method("fileExists", String.class), {

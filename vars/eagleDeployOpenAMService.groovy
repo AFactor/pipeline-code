@@ -47,6 +47,6 @@ def call(service, deployContext) {
 			}
 		}
 	} else {
-		error "Skipping service deployment, no implementation for buildpack $service.buildpack"
+		error "Skipping service deployment, no implementation for buildpack $service.type"
 	}
 }

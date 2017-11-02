@@ -2,31 +2,41 @@ package com.lbg.workflow.sandbox.deploy
 
 class ManifestBuilder implements Serializable {
 
-	String build(String appName, Service service, DeployContext deployContext) {
+	String build(String appName, service, deployContext) {
 		def bluemix = [:]
-		bluemix.putAll(deployContext.bluemix)
-		if (null != service.bluemix) {
-			for (e in service.bluemix) {
+		bluemix.putAll(deployContext.platforms?.bluemix?.types?."$service.type"?.tokens ?: [:])
+		bluemix.putAll(deployContext.platforms.bluemix)
+		if (null != service?.platforms?.bluemix) {
+			for (e in service.platforms.bluemix) {
 				bluemix[e.key] = e.value
 			}
 		}
 		def manifest
-		if (service.buildpack == "Liberty") {
-			manifest = libertyManifest(appName, service.env['LIBERTY_SERVER'], bluemix)
+		if (service.type == "Liberty") {
+			// TODO: use './server list' to obtain liberty server
+			manifest = libertyManifest(appName, service.platforms.bluemix.env['LIBERTY_SERVER'], bluemix)
 		}
-		else if (service.buildpack == "Staticfile") {
+		else if (service.type == "Staticfile") {
 			manifest = staticfileManifest(appName, bluemix)
 		}
 		else {
 			manifest = defaultManifest(appName, bluemix)
 		}
-		if (null != service.env) {
-			for (e in service.env) {
+		if (null != service?.tokens) {
+			for (e in service.tokens) {
 				if (!(manifest ==~ /(?s).*\s+${e.key}:.*/)) {
 					manifest += "\n            ${e.key}: \"${e.value}\""
 				}
 			}
 		}
+		if (null != service?.platforms?.bluemix?.tokens) {
+			for (e in service.platforms.bluemix.tokens) {
+				if (!(manifest ==~ /(?s).*\s+${e.key}:.*/)) {
+					manifest += "\n            ${e.key}: \"${e.value}\""
+				}
+			}
+		}
+
 		return manifest
 	}
 
@@ -58,7 +68,7 @@ class ManifestBuilder implements Serializable {
         applications:
         - name: ${appName}
           org: ${bluemix.org}
-          space: ${bluemix.env}
+          space: ${bluemix.space ?: bluemix.env}
           disk_quota: ${bluemix.disk}
           memory: ${bluemix.memory}
           services: [${bluemix.services ?: ''}]
@@ -73,7 +83,7 @@ class ManifestBuilder implements Serializable {
           command: export IBM_JAVA_OPTIONS="\$IBM_JAVA_OPTIONS -Dhttp-port=\$PORT"; wlp/bin/server run ${server}
           buildpack: liberty-for-java
           org: ${bluemix.org}
-          space: ${bluemix.env}
+          space: ${bluemix.space ?: bluemix.env}
           disk_quota: ${bluemix.disk}
           memory: ${bluemix.memory}
           services: [${bluemix.services ?: ''}]
@@ -86,7 +96,7 @@ class ManifestBuilder implements Serializable {
         applications:
         - name: ${appName}
           org: ${bluemix.org}
-          space: ${bluemix.env}
+          space: ${bluemix.space ?: bluemix.env}
           disk_quota: ${bluemix.disk}
           memory: ${bluemix.memory}
           buildpack: https://github.com/cloudfoundry/staticfile-buildpack.git

@@ -17,13 +17,13 @@ class eagleDeployTesterSpec extends PipelineSpockTestBase {
         service.name = "service-name"
         service.deploy = true
         DeployContext deployContext = new DeployContext()
-        deployContext.journey = "journey"
-        deployContext.env = "env"
-        deployContext.target = "bluemix"
-        deployContext.bluemix = [:]
-        deployContext.bluemix['domain'] = 'domain'
+        deployContext.release.journey = "journey"
+        deployContext.release.environment = "env"
+        deployContext.platforms.target = "bluemix"
+        deployContext.platforms.bluemix = [:]
+        deployContext.platforms.bluemix['domain'] = 'domain'
         deployContext.services = [service]
-        deployContext.proxy = ["deploy": true]
+        deployContext.platforms.proxy = ["deploy": true]
         helper.registerAllowedMethod("pingTester", [String.class], null)
 
         when:
@@ -50,11 +50,11 @@ class eagleDeployTesterSpec extends PipelineSpockTestBase {
         service.name = "service-name"
         service.deploy = true
         DeployContext deployContext = new DeployContext()
-        deployContext.journey = "journey"
-        deployContext.env = "env"
-        deployContext.target = "bluemix"
-        deployContext.bluemix = [:]
-        deployContext.bluemix['domain'] = 'domain'
+        deployContext.release.journey = "journey"
+        deployContext.release.environment = "env"
+        deployContext.platforms.target = "bluemix"
+        deployContext.platforms.bluemix = [:]
+        deployContext.platforms.bluemix['domain'] = 'domain'
         deployContext.services = [service]
         deployContext.proxy = ["deploy": true]
         helper.registerAllowedMethod("pingTester", [String.class], { url ->
@@ -88,10 +88,10 @@ class eagleDeployTesterSpec extends PipelineSpockTestBase {
         service.deploy = true
         DeployContext deployContext = new DeployContext()
         deployContext.journey = "journey"
-        deployContext.env = "env"
-        deployContext.target = "bluemix"
-        deployContext.bluemix = [:]
-        deployContext.bluemix['domain'] = 'domain'
+        deployContext.environment = "env"
+        deployContext.platforms.target = "bluemix"
+        deployContext.platforms.bluemix = [:]
+        deployContext.platforms.bluemix['domain'] = 'domain'
         deployContext.services = [service]
         deployContext.proxy = ["deploy": true]
         helper.registerAllowedMethod("pingTester", [String.class], { url ->

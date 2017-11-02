@@ -1,0 +1,29 @@
+{
+  "platforms" : {
+    "bluemix": {
+      "domain": "lbg.eu-gb.mybluemix.net",
+      "api": "api.lbg.eu-gb.bluemix.net",
+      "credentials": "bluemix-global-deployer",
+      "org": "POC40_OpenBankingCommercial",
+      "env": "Dev",
+      "disk": "512M",
+      "memory": "512M"
+    },
+    "ucd": {
+      "ucd_url": "https://ucd.intranet.group",
+      "work_dir": "dist/urbancode",
+      "timeout": 120,
+      "credentials": "UC_TOKEN_API",
+      "node-label": "lbg-slave"
+    },
+    "apiconnect": {
+      "server": "management01.psd2.sandbox.extranet.group",
+      "credentials": "bluemix-global-deployer",
+      "org": "cma-phase-2-orange"
+    },
+    "openam": {
+      "docker-port": "40008",
+      "node-label": "ob-openam"
+    }
+  }
+}
