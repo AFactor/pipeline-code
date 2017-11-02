@@ -6,7 +6,7 @@ def call(service, deployContext) {
 			def artifactName = sh(script: "ls *.zip| head -1", returnStdout: true).trim()
 			def appHostName = sh(script: "hostname", returnStdout: true).trim()
 			def appPort = service.deployment.openam['docker-port']
-			sh "unzip ${artifactName} wlp/usr/servers/* "
+			sh "unzip ${artifactName} wlp/usr/servers/* wlp/dev/tools/openam/*.sh "
 			replaceTokens('wlp/usr/servers', service.env)
 			sh "zip ${artifactName}  wlp -r"
 
