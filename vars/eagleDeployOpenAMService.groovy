@@ -1,5 +1,5 @@
 def call(service, deployContext) {
-	if (service.buildpack == "Liberty") {
+	if (service.type == "Liberty") {
 		echo "deploy openam service"
 		def appName = "${deployContext.journey}-${service.name}-${deployContext.env}"
 		dir(service.name) {
@@ -47,6 +47,6 @@ def call(service, deployContext) {
 			}
 		}
 	} else {
-		error "Skipping service deployment, no implementation for buildpack $service.type"
+		error "Skipping service deployment, no implementation for type $service.type"
 	}
 }
