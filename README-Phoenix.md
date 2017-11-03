@@ -353,8 +353,8 @@ As service is an array of hashes, the Service.groovy defines the further types t
 of deployContext to ensure it is not lazymapped. Lazy maps are not serialiazable and  all jenkins jobs must be serialiazable. 
 
 bluemix information is defined here as well as ucd information. if you would like different keys to be defined for a service
-you wish to deploy it will need to be added here, there is also the metadata hash which can take any key/value pair if you dont
-wish to explicitly define anything. Generally speaking these shouldnt need to be modified and should cover everything necessary for ucd deployments,
+you wish to deploy it will need to be added here, there is also the metadata hash which can take any key/value pair if you don't
+wish to explicitly define anything. Generally speaking these shouldn't need to be modified and should cover everything necessary for ucd deployments,
 if in the future another type of deployment is to be added, then the extra fields required for the deployment, can be defined in the above files. 
 
 ##### Artifact Information
@@ -454,7 +454,7 @@ the type again determines what sort of testing can be carried out and the tests 
 
 The repo is important, this is the code repo that the artifact was built from and the repo which should contain the code tests, the other important field is
 branch and this defines what branch the artifact was built from. The pre-bdd and post-bdd options are both parameterized build options which are presented at build time. 
-The credentials shouldnt need to be changed. 
+The credentials shouldn't need to be changed. 
 
 If you would like to add custom steps please modify phoenixTestStage.grooovy. 
 

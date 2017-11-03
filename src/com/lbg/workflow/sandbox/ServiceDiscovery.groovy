@@ -25,9 +25,9 @@ class ServiceDiscovery implements Serializable{
 			default: return fail(service)
 		}
 	}
-	
+
 	private String fail(String service){
-		throw new MalformedURLException("ServiceDiscovery: Cant Locate ${service}. A fake exception to signal this error")
+		throw new MalformedURLException("ServiceDiscovery: Cannot Locate ${service}. A fake exception to signal this error")
 	}
 }
 

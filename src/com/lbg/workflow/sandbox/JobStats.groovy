@@ -7,7 +7,7 @@
  *
  * If there is failure retrieving stats (e.g. 404), -f parameter of curl would cause
  * it to exit with 22. This would then produce no stats file and splunk upload will
- * fail. Nevertheless this wouldn't break job run, as this error is caught, but not
+ * fail. Nevertheless this would not break job run, as this error is caught, but not
  * thrown further.
  */
 

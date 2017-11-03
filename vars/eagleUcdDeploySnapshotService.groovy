@@ -56,7 +56,7 @@ private waitForDeploymentToFinish(ucdUrl, ucdToken, requestId) {
             break
 
         // 15 sec per run - 360 counts should be 1 hour 30 minutes
-        // if it cant deploy in 1 hour 30 minutes - there must be an issue
+        // if it cannot deploy in 1 hour 30 minutes - there must be an issue
         if (counter > 360) {
             status == "TIMEOUT"
             break

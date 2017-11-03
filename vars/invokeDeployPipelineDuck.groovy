@@ -90,7 +90,7 @@ def call(String application, handlers, configuration, String notifyList) {
                 echo "Notice: Cleanup failed. Onwards!"
             } finally {}
         }
-        stage("End"){ echo "Phew!. Finally Finished" }
+        stage("End"){ echo "Phew! Finally finished." }
     }
 
     if(notifyList?.trim()){

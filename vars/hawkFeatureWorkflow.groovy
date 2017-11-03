@@ -142,7 +142,7 @@ def call(BuildContext context, handlers, String targetBranch) {
 				echo "Notice: Cleanup failed. Onwards!"
 			} finally{}
 		}
-		stage("End"){ echo "Phew!. Finaly Finished" }
+		stage("End"){ echo "Phew! Finally finished." }
 	}
 
 }

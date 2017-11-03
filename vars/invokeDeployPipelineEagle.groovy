@@ -139,7 +139,7 @@ private def notify(deployContext) {
                         echo "SUCCESS: Jira Notification submitted "
                     }else
                     {
-                        echo "FAILED: Jira, Couldn't find index key "
+                        echo "FAILED: Jira, Could not find index key "
                     }
 
                 } catch (error) {

@@ -76,7 +76,7 @@ def callHandler(String application, handlers, String configuration) {
 	} else if (isIntegrationBranch(branch) ) {
 		  hawkIntegrationWorkflow(context, handlers, utils.friendlyName(branch, 40))
 	} else {
-      		echo "We dont know how to build this branch. Stopping."
+      		echo "We don't know how to build this branch. Stopping."
 	}
 	echo "End deployment cycle"
 }
