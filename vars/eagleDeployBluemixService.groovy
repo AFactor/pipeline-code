@@ -172,8 +172,8 @@ private def buildAnalyticsEnvs(deployContext) {
 
 
 private def buildTokens(service, deployContext) {
-	def tokens = deployContext.platforms?.bluemix?.types?."$service.type"?.tokens ?: [:]
-	tokens.putAll(service.platforms?.bluemix?.tokens ?: [:])
+	def tokens = deployContext?.platforms?.bluemix?.types?."$service.type"?.tokens ?: [:]
+	tokens.putAll(service?.platforms?.bluemix?.tokens ?: [:])
 	tokens.putAll(service?.tokens ?: [:])
 	return tokens
 }
