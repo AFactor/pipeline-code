@@ -5,6 +5,7 @@ import com.lbg.workflow.ucd.UCDVersions
 import com.lbg.workflow.ucd.UCDVersionParser
 import com.lbg.workflow.ucd.UCDEnvironmentParser
 import com.cloudbees.groovy.cps.NonCPS
+import groovy.transform.Synchronized
 
 /**
  * All NonCPS methods below return immediately (even inside for loops)
@@ -762,11 +763,12 @@ def deploy(ucdUrl, ucdToken, requestJson) {
     println " Running UCD deploy, request: ${requestJson}"
     println "**************************"
 
-    sh("echo \'${requestJson}\' > ucd_deploy.json")
+    def tempFileName = sh(script: "mktemp --suffix=.json", returnStdout: true).trim()
+    sh("echo \'${requestJson}\' > ${tempFileName}")
 
     def udClient = "./udclient/udclient"
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
-    def ucdScript = "${ucdCmd} requestApplicationProcess ucd_deploy.json"
+    def ucdScript = "${ucdCmd} requestApplicationProcess ${tempFileName}"
     def response = sh(returnStdout: true, script: ucdScript).trim()
     response
 }

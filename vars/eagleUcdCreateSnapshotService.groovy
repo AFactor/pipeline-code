@@ -60,6 +60,18 @@ private createSnapshotJson(deployContext) {
         version[wrappedService.componentName()] = wrappedService.componentVersion()
         versions.push(version)
     }
+
+    def commonComponents = deployContext.platforms.ucd.snapshot.common
+    def entries = UDClient.mapAsList(commonComponents)
+    for (def entry in entries) {
+        def componentName = entry.get(0)
+        def componentVersion = entry.get(1)
+
+        def version = [:]
+        version[componentName] = componentVersion
+        versions.push(version)
+    }
+
     result['versions'] = versions
 
     UDClient.jsonFromMap(result)

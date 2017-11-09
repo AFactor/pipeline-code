@@ -8,31 +8,23 @@ def call(service, deployContext) {
 			def appPort = service.platforms.openam['docker-port']
 			sh "unzip ${artifactName} wlp/usr/servers/* wlp/dev/tools/openam/*.sh "
 			def tokens = buildTokens(service, deployContext)
+			tokens['OPENAM_DOMAIN'] = "${appHostName}"
+			tokens['OPENAM_SERVER_URL'] = "http://${appHostName}:${appPort}"
+			tokens['OPENAM_LB_PRIMARY_URL'] = "http://${appHostName}:${appPort}/access-mgmt-service"
 			replaceTokens('wlp/usr/servers', tokens)
+			replaceTokens('wlp/dev/tools/openam', tokens)
 			sh "zip ${artifactName}  wlp -r"
 
+
+			echo "service - platforms ${service.platforms}"
 			withEnv([
 					"APP=${appName}",
 					"APP_HOSTNAME=${appHostName}",
 					"APP_PORT=${appPort}",
 					"WARFILE=${artifactName}",
-					"OPENAM_DOMAIN=${service.tokens['OPENAM_DOMAIN']}",
-					"OPENAM_PASSWORD=${service.tokens['OPENAM_PASSWORD']}",
-					"OPENAM_COOKIE_DOMAIN=${service.tokens['OPENAM_COOKIE_DOMAIN']}",
-					"OPENAM_SSL_OPTS=${service.tokens['OPENAM_SSL_OPTS']}",
-					"OPENAM_LB_OPTS=${service.tokens['OPENAM_LB_OPTS']}",
-					"OPENAM_LB_PRIMARY_URL=${service.tokens['OPENAM_LB_PRIMARY_URL']}",
-					"OPENAM_LIBERTY_TRUSTSTORE=${service.tokens['OPENAM_LIBERTY_TRUSTSTORE']}",
-					"OPENAM_LIBERTY_KEYSTORE=${service.tokens['OPENAM_LIBERTY_KEYSTORE']}",
-					"OPENAM_LIBERTY_TRUSTSTORE_PASSWD=${service.tokens['OPENAM_LIBERTY_TRUSTSTORE_PASSWD']}",
-					"OPENAM_LIBERTY_KEYSTORE_PASSWD=${service.tokens['OPENAM_LIBERTY_KEYSTORE_PASSWD']}",
-					"OPENAM_DIRECTORY_PORT=${service.tokens['OPENAM_DIRECTORY_PORT']}",
-					"OPENAM_DIRECTORY_ADMIN_PORT=${service.tokens['OPENAM_DIRECTORY_ADMIN_PORT']}",
-					"OPENAM_DIRECTORY_PORT=${service.tokens['OPENAM_DIRECTORY_PORT']}",
-					"OPENAM_DIRECTORY_ADMIN_PORT=${service.tokens['OPENAM_DIRECTORY_ADMIN_PORT']}",
-					"OPENAM_DIRECTORY_JMX_PORT=${service.tokens['OPENAM_DIRECTORY_JMX_PORT']}",
-					"OB_BRANDS=${service.tokens['OB_BRANDS']}",
-					"OB_BRANDS_COOKIE_DOMAINS=${service.tokens['OB_BRANDS_COOKIE_DOMAINS']}"
+					"OPENAM_DIRECTORY_PORT=${tokens['OPENAM_DIRECTORY_PORT']}",
+					"OPENAM_DIRECTORY_ADMIN_PORT=${tokens['OPENAM_DIRECTORY_ADMIN_PORT']}",
+					"OPENAM_DIRECTORY_JMX_PORT=${tokens['OPENAM_DIRECTORY_JMX_PORT']}"
 			]) {
 				try {
 					def dockerFile = libraryResource 'com/lbg/workflow/sandbox/openam/Dockerfile'
@@ -55,7 +47,8 @@ def call(service, deployContext) {
 }
 
 private def buildTokens(service, deployContext) {
-	def tokens = service?.platforms?.openam?.tokens ?: [:]
+	def tokens = deployContext?.platforms?.openam?.tokens ?: [:]
+	tokens.putAll(service?.platforms?.openam?.tokens ?: [:])
 	tokens.putAll(service?.tokens ?: [:])
 	return tokens
 }

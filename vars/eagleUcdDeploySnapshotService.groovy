@@ -6,23 +6,28 @@ def call(deployContext) {
 
     def ucdUrl = deployContext.platforms.ucd.ucd_url
     def ucdCredentialsTokenName = deployContext.platforms.ucd.credentials
-    def requestJson = createDeploySnapshotJson(deployContext)
+    def processMap = deployContext.platforms.ucd.process
 
-    withUcdClientAndCredentials(ucdUrl, ucdCredentialsTokenName) { ucdToken ->
-        UtilsUCD utils = new UtilsUCD()
-        def response = utils.deploy(ucdUrl, ucdToken, requestJson)
-        echo("Deploy response: ${response}")
+    def entries = UDClient.mapAsList(processMap)
+    for (def entry in entries) {
+        def processValue = entry.get(1)
 
-        def deploymentRequestId = UDClient.mapFromJson(response)['requestId']
-        waitForDeploymentToFinish(ucdUrl, ucdToken, deploymentRequestId)
+        def requestJson = createDeploySnapshotJson(deployContext, processValue)
+        withUcdClientAndCredentials(ucdUrl, ucdCredentialsTokenName) { ucdToken ->
+            UtilsUCD utils = new UtilsUCD()
+            def response = utils.deploy(ucdUrl, ucdToken, requestJson)
+            echo("Deploy response: ${response}")
+
+            def deploymentRequestId = UDClient.mapFromJson(response)['requestId']
+            waitForDeploymentToFinish(ucdUrl, ucdToken, deploymentRequestId)
+        }
     }
 }
 
 
-private createDeploySnapshotJson(deployContext) {
+private createDeploySnapshotJson(deployContext, process) {
 
     def appName = deployContext.platforms.ucd.app_name
-    def process = deployContext.platforms.ucd.process
     def onlyChanged = deployContext.platforms.ucd.only_changed
     def environment = deployContext.release.environment
     def snapshotName = "${deployContext.releaseVersion()}.${env.BUILD_TIMESTAMP}"
@@ -72,7 +77,7 @@ private waitForDeploymentToFinish(ucdUrl, ucdToken, requestId) {
     if (status == "CLOSED" && result == "SUCCEEDED")
         return
 
-    error("UCD deployment failed, result: ${result}")
+    echo("UCD deployment failed, result: ${result}")
 }
 
 return this

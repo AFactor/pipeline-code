@@ -59,10 +59,12 @@ def call() {
 
 private def validate(deployContext) {
     isValid("journey", deployContext.release.journey)
-    for (def service : deployContext.services) {
-        def artifact = service.runtime.binary.artifact
-        if (artifact.contains("-rc.") || artifact.contains("-de.")) {
-            error "Invalid artifact configuration for service ${service.name}. Only artifacts from bugfix/* branches are allowed"
+    if (deployContext.release.environment != "test" && deployContext.release.environment != "testm") {
+        for (def service : deployContext.services) {
+            def artifact = service.runtime.binary.artifact
+            if (artifact.contains("-rc.") || artifact.contains("-de.")) {
+                error "Invalid artifact configuration for service ${service.name}. Only artifacts from bugfix/* branches are allowed"
+            }
         }
     }
     // TODO enforce stricter service and platform validation
