@@ -4,8 +4,19 @@ import com.lbg.workflow.ucd.UDClient
 
 def call(deployContext) {
     echo "Updating UCD Properties"
+
+    def parallelJobs = [failFast: false]
     for (Service service : deployContext.services) {
-        updateUcdComponentEnvironmentProperties(service, deployContext)
+        def localService = service
+        parallelJobs[localService.name] = { updateUcdComponentEnvironmentProperties(localService, deployContext) }
+    }
+
+    try {
+        parallel(parallelJobs)
+    } catch (error) {
+        echo "Error running ucd property update in parallel: ${error.message}"
+        echo "Continuing despite failures."
+        throw error
     }
 }
 
@@ -14,11 +25,6 @@ def call(service, deployContext) {
 }
 
 private updateUcdComponentEnvironmentProperties(service, deployContext) {
-
-    if (!service.deploy) {
-        echo "Skipping service: ${service.name}"
-        return
-    }
 
     if (!service.platforms.ucd.component_name.trim()) {
         error("Missing UCD component name, service: ${service.name}")
@@ -36,12 +42,6 @@ private updateUcdComponentEnvironmentProperties(service, deployContext) {
 
     def actualPropertiesMap = withUcdClientAndCredentials(ucdUrl, ucdCredentialsTokenName) { ucdToken ->
         utils.getComponentEnvironmentProperties(ucdUrl, ucdToken, applicationName, componentName, environment)
-    }
-
-    if (actualPropertiesMap.keySet() != expectedPropertiesMap.keySet()) {
-        echo("Actual keys: ${UDClient.sortedSet(actualPropertiesMap.keySet())}")
-        echo("Expected keys: ${UDClient.sortedSet(expectedPropertiesMap.keySet())}")
-        error("Component ${componentName} environment ${environment} property keys mismatch detected, failing the build!!!")
     }
 
     def entries = UDClient.mapAsList(actualPropertiesMap)

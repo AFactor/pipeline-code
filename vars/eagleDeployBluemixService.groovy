@@ -2,12 +2,40 @@ import com.lbg.workflow.sandbox.deploy.ManifestBuilder
 import com.lbg.workflow.sandbox.deploy.UtilsBluemix
 
 def call(service, deployContext) {
-	echo "deploy service to bluemix"
-	switch (service.type) {
-		case "Node.js": nodeBuildPack(service, deployContext); break
-		case "Liberty": libertyBuildPack(service, deployContext); break
-		case "Staticfile": staticfileBuildPack(service, deployContext); break
-		default: error "Service type $service.type not supported"; break
+	if (needsDeployment(service, deployContext)) {
+		echo "deploying service ${service.name}"
+		def artifact = service.runtime.binary.artifact
+		def artifactName = artifact.substring(artifact.lastIndexOf('/') + 1, artifact.length())
+		switch (service.type) {
+			case "Node.js":
+				echo "download artifact ${artifact}"
+				sh """mkdir -p ${service.name} && \\
+                  		wget --quiet ${artifact} && \\
+                  		tar -xf ${artifactName} -C ${service.name}""";
+				echo "deploy service ${service.name}"
+				nodeBuildPack(service, deployContext); break
+
+			case "Liberty":
+				echo "download artifact ${artifact}"
+				sh """mkdir -p ${service.name} && \\
+						cd ${service.name} && \\
+                  		wget --quiet ${artifact}""";
+				echo "deploy service ${service.name}"
+				libertyBuildPack(service, deployContext); break
+
+			case "Staticfile":
+				echo "download artifact ${artifact}"
+				sh """mkdir -p ${service.name} && \\
+						wget --quiet ${artifact} &&	 \\
+						tar -xf ${artifactName} -C ${service.name}""";
+				echo "deploy service ${service.name}"
+				staticfileBuildPack(service, deployContext); break
+
+			default:
+				error "Service type ${service.type} not supported"
+		}
+	} else {
+		echo "service ${deployContext.release.journey}-${service.name}-${deployContext.release.environment} already exists"
 	}
 }
 
@@ -18,7 +46,7 @@ private void libertyBuildPack(service, deployContext) {
 	def manifestBuilder = new ManifestBuilder()
 	def manifest = manifestBuilder.build(appName, service, deployContext)
 	manifest = manifestBuilder.buildEnvs(manifest, buildAnalyticsEnvs(deployContext))
-
+	manifest = manifestBuilder.buildEnvs(manifest, ["ARTIFACT_VERSION": getArtifactVersion(service.runtime.binary.artifact)])
 	sh "mkdir -p ${service.name}/pipelines/conf"
 	writeFile file: "${service.name}/pipelines/conf/manifest.yml", text: manifest
 
@@ -31,9 +59,9 @@ private void libertyBuildPack(service, deployContext) {
 	def artifactName = sh(script: "cd  ${env.WORKSPACE}/${service.name} && ls *.zip| head -1", returnStdout: true).trim()
 	bluemixEnvs["ZIPFILE"] = artifactName
 	withCredentials([
-		usernamePassword(credentialsId: deployContext.platforms.bluemix.credentials,
-		passwordVariable: 'BM_PASS',
-		usernameVariable: 'BM_USER')
+			usernamePassword(credentialsId: deployContext.platforms.bluemix.credentials,
+					passwordVariable: 'BM_PASS',
+					usernameVariable: 'BM_USER')
 	]) {
 		withEnv(utils.toWithEnv(bluemixEnvs)) {
 			try {
@@ -65,6 +93,7 @@ private void nodeBuildPack(service, deployContext) {
 	def manifestBuilder = new ManifestBuilder()
 	def manifest = manifestBuilder.build(appName, service, deployContext)
 	manifest = manifestBuilder.buildEnvs(manifest, buildAnalyticsEnvs(deployContext))
+	manifest = manifestBuilder.buildEnvs(manifest, ["ARTIFACT_VERSION": getArtifactVersion(service.runtime.binary.artifact)])
 	sh "mkdir -p ${service.name}/pipelines/conf"
 	writeFile file: "${service.name}/pipelines/conf/manifest.yml", text: manifest
 
@@ -75,9 +104,9 @@ private void nodeBuildPack(service, deployContext) {
 	bluemixEnvs["deployable"] = "${env.WORKSPACE}/${service.name}"
 	bluemixEnvs["APP"] = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
 	withCredentials([
-		usernamePassword(credentialsId: deployContext.platforms.bluemix.credentials,
-		passwordVariable: 'BM_PASS',
-		usernameVariable: 'BM_USER')
+			usernamePassword(credentialsId: deployContext.platforms.bluemix.credentials,
+					passwordVariable: 'BM_PASS',
+					usernameVariable: 'BM_USER')
 	]) {
 		withEnv(utils.toWithEnv(bluemixEnvs)) {
 			try {
@@ -85,7 +114,7 @@ private void nodeBuildPack(service, deployContext) {
 				if (tokens.size() > 0) {
 					if (fileExists("${env.WORKSPACE}/${service.name}/urbanCode")) {
 						replaceTokens("${env.WORKSPACE}/${service.name}/urbanCode", tokens)
-							sh("cp -rf ${env.WORKSPACE}/${service.name}/urbanCode/* ${env.WORKSPACE}/${service.name}/  2>/dev/null || : && cp -rf ${env.WORKSPACE}/${service.name}/urbanCode/.* ${env.WORKSPACE}/${service.name}/ 2>/dev/null || :")
+						sh("cp -rf ${env.WORKSPACE}/${service.name}/urbanCode/* ${env.WORKSPACE}/${service.name}/  2>/dev/null || : && cp -rf ${env.WORKSPACE}/${service.name}/urbanCode/.* ${env.WORKSPACE}/${service.name}/ 2>/dev/null || :")
 					} else {
 						replaceTokens("${env.WORKSPACE}/${service.name}", tokens)
 					}
@@ -110,6 +139,8 @@ private void staticfileBuildPack(service, deployContext) {
 	def manifestBuilder = new ManifestBuilder()
 	def manifest = manifestBuilder.build(appName, service, deployContext)
 	manifest = manifestBuilder.buildEnvs(manifest, buildAnalyticsEnvs(deployContext))
+	manifest = manifestBuilder.buildEnvs(manifest, ["ARTIFACT_VERSION": getArtifactVersion(service.runtime.binary.artifact)])
+
 	sh "mkdir -p ${service.name}/pipelines/conf"
 	writeFile file: "${service.name}/pipelines/conf/manifest.yml", text: manifest
 
@@ -120,9 +151,9 @@ private void staticfileBuildPack(service, deployContext) {
 	bluemixEnvs["deployable"] = "${env.WORKSPACE}/${service.name}"
 	bluemixEnvs["APP"] = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
 	withCredentials([
-		usernamePassword(credentialsId: deployContext.platforms.bluemix.credentials,
-		passwordVariable: 'BM_PASS',
-		usernameVariable: 'BM_USER')
+			usernamePassword(credentialsId: deployContext.platforms.bluemix.credentials,
+					passwordVariable: 'BM_PASS',
+					usernameVariable: 'BM_USER')
 	]) {
 		withEnv(utils.toWithEnv(bluemixEnvs)) {
 			try {
@@ -179,66 +210,48 @@ private def buildTokens(service, deployContext) {
 }
 
 private String deployLibertyAppScript() {
-	return """
-        #!/bin/bash
-        set -ex
-
-        function deployApp() {
-            echo 'deploying liberty app'
-            cd \$deployable
-            cat pipelines/conf/manifest.yml
-            cf logout
-            cf login -a \$BM_API -u \$BM_USER -p \$BM_PASS -o \$BM_ORG -s \$BM_ENV
-            cf delete \${APP} -f -r || echo "Failed to delete application."
-            cf push \${APP} -f pipelines/conf/manifest.yml -p \${ZIPFILE} -t 180
-            sleep 60
-        }
-    """
+	libraryResource "com/lbg/workflow/sandbox/bluemix/deploy-liberty-app.sh"
 }
 
-
-private String deployNodeAppScript() {
-	return """
-        #!/bin/bash
-        set -ex
-
-        function deployApp() {
-            cd \$deployable
-            cat pipelines/conf/manifest.yml
-            cf logout
-            cf login -a \$BM_API -u \$BM_USER -p \$BM_PASS -o \$BM_ORG -s \$BM_ENV
-            cf delete \${APP} -f -r || echo "Failed to delete application."
-            cf push -f pipelines/conf/manifest.yml
-        }
-    """
+private def deployNodeAppScript() {
+	libraryResource "com/lbg/workflow/sandbox/bluemix/deploy-nodejs-app.sh"
 }
 
-private String deployStaticfileAppScript() {
-	return """
-        #!/bin/bash
-        set -ex
-
-        function deployApp() {
-            cd \$deployable
-            cat pipelines/conf/manifest.yml
-            cf logout
-            cf login -a \$BM_API -u \$BM_USER -p \$BM_PASS -o \$BM_ORG -s \$BM_ENV
-            cf delete \${APP} -f -r || echo "Failed to delete application."
-            cf push -f pipelines/conf/manifest.yml
-        }
-    """
+private def deployStaticfileAppScript() {
+	libraryResource "com/lbg/workflow/sandbox/bluemix/deploy-staticfile-app.sh"
 }
 
-private def getCredentials(id) {
-	def pwd
+def getArtifactVersion(artifact) {
 	try {
-		withCredentials([
-			usernamePassword(credentialsId: id,
-			passwordVariable: 'credentialsPwd',
-			usernameVariable: id)
-		]) { pwd =  env.credentialsPwd }
+		def arr = artifact.split("/")
+		return arr[arr.length - 2]
 	} catch (error) {
-		echo "Failed to locate credentials with id : $id"
+		echo error "$error"
+		return ""
 	}
-	return pwd
+}
+
+def needsDeployment(service, deployContext) {
+	def utils = new UtilsBluemix()
+	def bluemixEnvs = utils.buildServiceBluemixEnv(service.platforms.bluemix, deployContext.platforms.bluemix)
+	def appName = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
+	String artifactVersion = "ARTIFACT_VERSION: ${getArtifactVersion(service.runtime.binary.artifact)}"
+	withCredentials([
+			usernamePassword(credentialsId: deployContext.platforms.bluemix.credentials,
+					passwordVariable: 'BM_PASS',
+					usernameVariable: 'BM_USER')
+	]) {
+		withEnv(utils.toWithEnv(bluemixEnvs)) {
+			try {
+				String result = sh(script: "cf login -a \$BM_API -u \$BM_USER -p \$BM_PASS -o \$BM_ORG -s \$BM_ENV 1>/dev/null && cf app ${appName} && cf env ${appName}", returnStdout: true, returnStatus: false).trim()
+				def resultStatus = (result ==~ /(?s)(.*)(requested state:(\s+)started)(.*)/)
+				def resultVersion = (result ==~ /(?s)(.*)($artifactVersion)(.*)/)
+				echo "app started: <$resultStatus>,  version match: <$resultVersion>"
+				return !(resultStatus && resultVersion)
+			} catch (error) {
+				echo "needsDeployment true, error $error.message"
+				return true
+			}
+		}
+	}
 }

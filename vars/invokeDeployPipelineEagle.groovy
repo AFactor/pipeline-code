@@ -30,13 +30,9 @@ def callHandler(deployContext) {
                 def deployments = [:]
                 for (Object serviceObject : deployContext.services) {
                     Service service = serviceObject
-                    if (service.deploy) {
-                        echo "service $service.name"
-                        deployments["${service.name}: ${artifactTag(service)}"] = {
-                            eagleDeployService(service, deployContext)
-                        }
-                    } else {
-                        echo "skipping service $service.name"
+                    echo "service $service.name"
+                    deployments["${service.name}: ${artifactTag(service)}"] = {
+                        eagleDeployService(service, deployContext)
                     }
                 }
                 try {
@@ -162,11 +158,9 @@ private def notify(deployContext) {
 private def buildConfluencePage(deployContext) {
     String artifacts = ""
     for (Service service : deployContext.services) {
-        if (service.deploy) {
-            def artifact = service.runtime.binary.artifact
-            def artifactName = artifact.substring(artifact.lastIndexOf('/') + 1, artifact.length())
-            artifacts = artifacts + "<a href='$artifact'>$artifactName</a>" + "<br/>"
-        }
+        def artifact = service.runtime.binary.artifact
+        def artifactName = artifact.substring(artifact.lastIndexOf('/') + 1, artifact.length())
+        artifacts = artifacts + "<a href='$artifact'>$artifactName</a>" + "<br/>"
     }
     def page = """
     <table border="1">

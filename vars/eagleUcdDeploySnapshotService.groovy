@@ -1,39 +1,59 @@
 import com.lbg.workflow.sandbox.deploy.UtilsUCD
 import com.lbg.workflow.ucd.UDClient
 
-def call(deployContext) {
-    echo "Deploying UCD Snapshot"
+def call(deployContext, snapshotName) {
+    deploySnapshot(deployContext, snapshotName)
+}
+
+private deploySnapshot(deployContext, snapshotName) {
+    echo "Deploying UCD Snapshot ${snapshotName}"
 
     def ucdUrl = deployContext.platforms.ucd.ucd_url
     def ucdCredentialsTokenName = deployContext.platforms.ucd.credentials
     def processMap = deployContext.platforms.ucd.process
+    UtilsUCD utils = new UtilsUCD()
 
+    def deployStreams = [failFast: false]
     def entries = UDClient.mapAsList(processMap)
     for (def entry in entries) {
-        def processValue = entry.get(1)
+        String processKey = entry.get(0)
+        String processValue = entry.get(1)
 
-        def requestJson = createDeploySnapshotJson(deployContext, processValue)
-        withUcdClientAndCredentials(ucdUrl, ucdCredentialsTokenName) { ucdToken ->
-            UtilsUCD utils = new UtilsUCD()
-            def response = utils.deploy(ucdUrl, ucdToken, requestJson)
-            echo("Deploy response: ${response}")
+        deployStreams[processKey] = {
+            def requestJson = createDeploySnapshotJson(deployContext, processValue, snapshotName)
+            echo("Starting ${processValue}, deploy snapshot json: ${requestJson}")
 
-            def deploymentRequestId = UDClient.mapFromJson(response)['requestId']
-            waitForDeploymentToFinish(ucdUrl, ucdToken, deploymentRequestId)
+            withUcdClientAndCredentials(ucdUrl, ucdCredentialsTokenName) { ucdToken ->
+
+                def response
+                lock(inversePrecedence: true, quantity: 1, resource: "${deployContext.release.journey}-${deployContext.release.environment}-serialized-ucd-call") {
+                    response = utils.deploy(ucdUrl, ucdToken, requestJson)
+                }
+
+                echo("Deploy response: ${response}")
+                def deploymentRequestId = UDClient.mapFromJson(response)['requestId']
+                waitForDeploymentToFinish(ucdUrl, ucdToken, deploymentRequestId)
+            }
         }
+    }
+
+    try {
+        parallel deployStreams
+    } catch (error) {
+        echo "Error running parallel snapshot deployment: ${error.message}"
+        echo "Continuing despite failures."
+        throw error
     }
 }
 
-
-private createDeploySnapshotJson(deployContext, process) {
+private createDeploySnapshotJson(deployContext, processName, snapshotName) {
 
     def appName = deployContext.platforms.ucd.app_name
     def onlyChanged = deployContext.platforms.ucd.only_changed
     def environment = deployContext.release.environment
-    def snapshotName = "${deployContext.releaseVersion()}.${env.BUILD_TIMESTAMP}"
 
     def jsonMap = [application          : appName,
-                   applicationProcess   : process,
+                   applicationProcess   : processName,
                    environment          : environment,
                    onlyChanged          : onlyChanged,
                    'post-deploy-message': '\${p:finalStatus}',
@@ -77,7 +97,7 @@ private waitForDeploymentToFinish(ucdUrl, ucdToken, requestId) {
     if (status == "CLOSED" && result == "SUCCEEDED")
         return
 
-    echo("UCD deployment failed, result: ${result}")
+    error("UCD deployment failed, result: ${result}")
 }
 
 return this

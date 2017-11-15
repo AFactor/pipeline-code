@@ -8,35 +8,30 @@ def call(deployContext) {
     def ucdUrl = deployContext.platforms.ucd.ucd_url
     def ucdCredentialsTokenName = deployContext.platforms.ucd.credentials
     def appName = deployContext.platforms.ucd.app_name
-    def snapshotName = "${deployContext.releaseVersion()}.${env.BUILD_TIMESTAMP}"
-    def shouldLockSnapshot = deployContext.platforms.ucd.lock_snapshot
+    def snapshotName = "${deployContext.releaseVersion()}.${env.GIT_COMMIT}"
+    def utils = new UtilsUCD()
 
     withUcdClientAndCredentials(ucdUrl, ucdCredentialsTokenName) { ucdToken ->
-        def utils = new UtilsUCD()
 
         def snapshotAlreadyExits = utils.snapshotAlreadyExists(ucdUrl, ucdToken, appName, snapshotName)
-
         if (snapshotAlreadyExits) {
             echo("*****************************************************")
             echo("* Snapshot ${snapshotName} already exits, skipping. *")
             echo("*****************************************************")
-            return
+            return snapshotName
         }
 
-        def response = utils.createSnapshot(ucdUrl, ucdToken, createSnapshotJson(deployContext))
+        def response = utils.createSnapshot(ucdUrl, ucdToken, createSnapshotJson(deployContext, appName, snapshotName))
         echo("Create snapshot response: ${response}")
 
-        if (shouldLockSnapshot) {
-            response = utils.lockSnapshotVersions(ucdUrl, ucdToken, appName, snapshotName)
-            echo("Lock snapshot versions response: ${response}")
-        }
+        response = utils.lockSnapshotVersions(ucdUrl, ucdToken, appName, snapshotName)
+        echo("Lock snapshot versions response: ${response}")
     }
+
+    snapshotName
 }
 
-private createSnapshotJson(deployContext) {
-
-    def appName = deployContext.platforms.ucd.app_name
-    def snapshotName = "${deployContext.releaseVersion()}.${env.BUILD_TIMESTAMP}"
+private createSnapshotJson(deployContext, appName, snapshotName) {
 
     def result = [:]
     result['name'] = snapshotName
@@ -45,10 +40,6 @@ private createSnapshotJson(deployContext) {
 
     def versions = []
     for (def service : deployContext.services) {
-        if(!service.deploy) {
-            echo "Skipping service from spanshot: ${service.name}"
-            continue
-        }
 
         ServiceWrapper wrappedService = new ServiceWrapper(service)
 

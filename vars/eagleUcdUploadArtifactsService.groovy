@@ -3,8 +3,21 @@ import com.lbg.workflow.sandbox.deploy.UtilsUCD
 
 def call(deployContext) {
     echo "Running UCD Upload"
+
+    def parallelJobs = [failFast: false]
     for (def service in deployContext.services) {
-        uploadComponentArtifacts(service, deployContext)
+        def localService = service
+        parallelJobs[localService.name] = {
+            uploadComponentArtifacts(localService, deployContext)
+        }
+    }
+
+    try {
+        parallel(parallelJobs)
+    } catch (error) {
+        echo "Error running ucd component upload in parallel: ${error.message}"
+        echo "Continuing despite failures."
+        throw error
     }
 }
 
@@ -13,11 +26,6 @@ def call(service, deployContext) {
 }
 
 private uploadComponentArtifacts(service, deployContext) {
-
-    if (!service.deploy) {
-        echo "Skipping service: ${service.name}"
-        return
-    }
 
     def wrappedService = new ServiceWrapper(service)
     def ucdUtils = new UtilsUCD()

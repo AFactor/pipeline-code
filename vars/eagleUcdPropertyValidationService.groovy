@@ -3,8 +3,16 @@ import com.lbg.workflow.ucd.UDClient
 
 def call(deployContext) {
     echo "Comparing UCD Properties"
+    def isSuccess = true
     for (def service : deployContext.services) {
-        compareUcdEnvironmentPropertiesToServiceConfig(service, deployContext)
+        def serviceSuccess = compareUcdEnvironmentPropertiesToServiceConfig(service, deployContext)
+        if (!serviceSuccess) {
+            isSuccess = false
+        }
+    }
+
+    if (!isSuccess) {
+        error("Dry-run failure, please check log for details!!!")
     }
 }
 
@@ -14,10 +22,7 @@ def call(service, deployContext) {
 
 private compareUcdEnvironmentPropertiesToServiceConfig(service, deployContext) {
 
-    if (!service.deploy) {
-        echo "Skipping service: ${service.name}"
-        return
-    }
+    def isSuccess = true
 
     if (!service.platforms.ucd.component_name.trim()) {
         error("Missing UCD component name, service: ${service.name}")
@@ -38,9 +43,10 @@ private compareUcdEnvironmentPropertiesToServiceConfig(service, deployContext) {
     }
 
     if (actualPropertiesMap.keySet() != expectedPropertiesMap.keySet()) {
-        echo("Actual keys: ${UDClient.sortedSet(actualPropertiesMap.keySet())}")
-        echo("Expected keys: ${UDClient.sortedSet(expectedPropertiesMap.keySet())}")
-        echo("Component ${componentName} environment ${environment} property keys mismatch detected, failing the build!!!")
+        echo("UCD keys: ${UDClient.sortedSet(actualPropertiesMap.keySet())}")
+        echo("Config keys: ${UDClient.sortedSet(expectedPropertiesMap.keySet())}")
+        echo("Component ${componentName} environment ${environment} property keys mismatch detected")
+        isSuccess = false
     }
 
     def entries = UDClient.mapAsList(actualPropertiesMap)
@@ -53,8 +59,19 @@ private compareUcdEnvironmentPropertiesToServiceConfig(service, deployContext) {
         if (isPropertySecure || actualPropertyValue == expectedPropertyValue)
             continue
 
-        echo("Component ${componentName} property: ${propertyName} mismatch, actual value: ${actualPropertyValue}, expected value: ${expectedPropertyValue}, failing!!!")
+        echo("Component ${componentName} property: ${propertyName} mismatch, ucd value: ${actualPropertyValue}, config value: ${expectedPropertyValue}")
     }
+
+    if (!isSuccess) {
+        // display actual service tokens json for easy copy/paste
+        def tokens = [:]
+        for (def entry in entries) {
+            tokens[entry.get(0)] = entry.get(1).value
+        }
+        echo("Easy copy/paste json:\n${UDClient.jsonFromMap(["name": service.name, "tokens": tokens])},")
+    }
+
+    return isSuccess
 }
 
 return this

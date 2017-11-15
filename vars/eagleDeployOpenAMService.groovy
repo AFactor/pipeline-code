@@ -1,5 +1,11 @@
 def call(service, deployContext) {
 	if (service.type == "Liberty") {
+		def artifact = service.runtime.binary.artifact
+		echo "download artifact ${artifact}"
+		sh """mkdir -p ${service.name} && \\
+						cd ${service.name} && \\
+                  		wget --quiet ${artifact}"""
+
 		echo "deploy openam service"
 		def appName = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
 		dir(service.name) {
@@ -14,14 +20,12 @@ def call(service, deployContext) {
 			replaceTokens('wlp/usr/servers', tokens)
 			replaceTokens('wlp/dev/tools/openam', tokens)
 			sh "zip ${artifactName}  wlp -r"
-
-
-			echo "service - platforms ${service.platforms}"
 			withEnv([
 					"APP=${appName}",
 					"APP_HOSTNAME=${appHostName}",
 					"APP_PORT=${appPort}",
 					"WARFILE=${artifactName}",
+					"ARTIFACT_VERSION=${getArtifactVersion(artifact)}",
 					"OPENAM_DIRECTORY_PORT=${tokens['OPENAM_DIRECTORY_PORT']}",
 					"OPENAM_DIRECTORY_ADMIN_PORT=${tokens['OPENAM_DIRECTORY_ADMIN_PORT']}",
 					"OPENAM_DIRECTORY_JMX_PORT=${tokens['OPENAM_DIRECTORY_JMX_PORT']}"
@@ -45,6 +49,17 @@ def call(service, deployContext) {
 		error "Skipping service deployment, no implementation for type $service.type"
 	}
 }
+
+def getArtifactVersion(artifact) {
+	try {
+		def arr = artifact.split("/")
+		return arr[arr.length - 2]
+	} catch (error) {
+		echo error "$error"
+		return ""
+	}
+}
+
 
 private def buildTokens(service, deployContext) {
 	def tokens = deployContext?.platforms?.openam?.tokens ?: [:]

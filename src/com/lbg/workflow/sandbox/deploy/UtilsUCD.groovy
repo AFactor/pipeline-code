@@ -723,6 +723,18 @@ def createSnapshot(ucdUrl, ucdToken, requestJson) {
     response
 }
 
+def createEnvironmentSnapshot(ucdUrl, ucdToken, environment, applicationName, snapshotName) {
+    println "**********************"
+    println " Running UCD create environment snapshot"
+    println "**********************"
+
+    def udClient = "./udclient/udclient"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
+    def ucdScript = "${ucdCmd} createSnapshotOfEnvironment -environment '${environment}' -application '${applicationName}' -name '${snapshotName}'"
+    def response = sh(returnStdout: true, script: ucdScript).trim()
+    response
+}
+
 def lockSnapshotVersions(ucdUrl, ucdToken, appName, snapshotName) {
     println "**********************"
     println " Running UCD Lock Snapshot Versions"
@@ -731,6 +743,18 @@ def lockSnapshotVersions(ucdUrl, ucdToken, appName, snapshotName) {
     def udClient = "./udclient/udclient"
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
     def ucdScript = "${ucdCmd} lockSnapshotVersions -snapshot '${snapshotName}' -application '${appName}'"
+    def response = sh(returnStdout:true, script: ucdScript).trim()
+    response
+}
+
+def lockSnapshotConfiguration(ucdUrl, ucdToken, appName, snapshotName) {
+    println "**********************"
+    println " Running UCD Lock Snapshot Configuration"
+    println "**********************"
+
+    def udClient = "./udclient/udclient"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
+    def ucdScript = "${ucdCmd} lockSnapshotConfiguration -snapshot '${snapshotName}' -application '${appName}'"
     def response = sh(returnStdout:true, script: ucdScript).trim()
     response
 }
@@ -756,6 +780,25 @@ def snapshotAlreadyExists(ucdUrl, ucdToken, appName, snapshotName) {
         alreadyExists = false
     }
     alreadyExists
+}
+
+def getSnapshotVersions(ucdUrl, ucdToken, appName, snapshotName) {
+    println "**********************"
+    println " Running UCD Get Snapshot Versions"
+    println "**********************"
+
+    def udClient = "./udclient/udclient"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
+    def ucdScript = "${ucdCmd} getSnapshotVersions -snapshot '${snapshotName}' -application '${appName}'"
+    def responseJson = sh(returnStdout:true, script: ucdScript).trim()
+    def versionsList = UDClient.mapFromJson(responseJson)
+    def response = []
+    for (def versionHash in versionsList) {
+        if (versionHash.desiredVersions.size() > 0) {
+            response.push([versionHash.name, versionHash.desiredVersions.get(0).name])
+        }
+    }
+    response
 }
 
 def deploy(ucdUrl, ucdToken, requestJson) {

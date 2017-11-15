@@ -6,31 +6,6 @@ def call(service, deployContext) {
 	node(nodeLabel) {
 		try {
 			checkout scm
-			echo "deploying service ${service.name}"
-			// fetch  artifact
-			def artifact = service.runtime.binary.artifact
-			def artifactName = artifact.substring(artifact.lastIndexOf('/') + 1, artifact.length())
-			echo "download artifact ${artifact}"
-
-			switch (service.type) {
-				case "Node.js":
-					sh """mkdir -p ${service.name} && \\
-                  		wget --quiet ${artifact} && \\
-                  		tar -xf ${artifactName} -C ${service.name}"""; break
-
-				case "Liberty":
-					sh """mkdir -p ${service.name} && \\
-						cd ${service.name} && \\
-                  		wget --quiet ${artifact}"""; break
-
-				case "Staticfile":
-					sh """mkdir -p ${service.name} && \\
-						wget --quiet ${artifact} &&	 \\
-						tar -xf ${artifactName} -C ${service.name}"""; break
-
-				default: error "Service type ${service.type} not supported"
-			}
-
 			echo "target platform $targetPlatform "
 			switch (targetPlatform) {
 				case 'bluemix' : eagleDeployBluemixService(service, deployContext); break
@@ -38,7 +13,6 @@ def call(service, deployContext) {
 				case 'cmc' : eagleDeployCmcService(service, deployContext); break
 				case 'openam' : eagleDeployOpenAMService(service, deployContext); break
 			}
-
 		} catch(error){
 			echo error.message
 			throw error
@@ -55,21 +29,21 @@ def call(deployContext) {
 			checkout scm
             new UtilsUCD().install_by_url(deployContext.platforms.ucd.ucd_url)
 
-			if (deployContext.platforms.ucd.dry_run) {
-				eagleUcdDryRunService(deployContext)
-				return
-			}
+            // set git revision - ucd snapshot naming
+			def targetCommit = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+			env['GIT_COMMIT'] = targetCommit
 
-            // set build timestamp  - needed ucd snapshot naming
-			env['BUILD_TIMESTAMP'] = new Date().format("yyyyMMdd-HH:mm:ss", TimeZone.getTimeZone('UTC'))
+			eagleUcdPropertyValidationService(deployContext)
 
 			eagleUcdUploadArtifactsService(deployContext)
 
 			eagleUcdUpdatePropertiesService(deployContext)
 
-			eagleUcdCreateSnapshotService(deployContext)
+			def referenceSnapshot = eagleUcdCreateSnapshotService(deployContext)
 
-			eagleUcdDeploySnapshotService(deployContext)
+			def environmentSnapshot = eagleUcdCreateEnvironmentSnapshotService(deployContext, referenceSnapshot)
+
+			eagleUcdDeploySnapshotService(deployContext, environmentSnapshot)
 
 		} catch (error) {
 			echo(error.message)
@@ -86,7 +60,7 @@ def nodeLabel(service, deployContext, targetPlatform) {
 		return service.platforms."$targetPlatform"['node-label']
 	}
 	else if (null != deployContext?.platforms?."$targetPlatform" && null != deployContext?.platforms?."$targetPlatform"['node-label']) {
-		return deployContext."$targetPlatform"['node-label']
+		return deployContext.platforms."$targetPlatform"['node-label']
 	}
 	else {
 		return ""
