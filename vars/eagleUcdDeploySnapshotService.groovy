@@ -1,3 +1,4 @@
+import com.lbg.workflow.global.GlobalUtils
 import com.lbg.workflow.sandbox.deploy.UtilsUCD
 import com.lbg.workflow.ucd.UDClient
 
@@ -11,10 +12,11 @@ private deploySnapshot(deployContext, snapshotName) {
     def ucdUrl = deployContext.platforms.ucd.ucd_url
     def ucdCredentialsTokenName = deployContext.platforms.ucd.credentials
     def processMap = deployContext.platforms.ucd.process
+    def environment = deployContext.release.environment
     UtilsUCD utils = new UtilsUCD()
 
     def deployStreams = [failFast: false]
-    def entries = UDClient.mapAsList(processMap)
+    def entries = GlobalUtils.mapAsList(processMap)
     for (def entry in entries) {
         String processKey = entry.get(0)
         String processValue = entry.get(1)
@@ -26,7 +28,7 @@ private deploySnapshot(deployContext, snapshotName) {
             withUcdClientAndCredentials(ucdUrl, ucdCredentialsTokenName) { ucdToken ->
 
                 def response
-                lock(inversePrecedence: true, quantity: 1, resource: "${deployContext.release.journey}-${deployContext.release.environment}-serialized-ucd-call") {
+                lock(inversePrecedence: true, quantity: 1, resource: "${deployContext.release.journey}-${environment}-serialized-ucd-call") {
                     response = utils.deploy(ucdUrl, ucdToken, requestJson)
                 }
 
@@ -44,6 +46,8 @@ private deploySnapshot(deployContext, snapshotName) {
         echo "Continuing despite failures."
         throw error
     }
+
+    printSummary(snapshotName, environment)
 }
 
 private createDeploySnapshotJson(deployContext, processName, snapshotName) {
@@ -98,6 +102,18 @@ private waitForDeploymentToFinish(ucdUrl, ucdToken, requestId) {
         return
 
     error("UCD deployment failed, result: ${result}")
+}
+
+private printSummary(snapshotName, environment) {
+    echo """
+|=======================================================================|
+|***********************************************************************| 
+|                                                                       |
+| SNAPSHOT ${snapshotName} IS NOW DEPLOYED TO ${environment}            |  
+|                                                                       |
+|***********************************************************************|
+|=======================================================================|
+"""
 }
 
 return this

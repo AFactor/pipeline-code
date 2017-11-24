@@ -1,4 +1,5 @@
 import com.lbg.workflow.sandbox.deploy.DeployContextBuilder
+import groovy.json.JsonOutput
 
 def call() {
     def deployContext
@@ -50,7 +51,7 @@ def call() {
             echo "Invalid deployment configuration $error.message"
             throw error
         }
-        echo "Deploy Context " + deployContext.toString()
+        echo "Deploy Context: <${JsonOutput.toJson(deployContext)}>"
         milestone(label: 'Validate')
     }
     deployContext

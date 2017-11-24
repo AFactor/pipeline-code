@@ -2,47 +2,52 @@ import com.lbg.workflow.sandbox.deploy.UtilsUCD
 import com.lbg.workflow.ucd.UDClient
 
 def call(deployContext, sourceSnapshotName) {
-    echo("Creating UCD Rollback Snapshot")
+    echo("Creating UCD Environment Snapshot")
 
     def ucdUrl = deployContext.platforms.ucd.ucd_url
     def ucdCredentialsTokenName = deployContext.platforms.ucd.credentials
     def appName = deployContext.platforms.ucd.app_name
     def environment = deployContext.release.environment
-    def rollbackSnapshotName = "${environment}.${sourceSnapshotName}"
+    def environmentSnapshotName = "${environment}.${sourceSnapshotName}"
     def utils = new UtilsUCD()
+
+    checkout scm
+    def commit = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
 
     withUcdClientAndCredentials(ucdUrl, ucdCredentialsTokenName) { ucdToken ->
 
-        def snapshotAlreadyExits = utils.snapshotAlreadyExists(ucdUrl, ucdToken, appName, rollbackSnapshotName)
-        if (snapshotAlreadyExits) {
-            echo("*****************************************************")
-            echo("* Rollback snapshot ${rollbackSnapshotName} already exits, skipping. *")
-            echo("*****************************************************")
-            return rollbackSnapshotName
+        def sourceSnapshotExists = utils.snapshotAlreadyExists(ucdUrl, ucdToken, appName, sourceSnapshotName)
+        if (!sourceSnapshotExists) {
+            error("Reference snapshot ${sourceSnapshotName} does not exist, exitting!!!")
+        }
+
+        def environmentSnapshotExists = utils.snapshotAlreadyExists(ucdUrl, ucdToken, appName, environmentSnapshotName)
+        if (environmentSnapshotExists) {
+            error("Environment snapshot ${environmentSnapshotName} already exits, exitting!!!")
         }
 
         def artifactVersions = utils.getSnapshotVersions(ucdUrl, ucdToken, appName, sourceSnapshotName)
         echo("Artifact versions for snapshot ${sourceSnapshotName}: ${artifactVersions}")
 
-        def response = utils.createSnapshot(ucdUrl, ucdToken, createRollbackSnapshotJson(artifactVersions, appName, rollbackSnapshotName))
+        def response = utils.createSnapshot(ucdUrl, ucdToken, createEnvironmentSnapshotJson(artifactVersions, appName, environmentSnapshotName, commit))
         echo("Create snapshot response: ${response}")
 
-        response = utils.lockSnapshotVersions(ucdUrl, ucdToken, appName, rollbackSnapshotName)
+        response = utils.lockSnapshotVersions(ucdUrl, ucdToken, appName, environmentSnapshotName)
         echo("Lock snapshot versions response: ${response}")
 
-        response = utils.lockSnapshotConfiguration(ucdUrl, ucdToken, appName, rollbackSnapshotName)
+        response = utils.lockSnapshotConfiguration(ucdUrl, ucdToken, appName, environmentSnapshotName)
         echo("Lock snapshot configuration response: ${response}")
     }
 
-    rollbackSnapshotName
+    environmentSnapshotName
 }
 
-private createRollbackSnapshotJson(artifactVersions, appName, snapshotName) {
+private createEnvironmentSnapshotJson(artifactVersions, appName, snapshotName, commit) {
 
     def result = [:]
     result['name'] = snapshotName
     result['application'] = appName
-    result['description'] = "Eagle pipeline rollback snapshot of ${appName}, name: ${snapshotName}"
+    result['description'] = "Eagle pipeline environment snapshot of ${appName}, name: ${snapshotName}, git_sha: ${commit}"
 
     def versions = []
     for (def artifactVersion : artifactVersions) {

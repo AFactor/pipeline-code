@@ -1,3 +1,4 @@
+import com.lbg.workflow.global.GlobalUtils
 import com.lbg.workflow.sandbox.deploy.Service
 import com.lbg.workflow.sandbox.deploy.UtilsUCD
 import com.lbg.workflow.ucd.UDClient
@@ -35,28 +36,28 @@ private updateUcdComponentEnvironmentProperties(service, deployContext) {
     def ucdUrl = deployContext.platforms.ucd.ucd_url
     def ucdCredentialsTokenName = deployContext.platforms.ucd.credentials
     def componentName = service.platforms.ucd.component_name
-    def expectedPropertiesMap = service.tokens
+    def configPropertiesMap = service.tokens
     def utils = new UtilsUCD()
 
     echo("Checking ${componentName} ${environment} properties")
 
-    def actualPropertiesMap = withUcdClientAndCredentials(ucdUrl, ucdCredentialsTokenName) { ucdToken ->
+    def ucdPropertiesMap = withUcdClientAndCredentials(ucdUrl, ucdCredentialsTokenName) { ucdToken ->
         utils.getComponentEnvironmentProperties(ucdUrl, ucdToken, applicationName, componentName, environment)
     }
 
-    def entries = UDClient.mapAsList(actualPropertiesMap)
+    def entries = GlobalUtils.mapAsList(ucdPropertiesMap)
     for (def entry in entries) {
         def propertyName = entry.get(0)
-        def actualPropertyValue = entry.get(1).value
+        def ucdPropertyValue = entry.get(1).value
         def isPropertySecure = entry.get(1).secure
-        def expectedPropertyValue = expectedPropertiesMap[propertyName]
+        def configPropertyValue = configPropertiesMap[propertyName]
 
-        if (isPropertySecure || actualPropertyValue == expectedPropertyValue)
+        if (isPropertySecure || ucdPropertyValue == configPropertyValue)
             continue
 
-        echo("Setting property: ${propertyName}, actual value: ${actualPropertyValue}, expected value: ${expectedPropertyValue}")
+        echo("Setting property: ${propertyName}, actual value: ${ucdPropertyValue}, expected value: ${configPropertyValue}")
         withUcdClientAndCredentials(ucdUrl, ucdCredentialsTokenName) { ucdToken ->
-            utils.setComponentEnvironmentProperty(ucdUrl, ucdToken, applicationName, componentName, environment, propertyName, expectedPropertyValue)
+            utils.setComponentEnvironmentProperty(ucdUrl, ucdToken, applicationName, componentName, environment, propertyName, configPropertyValue)
         }
     }
 }

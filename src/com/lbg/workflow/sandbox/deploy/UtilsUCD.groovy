@@ -767,8 +767,8 @@ def getSnapshot(ucdUrl, ucdToken, appName, snapshotName) {
     def udClient = "./udclient/udclient"
     def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
     def ucdScript = "${ucdCmd} getSnapshot -snapshot '${snapshotName}' -application '${appName}'"
-    def response = sh(returnStdout:true, script: ucdScript).trim()
-    response
+    def responseJson = sh(returnStdout:true, script: ucdScript).trim()
+    UDClient.mapFromJson(responseJson)
 }
 
 def snapshotAlreadyExists(ucdUrl, ucdToken, appName, snapshotName) {
@@ -798,6 +798,19 @@ def getSnapshotVersions(ucdUrl, ucdToken, appName, snapshotName) {
             response.push([versionHash.name, versionHash.desiredVersions.get(0).name])
         }
     }
+    response
+}
+
+def getSnapshotsInApplication(ucdUrl, ucdToken, appName, maxResults	) {
+    println "**********************"
+    println " Running UCD Get Snapshots in Application"
+    println "**********************"
+
+    def udClient = "./udclient/udclient"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
+    def ucdScript = "${ucdCmd} getSnapshotsInApplication -application '${appName}' -maxResults ${maxResults}"
+    def responseJson = sh(returnStdout:true, script: ucdScript).trim()
+    def response = UDClient.mapFromJson(responseJson)
     response
 }
 

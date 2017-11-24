@@ -25,8 +25,8 @@ def callHandler(deployContext) {
 
     lock(inversePrecedence: true, quantity: 1, resource: "${deployContext.release.journey}-${deployContext.release.environment}-deploy") {
 
-        stage('Deploy') {
-            if (runParallel(deployContext)) {
+        if (runParallel(deployContext)) {
+            stage('Deploy') {
                 def deployments = [:]
                 for (Object serviceObject : deployContext.services) {
                     Service service = serviceObject
@@ -45,11 +45,11 @@ def callHandler(deployContext) {
                     throw error
                 } finally {
                 }
-            } else {
-                eagleDeployService(deployContext)
             }
-
+        } else {
+            eagleDeployService(deployContext)
         }
+
         milestone(label: 'Deployed Services')
 
         if (null != deployContext?.platforms?.proxy?.deploy && deployContext.platforms.proxy.deploy) {

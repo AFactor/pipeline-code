@@ -4,7 +4,6 @@ class ManifestBuilder implements Serializable {
 
 	String build(String appName, service, deployContext) {
 		def bluemix = [:]
-		bluemix.putAll(deployContext.platforms?.bluemix?.types?."$service.type"?.tokens ?: [:])
 		bluemix.putAll(deployContext.platforms.bluemix)
 		if (null != service?.platforms?.bluemix) {
 			for (e in service.platforms.bluemix) {
@@ -14,7 +13,10 @@ class ManifestBuilder implements Serializable {
 		def manifest
 		if (service.type == "Liberty") {
 			// TODO: use './server list' to obtain liberty server
-			manifest = libertyManifest(appName, service.platforms.bluemix.env['LIBERTY_SERVER'], bluemix)
+			manifest = libertyManifest(appName, service.platforms.bluemix['LIBERTY_SERVER'], bluemix)
+		}
+		else if (service.type == "Java") {
+			manifest = javaManifest(appName, service.platforms.bluemix['JBP_CONFIG_JAVA_MAIN'], bluemix)
 		}
 		else if (service.type == "Staticfile") {
 			manifest = staticfileManifest(appName, bluemix)
@@ -22,21 +24,6 @@ class ManifestBuilder implements Serializable {
 		else {
 			manifest = defaultManifest(appName, bluemix)
 		}
-		if (null != service?.tokens) {
-			for (e in service.tokens) {
-				if (!(manifest ==~ /(?s).*\s+${e.key}:.*/)) {
-					manifest += "\n            ${e.key}: \"${e.value}\""
-				}
-			}
-		}
-		if (null != service?.platforms?.bluemix?.tokens) {
-			for (e in service.platforms.bluemix.tokens) {
-				if (!(manifest ==~ /(?s).*\s+${e.key}:.*/)) {
-					manifest += "\n            ${e.key}: \"${e.value}\""
-				}
-			}
-		}
-
 		return manifest
 	}
 
@@ -63,7 +50,7 @@ class ManifestBuilder implements Serializable {
 		return manifest
 	}
 
-	private String defaultManifest(appName, bluemix) {
+	String defaultManifest(appName, bluemix) {
 		return """
         applications:
         - name: ${appName}
@@ -76,7 +63,7 @@ class ManifestBuilder implements Serializable {
             NODE_MODULES_CACHE: false """
 	}
 
-	private String libertyManifest(appName, server, bluemix) {
+	String libertyManifest(appName, server, bluemix) {
 		return """
         applications:
         - name: ${appName}
@@ -91,7 +78,7 @@ class ManifestBuilder implements Serializable {
             JAVA_HOME: /home/vcap/app/.java/jre """
 	}
 
-	private String staticfileManifest(appName, bluemix) {
+	String staticfileManifest(appName, bluemix) {
 		return """
         applications:
         - name: ${appName}
@@ -104,5 +91,18 @@ class ManifestBuilder implements Serializable {
           services: [${bluemix.services ?: ''}]
           env:
             NODE_MODULES_CACHE: false """
+	}
+
+	String javaManifest(appName, javaOptions, bluemix) {
+		return """
+        applications:
+        - name: ${appName}
+          buildpack: https://github.com/cloudfoundry/java-buildpack.git
+          org: ${bluemix.org}
+          space: ${bluemix.space ?: bluemix.env}
+          disk_quota: ${bluemix.disk}
+          memory: ${bluemix.memory}
+          env:
+            JBP_CONFIG_JAVA_MAIN: "$javaOptions" """
 	}
 }

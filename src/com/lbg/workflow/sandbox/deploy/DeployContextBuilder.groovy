@@ -27,7 +27,7 @@ class DeployContextBuilder implements Serializable {
         def servicesList = []
         for (def ds in sc.services) {
             def s = ds
-            s.tokens = servicesTokensTracker[ds.name].tokens
+            s.tokens = servicesTokensTracker[ds.name]?.tokens ?: [:]
             s.platforms = servicePlatformsTracker[ds.name]
             servicesList.add(s)
         }

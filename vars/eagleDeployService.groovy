@@ -33,17 +33,17 @@ def call(deployContext) {
 			def targetCommit = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
 			env['GIT_COMMIT'] = targetCommit
 
-			eagleUcdPropertyValidationService(deployContext)
+			stage('Property Validate') {eagleUcdPropertyValidationService(deployContext)}
 
-			eagleUcdUploadArtifactsService(deployContext)
+			stage('Artifact Upload') {eagleUcdUploadArtifactsService(deployContext)}
 
-			eagleUcdUpdatePropertiesService(deployContext)
+			stage('Property Update') {eagleUcdUpdatePropertiesService(deployContext)}
 
-			def referenceSnapshot = eagleUcdCreateSnapshotService(deployContext)
-
-			def environmentSnapshot = eagleUcdCreateEnvironmentSnapshotService(deployContext, referenceSnapshot)
-
-			eagleUcdDeploySnapshotService(deployContext, environmentSnapshot)
+			stage('Deploy Snapshot') {
+				def referenceSnapshot = eagleUcdCreateSnapshotService(deployContext)
+				def environmentSnapshot = eagleUcdCreateEnvironmentSnapshotService(deployContext, referenceSnapshot)
+				eagleUcdDeploySnapshotService(deployContext, environmentSnapshot)
+			}
 
 		} catch (error) {
 			echo(error.message)

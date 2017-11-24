@@ -12,7 +12,7 @@ def call(service, deployContext) {
 				sh """mkdir -p ${service.name} && \\
                   		wget --quiet ${artifact} && \\
                   		tar -xf ${artifactName} -C ${service.name}""";
-				echo "deploy service ${service.name}"
+				echo "deploy node service ${service.name}"
 				nodeBuildPack(service, deployContext); break
 
 			case "Liberty":
@@ -20,8 +20,16 @@ def call(service, deployContext) {
 				sh """mkdir -p ${service.name} && \\
 						cd ${service.name} && \\
                   		wget --quiet ${artifact}""";
-				echo "deploy service ${service.name}"
+				echo "deploy liberty service ${service.name}"
 				libertyBuildPack(service, deployContext); break
+
+			case "Java":
+				echo "download artifact ${artifact}"
+				sh """mkdir -p ${service.name} && \\
+						cd ${service.name} && \\
+                  		wget --quiet ${artifact}""";
+				echo "deploy java service ${service.name}"
+				javaBuildPack(service, deployContext); break
 
 			case "Staticfile":
 				echo "download artifact ${artifact}"
@@ -86,6 +94,45 @@ private void libertyBuildPack(service, deployContext) {
 	}
 }
 
+private void javaBuildPack(service, deployContext) {
+	// build manifest
+	echo "build service manifest"
+	def appName = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
+	def manifestBuilder = new ManifestBuilder()
+	def manifest = manifestBuilder.build(appName, service, deployContext)
+	manifest = manifestBuilder.buildEnvs(manifest, ["ARTIFACT_VERSION": getArtifactVersion(service.runtime.binary.artifact)])
+	sh "mkdir -p ${service.name}/pipelines/conf"
+	writeFile file: "${service.name}/pipelines/conf/manifest.yml", text: manifest
+
+	// deploy service
+	echo "deploy service"
+	def utils = new UtilsBluemix()
+	def bluemixEnvs = utils.buildServiceBluemixEnv(service.platforms.bluemix, deployContext.platforms.bluemix)
+	bluemixEnvs["deployable"] = "${env.WORKSPACE}/${service.name}"
+	bluemixEnvs["APP"] = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
+	def artifactName = sh(script: "cd  ${env.WORKSPACE}/${service.name} && ls *.*ar| head -1", returnStdout: true).trim()
+	bluemixEnvs["ARCHIVE"] = artifactName
+	withCredentials([
+			usernamePassword(credentialsId: deployContext.platforms.bluemix.credentials,
+					passwordVariable: 'BM_PASS',
+					usernameVariable: 'BM_USER')
+	]) {
+		withEnv(utils.toWithEnv(bluemixEnvs)) {
+			try {
+				def tokens = buildTokens(service, deployContext)
+				sh "mkdir -p pipelines/scripts/"
+				writeFile file: "pipelines/scripts/deploy.sh", text: deployJavaAppScript()
+				sh 'source pipelines/scripts/deploy.sh; deployApp'
+			} catch (error) {
+				echo "Deployment failed"
+				throw error
+			} finally {
+				step([$class: 'WsCleanup', notFailBuild: true])
+			}
+		}
+	}
+}
+
 private void nodeBuildPack(service, deployContext) {
 	// build manifest
 	echo "build service manifest"
@@ -119,6 +166,9 @@ private void nodeBuildPack(service, deployContext) {
 						replaceTokens("${env.WORKSPACE}/${service.name}", tokens)
 					}
 				}
+                if (null != deployContext?.platforms?.bluemix?.types?."$service.type"?.prune) {
+                    sh "rm -f ${env.WORKSPACE}/${service.name}/${deployContext.platforms.bluemix.types."$service.type".prune}"
+                }
 				sh "mkdir -p pipelines/scripts/"
 				writeFile file: "pipelines/scripts/deploy.sh", text: deployNodeAppScript()
 				sh 'source pipelines/scripts/deploy.sh; deployApp'
@@ -213,6 +263,10 @@ private String deployLibertyAppScript() {
 	libraryResource "com/lbg/workflow/sandbox/bluemix/deploy-liberty-app.sh"
 }
 
+private String deployJavaAppScript() {
+	libraryResource "com/lbg/workflow/sandbox/bluemix/deploy-java-app.sh"
+}
+
 private def deployNodeAppScript() {
 	libraryResource "com/lbg/workflow/sandbox/bluemix/deploy-nodejs-app.sh"
 }
@@ -232,26 +286,27 @@ def getArtifactVersion(artifact) {
 }
 
 def needsDeployment(service, deployContext) {
-	def utils = new UtilsBluemix()
-	def bluemixEnvs = utils.buildServiceBluemixEnv(service.platforms.bluemix, deployContext.platforms.bluemix)
-	def appName = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
-	String artifactVersion = "ARTIFACT_VERSION: ${getArtifactVersion(service.runtime.binary.artifact)}"
-	withCredentials([
-			usernamePassword(credentialsId: deployContext.platforms.bluemix.credentials,
-					passwordVariable: 'BM_PASS',
-					usernameVariable: 'BM_USER')
-	]) {
-		withEnv(utils.toWithEnv(bluemixEnvs)) {
-			try {
+	try {
+		def utils = new UtilsBluemix()
+		def bluemixEnvs = utils.buildServiceBluemixEnv(service.platforms.bluemix, deployContext.platforms.bluemix)
+		def appName = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
+		String artifactVersion = "ARTIFACT_VERSION: ${getArtifactVersion(service.runtime.binary.artifact)}"
+		withCredentials([
+				usernamePassword(credentialsId: deployContext.platforms.bluemix.credentials,
+						passwordVariable: 'BM_PASS',
+						usernameVariable: 'BM_USER')
+		]) {
+			withEnv(utils.toWithEnv(bluemixEnvs)) {
 				String result = sh(script: "cf login -a \$BM_API -u \$BM_USER -p \$BM_PASS -o \$BM_ORG -s \$BM_ENV 1>/dev/null && cf app ${appName} && cf env ${appName}", returnStdout: true, returnStatus: false).trim()
 				def resultStatus = (result ==~ /(?s)(.*)(requested state:(\s+)started)(.*)/)
 				def resultVersion = (result ==~ /(?s)(.*)($artifactVersion)(.*)/)
 				echo "app started: <$resultStatus>,  version match: <$resultVersion>"
 				return !(resultStatus && resultVersion)
-			} catch (error) {
-				echo "needsDeployment true, error $error.message"
-				return true
+
 			}
 		}
+	} catch (error) {
+		echo "needsDeployment failed, error $error.message"
+		return true
 	}
 }
