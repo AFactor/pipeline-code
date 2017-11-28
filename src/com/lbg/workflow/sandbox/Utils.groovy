@@ -34,6 +34,10 @@ def snapshotRelativeURL(String imagefile, String path){
 	def code = libraryResource 'com/lbg/workflow/sandbox/js/snapshot.js'
 	writeFile file: 'snapshot.js', text: code
 
+	//This is from babel-polyfill@6.23.0
+	def browsercode = libraryResource 'com/lbg/workflow/sandbox/js/browser.js'
+	writeFile file: 'browser.js', text: browsercode
+
 	def buildPath = relativeJobURL(path).replace(env.JENKINS_URL, '')
 	withCredentials([
 		usernamePassword(credentialsId: 'jenkins-read-all',
@@ -44,9 +48,7 @@ def snapshotRelativeURL(String imagefile, String path){
 			"JENKINS_URL=${env.JENKINS_URL}",
 			"BUILD_PATH=${buildPath}",
 			"IMAGEFILE=${imagefile}"
-		]) { sh """npm install phantomjs@2.1.7  babel-polyfill@6.23.0 &>/dev/null && \
-                   node_modules/.bin/phantomjs snapshot.js
-                """  }
+		]) { sh "which phantomjs >/dev/null || npm install phantomjs@2.1.7 ; phantomjs snapshot.js"  }
 	}
 
 }

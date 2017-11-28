@@ -34,7 +34,7 @@ function doRender(filename){
 };
 
 page.onInitialized = function(){
-     if(page.injectJs('node_modules/babel-polyfill/browser.js')){
+     if(page.injectJs('browser.js')){
          console.log("Babel-Polyfill loaded");
      }
 };
