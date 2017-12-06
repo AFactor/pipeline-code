@@ -128,6 +128,10 @@ def UCDPage(service, deployContext){
     for (def comp in service.components) {
         compNames.add(comp.name)
     }
+    // Find out the commit ID
+    sh 'git rev-parse HEAD > commit'
+    def commitId = readFile('commit').trim()
+
     def page = """
     <table border="1">
     <tr>
@@ -135,7 +139,10 @@ def UCDPage(service, deployContext){
        <td><strong>Jenkins Build Number: </strong><a href="${env.BUILD_URL}">${env.BUILD_NUMBER}</a></td>
        <td><strong>Environment: </strong><br/>$deployContext.env</td>
        <td><strong>Component Version: </strong> ${version}</td>
-       <td><strong>Component Revision: </strong> ${versionPath}</td>
+       <td><strong>Component Revision: </strong> ${versionPath}<br/>
+          <strong>GIT Branch: </strong> ${env.BRANCH_NAME}<br/>
+          <strong>Commit: </strong> ${commitId}<br/>
+       </td>
        <td><strong>Components: </strong> ${compNames}</td>
        <td><strong>Artifact: </strong><a href="${artifact}">${artifactName}</a></td>
     </tr>
