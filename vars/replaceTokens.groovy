@@ -1,6 +1,6 @@
 def call(targetDir, envConfig) {
     try {
-        echo "replaceTokens: targetDir:$targetDir, envConfig: $envConfig"
+        echo "replaceTokens: targetDir:$targetDir, envConfig: ${envConfig.toString()}"
         String envConfigArray = "("
         if (envConfig != null) {
             for (e in envConfig) {

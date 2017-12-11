@@ -5,7 +5,7 @@ export HTTP_PROXY="http://10.113.140.187:3128"
 export HTTPS_PROXY="http://10.113.140.187:3128"
 export http_proxy="http://10.113.140.187:3128"
 export https_proxy="http://10.113.140.187:3128"
-export no_proxy=localhost,127.0.0.1,sandbox.local,lbg.eu-gb.mybluemix.net,lbg.eu-gb.bluemix.net,10.113.140.170,10.113.140.179,10.113.140.187,10.113.140.168,jenkins.sandbox.extranet.group,nexus.sandbox.extranet.group,gerrit.sandbox.extranet.group,sonar.sandbox.extranet.group,extranet.group
+export no_proxy=localhost,127.0.0.1,sandbox.local,lbg.eu-gb.mybluemix.net,lbg.eu-gb.bluemix.net
 
 function deployApp() {
     echo 'deploying liberty app'

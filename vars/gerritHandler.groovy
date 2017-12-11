@@ -265,4 +265,17 @@ String findTargetBranch(String targetCommit) {
 	}
 }
 
+
+def createTag(tagName, tagDescription) {
+	try {
+		sshagent(['gerrit-admin-user']) {
+			sh "git config user.name \"jenkins\" && git tag -a ${tagName} -m \"${tagDescription}\" && git push origin ${tagName}"
+		}
+	} catch (error) {
+		echo error.message
+		throw error
+	} finally {
+	}
+}
+
 return this;

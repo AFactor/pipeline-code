@@ -36,4 +36,10 @@ class DeployContextBuilder implements Serializable {
         deployContext.platforms = platformsConfig.platforms
         deployContext.services = servicesList
     }
+
+    DeployContextBuilder(configuration) {
+        def config = (new HashMap(new JsonSlurperClassic().parseText(configuration))).asImmutable()
+        def sc = new DeployContext(config) // avoid jenkins serialization issues
+        this.deployContext = sc
+    }
 }

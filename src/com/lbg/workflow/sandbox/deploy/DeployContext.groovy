@@ -15,7 +15,7 @@ class DeployContext implements Serializable {
     }
 
     String releaseVersion() {
-        "${release.version.major}.${release.version.minor}.${release.version.patch}"
+        "${release.version.major}.${release.version.minor}"
     }
 
     @Override

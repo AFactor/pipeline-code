@@ -68,19 +68,6 @@ def call(deployContext, snapshotName) {
         error("Snapshot ${snapshotName} is not config locked, exitting!!!")
     }
 
-
-    // reference snapshot validation
-    def referenceSnapshot = snapshotName.substring(environment.length() + 1)
-
-    def referenceSnapshotAlreadyExists = withUcdClientAndCredentials(ucdUrl, ucdCredentialsTokenName) { ucdToken ->
-        utils.snapshotAlreadyExists(ucdUrl, ucdToken, applicationName, referenceSnapshot)
-    }
-
-    if (!referenceSnapshotAlreadyExists) {
-        error("Reference snapshot ${referenceSnapshot} does not exist, exitting!!!")
-    }
-
-
     eagleUcdDeploySnapshotService(deployContext, snapshotName)
 }
 

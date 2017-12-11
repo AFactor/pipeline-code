@@ -58,9 +58,36 @@ def call() {
 }
 
 
+def call(configuration) {
+    def deployContext
+    node() {
+        try {
+            stage('Initialise') {
+                checkout scm
+                milestone(label: 'Initialised')
+            }
+
+            stage('Validate') {
+                def builder = new DeployContextBuilder(configuration)
+                deployContext = builder.deployContext
+                validate(deployContext)
+
+            }
+        } catch (error) {
+            echo "Invalid deployment configuration $error.message"
+            throw error
+        }
+        echo "Deploy Context: <${JsonOutput.toJson(deployContext)}>"
+        milestone(label: 'Validate')
+    }
+    deployContext
+}
+
 private def validate(deployContext) {
     isValid("journey", deployContext.release.journey)
-    if (deployContext.release.environment != "test" && deployContext.release.environment != "testm" && deployContext.release.environment != "pink") {
+    if (deployContext.release.environment != "test"
+            && deployContext.release.environment != "testm"
+            && deployContext.release.environment != "oipe") {
         for (def service : deployContext.services) {
             def artifact = service.runtime.binary.artifact
             if (artifact.contains("-rc.") || artifact.contains("-de.")) {

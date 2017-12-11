@@ -8,7 +8,7 @@ def call(deployContext, sourceSnapshotName) {
     def ucdCredentialsTokenName = deployContext.platforms.ucd.credentials
     def appName = deployContext.platforms.ucd.app_name
     def environment = deployContext.release.environment
-    def environmentSnapshotName = "${environment}.${sourceSnapshotName}"
+    def environmentSnapshotName = environmentSnapshotName(sourceSnapshotName, environment, env.BUILD_NUMBER)
     def utils = new UtilsUCD()
 
     checkout scm
@@ -39,6 +39,12 @@ def call(deployContext, sourceSnapshotName) {
         echo("Lock snapshot configuration response: ${response}")
     }
 
+    gerritHandler.createTag(environmentSnapshotName,
+                    "Environment Snapshot: ${environmentSnapshotName}, " +
+                    "Artifact Snapshot: ${sourceSnapshotName}, " +
+                    "User: ${new com.lbg.workflow.global.GlobalUtils().getBuildUser()}")
+
+    printSummary(environmentSnapshotName)
     environmentSnapshotName
 }
 
@@ -62,6 +68,23 @@ private createEnvironmentSnapshotJson(artifactVersions, appName, snapshotName, c
     result['versions'] = versions
 
     UDClient.jsonFromMap(result)
+}
+
+private environmentSnapshotName(sourceSnapshotName, environment, buildNumber) {
+    def sourceSnapshotNameWithoutBuildNumber = sourceSnapshotName.substring(0, sourceSnapshotName.lastIndexOf("."))
+    "${environment}.${sourceSnapshotNameWithoutBuildNumber}.${buildNumber}"
+}
+
+private printSummary(snapshotName) {
+    echo """
+|=======================================================================|
+|***********************************************************************|
+|                                                                       |
+| ENVIRONMENT SNAPSHOT ${snapshotName} IS NOW CREATED                   |
+|                                                                       |
+|***********************************************************************|
+|=======================================================================|
+"""
 }
 
 return this

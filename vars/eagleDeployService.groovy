@@ -29,10 +29,6 @@ def call(deployContext) {
 			checkout scm
             new UtilsUCD().install_by_url(deployContext.platforms.ucd.ucd_url)
 
-            // set git revision - ucd snapshot naming
-			def targetCommit = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
-			env['GIT_COMMIT'] = targetCommit
-
 			stage('Property Validate') {eagleUcdPropertyValidationService(deployContext)}
 
 			stage('Artifact Upload') {eagleUcdUploadArtifactsService(deployContext)}

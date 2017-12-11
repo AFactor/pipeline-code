@@ -9,8 +9,11 @@ def call(deployContext) {
     def ucdUrl = deployContext.platforms.ucd.ucd_url
     def ucdCredentialsTokenName = deployContext.platforms.ucd.credentials
     def appName = deployContext.platforms.ucd.app_name
-    def snapshotName = "${deployContext.releaseVersion()}.${env.GIT_COMMIT}"
+    def snapshotName = "${deployContext.releaseVersion()}.${env.BUILD_NUMBER}"
     def utils = new UtilsUCD()
+
+    checkout scm
+    def commit = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
 
     withUcdClientAndCredentials(ucdUrl, ucdCredentialsTokenName) { ucdToken ->
 
@@ -19,7 +22,7 @@ def call(deployContext) {
             error("Reference snapshot ${snapshotName} already exists, exitting!!!")
         }
 
-        def response = utils.createSnapshot(ucdUrl, ucdToken, createSnapshotJson(deployContext, appName, snapshotName))
+        def response = utils.createSnapshot(ucdUrl, ucdToken, createSnapshotJson(deployContext, appName, snapshotName, commit))
         echo("Create snapshot response: ${response}")
 
         response = utils.lockSnapshotVersions(ucdUrl, ucdToken, appName, snapshotName)
@@ -29,12 +32,12 @@ def call(deployContext) {
     snapshotName
 }
 
-private createSnapshotJson(deployContext, appName, snapshotName) {
+private createSnapshotJson(deployContext, appName, snapshotName, commit) {
 
     def result = [:]
     result['name'] = snapshotName
     result['application'] = appName
-    result['description'] = "Eagle pipeline reference snapshot of ${appName}, name: ${snapshotName}"
+    result['description'] = "Eagle pipeline reference snapshot of ${appName}, name: ${snapshotName}, git_sha: ${commit}"
 
     def versions = []
     for (def service : deployContext.services) {

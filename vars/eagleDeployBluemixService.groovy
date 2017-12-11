@@ -73,17 +73,17 @@ private void libertyBuildPack(service, deployContext) {
 	]) {
 		withEnv(utils.toWithEnv(bluemixEnvs)) {
 			try {
-				def tokens = buildTokens(service, deployContext)
-				if (tokens.size() > 0) {
-					dir("${env.WORKSPACE}/${service.name}") {
+				dir("${env.WORKSPACE}/${service.name}") {
+					def tokens = buildTokens(service, deployContext)
+					if (tokens.size() > 0) {
 						sh "unzip ${artifactName} wlp/usr/servers/* "
 						replaceTokens('wlp/usr/servers', tokens)
 						sh "zip ${artifactName}  wlp -r"
 					}
+					sh "mkdir -p pipelines/scripts/"
+					writeFile file: "pipelines/scripts/deploy.sh", text: deployLibertyAppScript()
+					sh 'source pipelines/scripts/deploy.sh; deployApp'
 				}
-				sh "mkdir -p pipelines/scripts/"
-				writeFile file: "pipelines/scripts/deploy.sh", text: deployLibertyAppScript()
-				sh 'source pipelines/scripts/deploy.sh; deployApp'
 			} catch (error) {
 				echo "Deployment failed"
 				throw error
@@ -119,10 +119,12 @@ private void javaBuildPack(service, deployContext) {
 	]) {
 		withEnv(utils.toWithEnv(bluemixEnvs)) {
 			try {
-				def tokens = buildTokens(service, deployContext)
-				sh "mkdir -p pipelines/scripts/"
-				writeFile file: "pipelines/scripts/deploy.sh", text: deployJavaAppScript()
-				sh 'source pipelines/scripts/deploy.sh; deployApp'
+				dir("${env.WORKSPACE}/${service.name}") {
+					def tokens = buildTokens(service, deployContext)
+					sh "mkdir -p pipelines/scripts/"
+					writeFile file: "pipelines/scripts/deploy.sh", text: deployJavaAppScript()
+					sh 'source pipelines/scripts/deploy.sh; deployApp'
+				}
 			} catch (error) {
 				echo "Deployment failed"
 				throw error
@@ -157,21 +159,23 @@ private void nodeBuildPack(service, deployContext) {
 	]) {
 		withEnv(utils.toWithEnv(bluemixEnvs)) {
 			try {
-				def tokens = buildTokens(service, deployContext)
-				if (tokens.size() > 0) {
-					if (fileExists("${env.WORKSPACE}/${service.name}/urbanCode")) {
-						replaceTokens("${env.WORKSPACE}/${service.name}/urbanCode", tokens)
-						sh("cp -rf ${env.WORKSPACE}/${service.name}/urbanCode/* ${env.WORKSPACE}/${service.name}/  2>/dev/null || : && cp -rf ${env.WORKSPACE}/${service.name}/urbanCode/.* ${env.WORKSPACE}/${service.name}/ 2>/dev/null || :")
-					} else {
-						replaceTokens("${env.WORKSPACE}/${service.name}", tokens)
+				dir("${env.WORKSPACE}/${service.name}") {
+					def tokens = buildTokens(service, deployContext)
+					if (tokens.size() > 0) {
+						if (fileExists("urbanCode")) {
+							replaceTokens("urbanCode", tokens)
+							sh("cp -rf urbanCode/* ./  2>/dev/null || : && cp -rf urbanCode/.* ./ 2>/dev/null || :")
+						} else {
+							replaceTokens("./", tokens)
+						}
 					}
+					if (null != deployContext?.platforms?.bluemix?.types?."$service.type"?.prune) {
+						sh "rm -f ${env.WORKSPACE}/${service.name}/${deployContext.platforms.bluemix.types."$service.type".prune}"
+					}
+					sh "mkdir -p pipelines/scripts/"
+					writeFile file: "pipelines/scripts/deploy.sh", text: deployNodeAppScript()
+					sh 'source pipelines/scripts/deploy.sh; deployApp'
 				}
-                if (null != deployContext?.platforms?.bluemix?.types?."$service.type"?.prune) {
-                    sh "rm -f ${env.WORKSPACE}/${service.name}/${deployContext.platforms.bluemix.types."$service.type".prune}"
-                }
-				sh "mkdir -p pipelines/scripts/"
-				writeFile file: "pipelines/scripts/deploy.sh", text: deployNodeAppScript()
-				sh 'source pipelines/scripts/deploy.sh; deployApp'
 			} catch (error) {
 				echo "Deployment failed"
 				throw error
@@ -207,11 +211,13 @@ private void staticfileBuildPack(service, deployContext) {
 	]) {
 		withEnv(utils.toWithEnv(bluemixEnvs)) {
 			try {
-				def tokens= service.tokens?: [:]
-				replaceTokens('.', tokens)
-				sh "mkdir -p pipelines/scripts/"
-				writeFile file: "pipelines/scripts/deploy.sh", text: deployStaticfileAppScript()
-				sh 'source pipelines/scripts/deploy.sh; deployApp'
+				dir("${env.WORKSPACE}/${service.name}") {
+					def tokens = service.tokens ?: [:]
+					replaceTokens('.', tokens)
+					sh "mkdir -p pipelines/scripts/"
+					writeFile file: "pipelines/scripts/deploy.sh", text: deployStaticfileAppScript()
+					sh 'source pipelines/scripts/deploy.sh; deployApp'
+				}
 			} catch (error) {
 				echo "Deployment failed"
 				throw error
@@ -297,7 +303,7 @@ def needsDeployment(service, deployContext) {
 						usernameVariable: 'BM_USER')
 		]) {
 			withEnv(utils.toWithEnv(bluemixEnvs)) {
-				String result = sh(script: "cf login -a \$BM_API -u \$BM_USER -p \$BM_PASS -o \$BM_ORG -s \$BM_ENV 1>/dev/null && cf app ${appName} && cf env ${appName}", returnStdout: true, returnStatus: false).trim()
+				String result = sh(script: "export HTTP_PROXY=\"http://10.113.140.187:3128\";export HTTPS_PROXY=\"http://10.113.140.187:3128\";export http_proxy=\"http://10.113.140.187:3128\";export https_proxy=\"http://10.113.140.187:3128\";export no_proxy=localhost,127.0.0.1,sandbox.local,lbg.eu-gb.mybluemix.net,lbg.eu-gb.bluemix.net; cf login -a \$BM_API -u \$BM_USER -p \$BM_PASS -o \$BM_ORG -s \$BM_ENV 1>/dev/null && cf app ${appName} && cf env ${appName}", returnStdout: true, returnStatus: false).trim()
 				def resultStatus = (result ==~ /(?s)(.*)(requested state:(\s+)started)(.*)/)
 				def resultVersion = (result ==~ /(?s)(.*)($artifactVersion)(.*)/)
 				echo "app started: <$resultStatus>,  version match: <$resultVersion>"
