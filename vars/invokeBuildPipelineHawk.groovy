@@ -9,76 +9,99 @@ import com.lbg.workflow.sandbox.CWABuildHandlers
 import com.lbg.workflow.sandbox.Utils
 import com.lbg.workflow.sandbox.JobStats
 
-def call(String application, handlers, String configuration){
-	this.call(application, handlers, configuration,	'lloydscjtdevops@sapient.com', 120)
+def call(String application, handlers, String configuration) {
+  this.call(application, handlers, configuration, 'lloydscjtdevops@sapient.com', 120)
 }
 
-def call(String application, handlers, String configuration, String notifyList){
-	this.call(application, handlers, configuration, notifyList, 120)
+def call(String application, handlers, String configuration, String notifyList) {
+  this.call(application, handlers, configuration, notifyList, 120)
 }
 
-def call(String application, handlers, String configuration, Integer timeoutInMinutes){
-	this.call(application, handlers, configuration,	'lloydscjtdevops@sapient.com', timeoutInMinutes)
+def call(String application, handlers, String configuration, Integer timeoutInMinutes) {
+  this.call(application, handlers, configuration, 'lloydscjtdevops@sapient.com', timeoutInMinutes)
 }
 
 def call(String application,
-		handlers,
-		String configuration,
-		String notifyList,
-		Integer timeoutInMinutes){
-	try {
-		timeout(timeoutInMinutes){
-			this.callHandler(application, handlers, configuration)
-			currentBuild.result = 'SUCCESS'
-		}
-	} catch(error) {
-		currentBuild.result = 'FAILURE'
-		throw error
-	} finally {
-		if(notifyList?.trim()){
-			emailNotify { to = notifyList }
-		}
-		def jobStats = new JobStats()
-		jobStats.toSplunk(env.BUILD_TAG, env.BUILD_URL, "jenkins-read-all", currentBuild.result, "")
-	}
+  handlers,
+  String configuration,
+  String notifyList,
+  Integer timeoutInMinutes) {
+
+  try {
+    echo "Start BuildPipelineHawk for ${configuration} / ${notifyList} / ${timeoutInMinutes}"
+
+    timeout(timeoutInMinutes) {
+      this.callHandler(application, handlers, configuration)
+      currentBuild.result = 'SUCCESS'
+    }
+
+  } catch(error) {
+    currentBuild.result = 'FAILURE'
+    echo "BuildPipelineHawk caught exception [" + error.getMessage() + "]."
+    throw error
+
+  } finally {
+    if(notifyList?.trim()) {
+      emailNotify { to = notifyList }
+    }
+    echo "Finally invoke Splunk after " + currentBuild.result
+    def jobStats = new JobStats()
+    jobStats.toSplunk(env.BUILD_TAG, env.BUILD_URL, "jenkins-read-all", currentBuild.result, "")
+  }
+
 }
 
 def callHandler(String application, handlers, String configuration) {
-	def targetCommit
+  def targetCommit
   def branch
   def localBranchName
-	BuildContext context
-	BuildHandlers initializer
-	Utils utils = new Utils()
+  BuildContext context
+  BuildHandlers initializer
+  Utils utils = new Utils()
 
-	node ('framework'){
-		checkout scm
+  node ('framework') {
 
-    localBranchName = sh(returnStdout: true, script: "git rev-parse --abbrev-ref HEAD").trim()
-		targetCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+    echo "Checking out from scm.."
+    checkout scm
 
-		stash  name: 'pipelines', includes: 'pipelines/**'
+    echo "Stashing.."
+    stash  name: 'pipelines', includes: 'pipelines/**'
 
-		context = new BuildContext(application, readFile(configuration))
-		step([$class: 'WsCleanup', notFailBuild: true])
-	}
+    echo "Cleanup.."
+    context = new BuildContext(application, readFile(configuration))
+    step([$class: 'WsCleanup', notFailBuild: true])
+  }
 
   // env.BRANCH_NAME is only available in multibranch pipeline jobs
   // to support scheduled pipeline jobs, we define and use local branch name
   branch = env.BRANCH_NAME
   if (branch == null) {
-    branch = localBranchName
+    branch = sh(returnStdout: true, script: "git rev-parse --abbrev-ref HEAD").trim()
   }
-	if (isPatchsetBranch(branch) ) {
-		  hawkPatchsetWorkflow(context, handlers, targetCommit)
-	} else if (isFeatureBranch(branch) ) {
-		  hawkFeatureWorkflow(context, handlers, "ft-" + utils.friendlyName(branch, 20))
-	} else if (isIntegrationBranch(branch) ) {
-		  hawkIntegrationWorkflow(context, handlers, utils.friendlyName(branch, 40))
-	} else {
-      		echo "We don't know how to build this branch. Stopping."
-	}
-	echo "End deployment cycle"
+
+  if (isPatchsetBranch(branch) ) {
+
+    echo "Determine commit id.."
+    targetCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+    echo "PatchsetWorkflow for ${targetCommit}.."
+    hawkPatchsetWorkflow(context, handlers, targetCommit)
+
+  } else if (isFeatureBranch(branch) ) {
+
+    branch1 =  "ft-" + utils.friendlyName(branch, 20)
+    echo "FeatureWorkFlow for ${branch1}.."
+    hawkFeatureWorkflow(context, handlers, branch1)
+
+  } else if (isIntegrationBranch(branch) ) {
+
+    branch1 = utils.friendlyName(branch, 40)
+    echo "IntegrationWorkFlow for ${branch1}.."
+    hawkIntegrationWorkflow(context, handlers, branch1)
+
+  } else {
+    throw new Exception("No known git-workflow rule for branch called ${branch}")
+  }
+  echo "End BuildPipelineHawk for ${branch}"
 }
 
 return this;
