@@ -100,7 +100,7 @@ def callHandler(String application, handlers, String configuration) {
     hawkIntegrationWorkflow(context, handlers, branch1)
 
   } else {
-    throw new Exception("No known git-workflow rule for branch called ${branch}")
+    error "No known git-workflow rule for branch called ${branch}"
   }
   echo "End BuildPipelineHawk for ${branch}"
 }
