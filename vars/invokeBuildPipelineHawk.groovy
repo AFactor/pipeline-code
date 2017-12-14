@@ -70,19 +70,19 @@ def callHandler(String application, handlers, String configuration) {
     echo "Cleanup.."
     context = new BuildContext(application, readFile(configuration))
     step([$class: 'WsCleanup', notFailBuild: true])
-  }
 
-  // env.BRANCH_NAME is only available in multibranch pipeline jobs
-  // to support scheduled pipeline jobs, we define and use local branch name
-  branch = env.BRANCH_NAME
-  if (branch == null) {
-    branch = sh(returnStdout: true, script: "git rev-parse --abbrev-ref HEAD").trim()
-  }
+    // env.BRANCH_NAME is only available in multibranch pipeline jobs
+    // to support scheduled pipeline jobs, we define and use local branch name
+    branch = env.BRANCH_NAME
+    if (branch == null) {
+        branch = sh(returnStdout: true, script: "git rev-parse --abbrev-ref HEAD").trim()
+    }
+    echo "Determine commit id.."
+    targetCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+}
 
   if (isPatchsetBranch(branch) ) {
 
-    echo "Determine commit id.."
-    targetCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
     echo "PatchsetWorkflow for ${targetCommit}.."
     hawkPatchsetWorkflow(context, handlers, targetCommit)
 
