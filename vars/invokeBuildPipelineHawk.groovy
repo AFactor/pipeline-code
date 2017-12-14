@@ -67,10 +67,6 @@ def callHandler(String application, handlers, String configuration) {
     echo "Stashing.."
     stash  name: 'pipelines', includes: 'pipelines/**'
 
-    echo "Cleanup.."
-    context = new BuildContext(application, readFile(configuration))
-    step([$class: 'WsCleanup', notFailBuild: true])
-
     // env.BRANCH_NAME is only available in multibranch pipeline jobs
     // to support scheduled pipeline jobs, we define and use local branch name
     branch = env.BRANCH_NAME
@@ -79,6 +75,11 @@ def callHandler(String application, handlers, String configuration) {
     }
     echo "Determine commit id.."
     targetCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+
+    echo "Cleanup.."
+    context = new BuildContext(application, readFile(configuration))
+    step([$class: 'WsCleanup', notFailBuild: true])
+
 }
 
   if (isPatchsetBranch(branch) ) {
