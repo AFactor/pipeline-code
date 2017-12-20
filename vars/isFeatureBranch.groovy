@@ -1,12 +1,10 @@
-/*
- * Author: Abhay Chrungoo <achrungoo@sapient.com>
- * Contributing HOWTO: TODO
- */
+
+// isFeatureBranch ?
 
 Boolean call(String branch){
-	if (branch =~ /^sprint[0-9]+\/.+$/ || branch =~ /^epic\/.+$/ || branch =~ /^feature\/.*$/ ) {
-		return true ;
-	} else {
-		return false ;
-	}
+    branch =~ /^sprint[0-9]+\/.+$/   ||
+    branch =~ /^epic\/.+$/           ||
+    branch =~ /^feature\/.*$/        ||
+    branch =~ /^pr\/[0-9]+\/head$/   ||
+    branch =~ /^pr\/[0-9]+\/merge$/
 }

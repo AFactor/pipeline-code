@@ -1,11 +1,6 @@
-/*
- * Author: Abhay Chrungoo <achrungoo@sapient.com>
- * Contributing HOWTO: TODO
- */
+
+// isPatchsetBranch ?
 
 Boolean call(String branch){
-        if (branch =~ /^patchset\/[0-9]*\/[0-9]*\/[0-9]*/ ) {
-		return true;
-	} else 
-		return false;
+    branch =~ /^patchset\/[0-9]*\/[0-9]*\/[0-9]*/
 }
