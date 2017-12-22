@@ -38,12 +38,12 @@ class DeployContext implements Serializable {
     /**
      * list of services to deploy
      */
-    List<Service> services = new ArrayList<>()
+    def services = new ArrayList<>()
 
     /**
      * list of components to deploy
      */
-    List<Components> components = new ArrayList<>()
+    def components = new ArrayList<>()
 
     /**
      * deployment proxy config
@@ -70,7 +70,7 @@ class DeployContext implements Serializable {
         this.proxy = config.proxy
         def dc = new DeployContext(config) // avoid lazymap issues
         this.services = dc.services
-        this.components = dc.services.components
+        this.components = dc.services[0].components
     }
 
     boolean hasUserInputStep() {
