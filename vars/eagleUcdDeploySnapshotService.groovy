@@ -13,6 +13,7 @@ private deploySnapshot(deployContext, snapshotName) {
     def ucdCredentialsTokenName = deployContext.platforms.ucd.credentials
     def processMap = deployContext.platforms.ucd.process
     def environment = deployContext.release.environment
+    def appName = deployContext.platforms.ucd.app_name
     UtilsUCD utils = new UtilsUCD()
 
     def deployStreams = [failFast: false]
@@ -22,7 +23,12 @@ private deploySnapshot(deployContext, snapshotName) {
         String processValue = entry.get(1)
 
         deployStreams[processKey] = {
-            def requestJson = createDeploySnapshotJson(deployContext, processValue, snapshotName)
+
+            def unfilledProperties = withUcdClientAndCredentials(ucdUrl, ucdCredentialsTokenName) { ucdToken ->
+                utils.getApplicationProcessUnfilledProperties(ucdUrl, ucdToken, appName, processValue)
+            }
+
+            def requestJson = createDeploySnapshotJson(deployContext, processValue, snapshotName, collateUnfilledProperties(unfilledProperties))
             echo("Starting ${processValue}, deploy snapshot json: ${requestJson}")
 
             withUcdClientAndCredentials(ucdUrl, ucdCredentialsTokenName) { ucdToken ->
@@ -50,7 +56,23 @@ private deploySnapshot(deployContext, snapshotName) {
     printSummary(snapshotName, environment)
 }
 
-private createDeploySnapshotJson(deployContext, processName, snapshotName) {
+def collateUnfilledProperties(unfilledProperties) {
+    def result = [:]
+
+    for (def property in unfilledProperties) {
+        if (property.required) {
+            def allowedValues = []
+            for (def value in property.allowedValues) {
+                allowedValues.push(value.id)
+            }
+            result[property.name] = allowedValues.join(",")
+        }
+    }
+
+    result
+}
+
+private createDeploySnapshotJson(deployContext, processName, snapshotName, props) {
 
     def appName = deployContext.platforms.ucd.app_name
     def onlyChanged = deployContext.platforms.ucd.only_changed
@@ -61,7 +83,8 @@ private createDeploySnapshotJson(deployContext, processName, snapshotName) {
                    environment          : environment,
                    onlyChanged          : onlyChanged,
                    'post-deploy-message': '\${p:finalStatus}',
-                   snapshot             : snapshotName]
+                   snapshot             : snapshotName,
+                   properties           : props]
 
     UDClient.jsonFromMap(jsonMap)
 }

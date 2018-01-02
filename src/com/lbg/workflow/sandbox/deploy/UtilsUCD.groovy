@@ -849,6 +849,19 @@ def getRequestTrace(ucdUrl, ucdToken, requestId) {
     def ucdScript = "${ucdCmd} getApplicationProcessExecution -request ${requestId} "
     sh "${ucdScript}"
 }
+
+def getApplicationProcessUnfilledProperties(ucdUrl, ucdToken, appName, processName) {
+    println "**********************"
+    println " Running UCD Get Application Process Unfilled Properties"
+    println "**********************"
+
+    def udClient = "./udclient/udclient"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl}"
+    def ucdScript = "${ucdCmd} getApplicationProcessUnfilledProperties -application '${appName}' -processName '${processName}'"
+    def responseJson = sh(returnStdout:true, script: ucdScript).trim()
+    def response = UDClient.mapFromJson(responseJson)
+    response
+}
 /**
  *  End of DeployContext agnostic methods
  */
