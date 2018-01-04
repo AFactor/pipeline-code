@@ -1,11 +1,9 @@
 import com.lbg.workflow.sandbox.ColorHandler
 
 def call(int level, String message, String formatType) {
-    String border = createSymbolString(message.length()+4, formatType)
+    String border = createSymbolString(4, formatType)
     String logLine = LogLevel(level, message, false)
-    println border
-    println " ${logLine} "
-    println border
+    println border + " ${logLine}"
 }
 
 String createSymbolString(int logLength, String formatType) {
@@ -14,20 +12,15 @@ String createSymbolString(int logLength, String formatType) {
     } else {
         switch (formatType) {
             case 'equal':
-                return '=' + createSymbolString(--logLength, formatType)
-                break
+                return '=' * logLength
             case 'underline':
-                return '_' + createSymbolString(--logLength, formatType)
-                break
+                return '_' * logLength
             case 'dash':
-                return '-' + createSymbolString(--logLength, formatType)
-                break
+                return '-' * logLength
             case 'star':
-                return '*' + createSymbolString(--logLength, formatType)
-                break
+                return '*' * logLength
             default:
                 return ""
-                break
         }
     }
 }
@@ -74,4 +67,3 @@ String LogLevel(int level, String message, boolean colorStatus) {
             break
     }
 }
-

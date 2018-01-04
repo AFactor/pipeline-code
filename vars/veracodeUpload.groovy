@@ -26,7 +26,7 @@ def call(String appName, pathToConfig, dirPathToUpload, pathToBuildScript)
 
     stage('Package'){
       try {
-        if (context.config.veracode.stashname?)
+        if (context.config.veracode?.stashname)
         {
           echo "re-using existing stash"
         }
