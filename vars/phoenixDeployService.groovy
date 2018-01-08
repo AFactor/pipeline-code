@@ -94,14 +94,27 @@ private void cwaExtract(service, deployContext) {
     def artifactName = service.runtime.binary.artifactName
     def distsPath = deployContext.deployment.work_dir
     def wgetCmd = 'wget --no-check-certificate --quiet'
+    def fullVerScript = "find . -name fullVersion.txt -exec cat '{}' \\; -quit"
     def verScript = "find . -name version.txt -exec cat '{}' \\; -quit"
+    def revision
     srvBin = service.runtime.binary
 
     sh "rm -rf ${distsPath} || true"
     sh """mkdir -p ${distsPath} && \\
           ${wgetCmd} ${artifact} && \\
           tar -xzf ${artifactName} -C ${distsPath} """
-    def revision = sh(returnStdout:true, script: verScript).trim().split('-').last().trim()
+
+    def fullVersion = sh(returnStdout:true, script: fullVerScript).trim()
+    if (fullVersion.length() > 0) {
+      revision = fullVersion.split('-').last().trim()
+
+      def version = fullVersion.substring(0, fullVersion.length() - revision.length() - 1)
+      phoenixLogger(3, "Version :: ${version}", 'star')
+      srvBin.version = version
+    } else {
+      revision = sh(returnStdout:true, script: verScript).trim().split('-').last().trim()
+    }
+
     phoenixLogger(3, "Revision :: ${revision}", 'star')
     srvBin.revision = revision
     echo "All Done - Extraction Complete"
@@ -308,4 +321,3 @@ private void obaispArtifactPath(service) {
 }
 
 return this;
-
