@@ -11,6 +11,5 @@ Boolean call(String branch){
     branch =~ /^hotfixes.*$/     ||
     branch =~ /^develop$/        ||
     branch =~ /^bugfix\/.*$/     ||
-    branch =~ /^feature\/.*$/    ||
     branch =~ /^feat-.*$/
 }
