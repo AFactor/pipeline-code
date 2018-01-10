@@ -48,7 +48,14 @@ def snapshotRelativeURL(String imagefile, String path){
 			"JENKINS_URL=${env.JENKINS_URL}",
 			"BUILD_PATH=${buildPath}",
 			"IMAGEFILE=${imagefile}"
-		]) { sh "which phantomjs >/dev/null || npm install phantomjs@2.1.7 ; phantomjs snapshot.js"  }
+		]) { sh """
+				if which phantomjs >/dev/null ; then
+					phantomjs snapshot.js
+				else
+					npm install phantomjs-prebuilt@2.1.16
+					node_modules/.bin/phantomjs snapshot.js
+				fi
+				"""}
 	}
 
 }
