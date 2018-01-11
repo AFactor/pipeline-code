@@ -1,5 +1,6 @@
 package com.lbg.workflow.sandbox
 import com.lbg.workflow.global.EmailManager
+import com.lbg.workflow.global.GlobalUtils
 
 def build(String targetBranch, context, String pathToBuildScript) {
   // Building 'artifacts' stash with a given script
