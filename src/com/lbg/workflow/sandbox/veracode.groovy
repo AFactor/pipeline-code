@@ -23,12 +23,15 @@ def uploadVeracode(String targetBranch, context, dirPathToUpload) {
        "TARGET_DIR=${dirPathToUpload}",
     ]) {
         checkout scm
-        unstash artifacts
+        dir ("artifacts") {
+            unstash artifacts
+        }
         try {
             sh "mkdir -p ${WORKSPACE}/pipelines/scripts/"
             writeFile file: "${WORKSPACE}/pipelines/scripts/veracode_upload.sh", text: deployUploadScript()
             writeFile file: "${WORKSPACE}/pipelines/scripts/veracode_functions.sh", text: deployFunctionsScript()
-            sh "${WORKSPACE}/pipelines/scripts/veracode_upload.sh ${TARGET_DIR}"
+            sh "chmod +x ${WORKSPACE}/pipelines/scripts/veracode_*"
+            sh "${WORKSPACE}/pipelines/scripts/veracode_upload.sh ${WORKSPACE}/artifacts"
         } catch (error) {
             echo "FAILURE: veracode failed"
             echo error.message
@@ -59,6 +62,7 @@ def downloadVeracode(String targetBranch, context) {
             sh "mkdir -p ${WORKSPACE}/pipelines/scripts/"
             writeFile file: "${WORKSPACE}/pipelines/scripts/veracode_download.sh", text: deployDownloadScript()
             writeFile file: "${WORKSPACE}/pipelines/scripts/veracode_functions.sh", text: deployFunctionsScript()
+            sh "chmod +x ${WORKSPACE}/pipelines/scripts/veracode_*"
             sh "${WORKSPACE}/pipelines/scripts/veracode_download.sh"
             stash name: "veracodereport", includes: 'veracodeResults/*.xml'
 

@@ -133,7 +133,7 @@ function createbuild {
 
 # Upload files
 function uploadfiles {
-	for file in $UPLOAD_DIR/*
+	for file in $(find $UPLOAD_DIR)
 	do
 		if [[ -f "$file" ]]; then
 			echo "[+] Uploading $file"
@@ -143,7 +143,7 @@ function uploadfiles {
 	done
 
 	# Validate all files were successfully uploaded
-	for file in $UPLOAD_DIR/*
+	for file in $(find $UPLOAD_DIR)
 	do
 		if [[ -f "$file" ]]; then
 			if ! [[ "$upload_file_response" =~ (\<file file_id=\"[0-9]+\" file_name=\""${file##*/}"\" file_status=\"Uploaded\"/\>) ]]; then
