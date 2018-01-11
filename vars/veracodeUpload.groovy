@@ -2,7 +2,7 @@
 
 import com.lbg.workflow.sandbox.*
 
-def call(String appName, pathToConfig, dirPathToUpload, pathToBuildScript)
+def call(String appName, pathToConfig, pathToBuildScript)
 {
   def deployer
   def context
@@ -45,7 +45,7 @@ def call(String appName, pathToConfig, dirPathToUpload, pathToBuildScript)
     lock(inversePrecedence: true, quantity: 1, resource: veracodeApiLock){
     	stage('Veracode'){
           node(){
-      		deployer.uploadVeracode("${targetBranch}", context, dirPathToUpload)
+      		deployer.uploadVeracode("${targetBranch}", context)
           }
     	}
     	milestone(label:'uploaded')

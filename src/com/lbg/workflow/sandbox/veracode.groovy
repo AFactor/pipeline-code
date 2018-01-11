@@ -9,7 +9,7 @@ def build(String targetBranch, context, String pathToBuildScript) {
   }
 }
 
-def uploadVeracode(String targetBranch, context, dirPathToUpload) {
+def uploadVeracode(String targetBranch, context) {
   def veracodeCredentials = context.config.veracode.credentials ?: 'veracode-creds'
   def veracodeID = context.config.veracode.id
   def artifacts = context.config.veracode.artifacts ?: 'artifacts'
@@ -20,7 +20,6 @@ def uploadVeracode(String targetBranch, context, dirPathToUpload) {
     ]){
     withEnv([
        "APP_ID=${veracodeID}",
-       "TARGET_DIR=${dirPathToUpload}",
     ]) {
         checkout scm
         dir ("artifacts") {
