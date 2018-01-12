@@ -204,7 +204,12 @@ private void cwaArtifactPath(service) {
     srvBin = service.runtime.binary
     if (!srvBin.artifact) {
         def nameComp = srvBin.artifactName.split(/\./)
-        srvBin.extension = srvBin.artifactName.split(nameComp[0]).last()
+        try {
+          srvBin.extension = srvBin.artifactName.split(nameComp[0]).last()
+        } catch (error){
+          phoenixLogger(1, "No file extension found in artifact name ${srvBin.artifactName}. Please provide full file name. ABORTING.", 'star')
+          throw error
+        }
         def lastDash = nameComp[0].split('-').last()
         if (lastDash =~ /\w{7}/) {
             srvBin.version = nameComp[0].split('-')[-2]

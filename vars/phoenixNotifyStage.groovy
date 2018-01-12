@@ -142,4 +142,9 @@ def UCDPage(service, deployContext){
     </table> """
     return page
 }
+
+def call(){
+  return this
+}
+
 return this;
