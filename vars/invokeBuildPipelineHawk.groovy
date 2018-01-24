@@ -64,8 +64,13 @@ def callHandler(String application, handlers, String configuration) {
     echo "Checking out from scm.."
     checkout scm
 
-    echo "Stashing.."
-    stash  name: 'pipelines', includes: 'pipelines/**'
+
+    // Only stash the pipeline folder if it exists
+    def pipelineFolder = new File( 'pipelines/' )
+    if( pipelineFolder.exists() ) {
+      echo "Stashing.."
+      stash  name: 'pipelines', includes: 'pipelines/**'
+    }
 
     // env.BRANCH_NAME is only available in multibranch pipeline jobs
     // to support scheduled pipeline jobs, we define and use local branch name
