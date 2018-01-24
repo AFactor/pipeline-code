@@ -66,8 +66,7 @@ def callHandler(String application, handlers, String configuration) {
 
 
     // Only stash the pipeline folder if it exists
-    def pipelineFolder = new File( 'pipelines/' )
-    if( pipelineFolder.exists() ) {
+    if( fileExists("pipelines/") ) {
       echo "Stashing.."
       stash  name: 'pipelines', includes: 'pipelines/**'
     }
