@@ -49,7 +49,9 @@ def call(String appName, pathToConfig)
     }
     milestone(label:'Email')
   } catch(error)
-    {
+    { 
+      currentBuild.result = 'FAILURE'
       deployer.emailVeracodeFail("${targetBranch}", context)
+      throw error
     }
 }
