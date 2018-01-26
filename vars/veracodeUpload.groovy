@@ -51,6 +51,8 @@ def call(String appName, pathToConfig, pathToBuildScript)
     	milestone(label:'uploaded')
     } //End Lock
   } catch (error) {
+    currentBuild.result = 'FAILURE'
     deployer.emailVeracodeFail("${targetBranch}", context)
+    throw error
   }
 }
