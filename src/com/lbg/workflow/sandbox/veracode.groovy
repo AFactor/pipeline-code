@@ -109,7 +109,7 @@ def emailVeracodeFail(String targetBranch, context) {
   def notificationList = context.config.veracode.notificationList ?: 'LloydsCJTDevOps@sapient.com'
 
   def emailSender = new EmailManager()
-  def headline  = globalUtils.urlDecode("J2:${env.JOB_NAME}:${env.BUILD_NUMBER} Veracode reports FAILED")
+  def headline  = GlobalUtils.urlDecode("J2:${env.JOB_NAME}:${env.BUILD_NUMBER} Veracode reports FAILED")
   def appName = appName(context.application, targetBranch)
   echo "TRYING: Email Notification to ${notificationList}"
   messageBody = "${env.JOB_NAME}:${env.BUILD_NUMBER} Veracode reports FAILED, please see jenkins log for more info"
