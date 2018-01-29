@@ -38,7 +38,7 @@ class ServiceWrapper implements Serializable {
     private String artifactVersion() {
         def artifactName = artifactName()
 
-        def m = artifactName =~ /^([\W|-]+)(.*)(\.zip|\.tar\.gz)$/
+        def m = artifactName =~ /^([\S|-]+)(.*)(\.zip|\.tar\.gz)$/
         if (m) {
             return m[0][2]
         } else {
