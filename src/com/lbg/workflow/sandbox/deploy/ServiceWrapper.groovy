@@ -43,7 +43,7 @@ class ServiceWrapper implements Serializable {
             return m[0][2]
         } else {
             // this should never happen
-            throw new RuntimeException("artifact name property has a wrong format, should match: ^([\\D|-]+)(.*)(\\.zip|\\.tar\\.gz)\$")
+            throw new RuntimeException("artifact name property has a wrong format, should match: ^([\\w|-]+)(.*)(\\.zip|\\.tar\\.gz)\$")
         }
     }
 
