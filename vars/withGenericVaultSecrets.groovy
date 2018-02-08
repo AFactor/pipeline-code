@@ -26,18 +26,20 @@ def call(Map<String,String> mapping, Closure body) {
 
 		echo "Mapping Secret:${vaultKey} from vault:${path} to ${envVar}"
 		secretList.add([$class: 'VaultSecret',
-			path: "${path}",
-			secretValues: 	[
-				[ 	$class: 'VaultSecretValue',
-					envVar: "${envVar}", vaultKey: "${vaultKey}"
-				]
-			]
+						path: "${path}",
+						secretValues: 	[
+								[ 	$class: 'VaultSecretValue',
+									 envVar: "${envVar}", vaultKey: "${vaultKey}"
+								]
+						]
 		])
 	}
 
-	wrap( [$class: 'VaultBuildWrapper',
-		vaultSecrets: secretList,
-		authToken: env.VAULT_TOKEN,
-		vaultUrl: locator.locate('vault')
-	]) { body() }
+	def configuration = [$class: 'VaultConfiguration',
+						 vaultUrl: locator.locate('vault'),
+						 vaultCredentialId: env.VAULT_TOKEN]
+
+	wrap([$class: 'VaultBuildWrapper', configuration: configuration, vaultSecrets: secretList]) {
+		body()
+	}
 }
