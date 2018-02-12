@@ -73,6 +73,10 @@ private def call(deployContext) {
                                'description': 'Deploy changes only? (If unsure leave as-is)',
                                'name'       : 'onlyChanged',
                                'choices'    : setChoice]
+                choiceList += ['$class'     : 'hudson.model.ChoiceParameterDefinition',
+                                'description': 'Perform Hot Deploy? (If unsure leave as-is)',
+                                'name'       : 'hotDeploy',
+                                'choices'    : noChoices]
             }
         }
     }
@@ -132,6 +136,14 @@ private def snapshotVersionGather(deployContext, ucdToken) {
 
 def mergeData(deployContext, userInput) {
     deployContext.deployment.process = userInput.process
+
+    deployContext.deployment.properties = [:]
+    // We can pass any number of properties through the json here.
+    // All we need to define is what property the input maps to.
+    if(userInput.hotDeploy == "yes") {
+        deployContext.deployment.properties['hot.deploy.requested'] = "true"
+    }
+
     deployContext.tests.post_bdd = convertYesNoToBoolean(userInput.post_bdd)
     echo "Selected User Input :: ${userInput}"
     for (def service in deployContext.services) {
