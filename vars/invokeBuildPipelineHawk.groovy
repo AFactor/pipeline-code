@@ -97,6 +97,12 @@ def callHandler(String application, handlers, String configuration) {
     echo "FeatureWorkFlow for ${branch1}.."
     hawkFeatureWorkflow(context, handlers, branch1)
 
+  } else if (isPullRequestBranch(branch) ) {
+
+    branch1 =  utils.friendlyName(branch, 20)
+    echo "FeatureWorkFlow for ${branch1}.."
+    hawkFeatureWorkflow(context, handlers, branch1)
+
   } else if (isIntegrationBranch(branch) ) {
 
     branch1 = utils.friendlyName(branch, 40)
