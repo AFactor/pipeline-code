@@ -2,9 +2,10 @@ package com.lbg.workflow.sandbox
 import com.lbg.workflow.global.EmailManager
 import com.lbg.workflow.global.GlobalUtils
 
+// Builds artifacts to be uploaded to VCD using specified groovy script
 def build(String targetBranch, context, String pathToBuildScript) {
-  // Building 'artifacts' stash with a given script
   node(){
+    // Currently based off runTest header of TEST methods, such as unit test
     unit = load(pathToBuildScript)
     unit.runTest(targetBranch, context)
   }
@@ -14,11 +15,12 @@ def uploadVeracode(String targetBranch, context) {
   def veracodeCredentials = context.config.veracode.credentials ?: 'veracode-creds'
   def veracodeID = context.config.veracode.id
   def artifacts = context.config.veracode.artifacts ?: 'artifacts'
-    withCredentials([
+
+  withCredentials([
       usernamePassword(credentialsId: veracodeCredentials,
       passwordVariable: 'API_PASSWORD',
       usernameVariable: 'API_USERNAME')
-    ]){
+  ]){
     withEnv([
        "APP_ID=${veracodeID}",
     ]) {
@@ -40,7 +42,7 @@ def uploadVeracode(String targetBranch, context) {
             step([$class: 'WsCleanup', notFailBuild: true])
           }
         }
-      }
+  } //withCreentials
 }
 
 def downloadVeracode(String targetBranch, context) {
@@ -48,11 +50,11 @@ def downloadVeracode(String targetBranch, context) {
   def notificationList = context.config.veracode.notificationList ?: 'LloydsCJTDevOps@sapient.com'
   def veracodeID =  context.config.veracode.id
 
-    withCredentials([
+  withCredentials([
       usernamePassword(credentialsId: veracodeCredentials,
       passwordVariable: 'API_PASSWORD',
       usernameVariable: 'API_USERNAME')
-    ]){
+  ]){
     withEnv([
        "APP_ID=${veracodeID}",
        "WORKSPACE=${env.WORKSPACE}"
@@ -80,11 +82,10 @@ def downloadVeracode(String targetBranch, context) {
             echo error.message
             throw error
         } finally {
-            //WsCleanup
             step([$class: 'WsCleanup', notFailBuild: true])
         }
       }
-    }
+  } //withCreentials
 }
 
 def emailVeracode(String targetBranch, context) {
@@ -110,7 +111,7 @@ def emailVeracodeFail(String targetBranch, context) {
 
   def emailSender = new EmailManager()
   def globalUtils = new GlobalUtils()
-  def headline  = globalUtils.urlDecode("J2:${env.JOB_NAME}:${env.BUILD_NUMBER} Veracode reports FAILED".toString())
+  def headline = globalUtils.urlDecode("J2:${env.JOB_NAME}:${env.BUILD_NUMBER} Veracode reports FAILED".toString())
   def appName = appName(context.application, targetBranch)
   echo "TRYING: Email Notification to ${notificationList}"
   messageBody = "${env.JOB_NAME}:${env.BUILD_NUMBER} Veracode reports FAILED, please see jenkins log for more info"
@@ -120,27 +121,27 @@ def emailVeracodeFail(String targetBranch, context) {
 }
 
 def publishSplunk(String targetBranch, String epoch, context){
-                       def appname = appName(context.application, targetBranch)
-                       def splunkReportDir = "${context.config.splunk.reportdir}"
-                       echo "PUBLISH: ${this.name()} ${appname} reports to Splunk"
-                       dir ("j2/${appname}") {
-                           unstash "veracodereport"
-                           sh 'ls -lR'
-                           splunkPublisher.SCP('veracodeResults/*.xml',
-                                               "${splunkReportDir}")
-                       }
+   def appname = appName(context.application, targetBranch)
+   def splunkReportDir = "${context.config.splunk.reportdir}"
+   echo "PUBLISH: ${this.name()} ${appname} reports to Splunk"
+   dir ("j2/${appname}") {
+       unstash "veracodereport"
+       sh 'ls -lR'
+       splunkPublisher.SCP('veracodeResults/*.xml',
+                           "${splunkReportDir}")
+   }
 }
 
 private def deployUploadScript() {
-        libraryResource "com/lbg/workflow/sandbox/veracode/veracode_upload.sh"
+    libraryResource "com/lbg/workflow/sandbox/veracode/veracode_upload.sh"
 }
 
 private def deployDownloadScript() {
-        libraryResource "com/lbg/workflow/sandbox/veracode/veracode_download.sh"
+    libraryResource "com/lbg/workflow/sandbox/veracode/veracode_download.sh"
 }
 
 private def deployFunctionsScript() {
-        libraryResource "com/lbg/workflow/sandbox/veracode/veracode_functions.sh"
+    libraryResource "com/lbg/workflow/sandbox/veracode/veracode_functions.sh"
 }
 
 String name() {
