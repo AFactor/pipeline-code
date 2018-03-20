@@ -30,4 +30,3 @@ class ServiceDiscovery implements Serializable{
 		throw new MalformedURLException("ServiceDiscovery: Cannot Locate ${service}. A fake exception to signal this error")
 	}
 }
-

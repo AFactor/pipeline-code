@@ -13,4 +13,3 @@ public interface BuildHandlers {
 	List<String> getStaticAnalysis()
 	List<String> getIntegrationTests()
 }
-
