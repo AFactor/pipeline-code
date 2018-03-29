@@ -28,16 +28,16 @@ def call(Closure body) {
 	}
 	withSonarQubeEnv("${sonarServer}") { 
 		sh """ source ${headers} && \\
-						sonar-runner -X \\
-							-Dsonar.host.url=${SONAR_HOST_URL} \\
-							-Dsonar.jdbc.url=\'${SONAR_JDBC_URL}\' \\
-							-Dsonar.jdbc.username=${SONAR_JDBC_USERNAME} \\
-							-Dsonar.jdbc.password=\'${SONAR_JDBC_PASSWORD}\' \\
-							-Dsonar.login=${SONAR_LOGIN} \\
-							-Dsonar.pasword=${SONAR_PASSWORD} \\
-							-Dsonar.sourceEncoding=UTF-8 \\
-							${javaOptionString}
-							""" }
+			sonar-runner \\
+			-Dsonar.host.url=${SONAR_HOST_URL} \\
+			-Dsonar.jdbc.url=\'${SONAR_JDBC_URL}\' \\
+			-Dsonar.jdbc.username=${SONAR_JDBC_USERNAME} \\
+			-Dsonar.jdbc.password=\'${SONAR_JDBC_PASSWORD}\' \\
+			-Dsonar.login=${SONAR_LOGIN} \\
+			-Dsonar.pasword=${SONAR_PASSWORD} \\
+			-Dsonar.sourceEncoding=UTF-8 \\
+			${javaOptionString}
+			""" }
 }
 String name(){
 	return "SonarQube Runner"
