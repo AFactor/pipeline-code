@@ -17,13 +17,7 @@ def call(service, deployContext) {
         envs["deployable"] = "${env.WORKSPACE}/${service.name}"
         envs["APIC_SERVER"] = deployContext.platforms.apiconnect.server
         envs["APIC_ORG"] = deployContext.platforms.apiconnect.org
-        if (service.env != null) {
-            for (e in service.env) {
-                envs[e.key] = e.value
-            }
-        }
-        def task = service.env["NPM_SETUP_TASK"]
-        def envConfig = getEnvironmentConfig()
+        envs.putAll(service?.platforms?.apiconnect ?: [:])
         withCredentials([
                 usernamePassword(credentialsId: deployContext.platforms.apiconnect.credentials,
                         passwordVariable: 'APIC_PASS',
@@ -31,12 +25,17 @@ def call(service, deployContext) {
         ]) {
             withEnv(utils.toWithEnv(envs)) {
                 try {
-                    if (fileExists(envConfig)) {
-                        sh "cp -rf $envConfig ${env.WORKSPACE}/${service.name}/$envConfig"
+                    dir("${env.WORKSPACE}/${service.name}") {
+                        def tokens = buildTokens(service, deployContext)
+                        if (tokens.size() > 0 && fileExists("urbanCode")) {
+                            replaceTokens("urbanCode", tokens)
+                            sh("cp -rf urbanCode/* ./  2>/dev/null || : && cp -rf urbanCode/.* ./ 2>/dev/null || :")
+                        }
+
+                        sh "mkdir -p pipelines/scripts/"
+                        writeFile file: "pipelines/scripts/deploy.sh", text: deployAppScript()
+                        sh 'source pipelines/scripts/deploy.sh; deployApp'
                     }
-                    sh "mkdir -p pipelines/scripts/"
-                    writeFile file: "pipelines/scripts/deploy.sh", text: deployAppScript(task)
-                    sh 'source pipelines/scripts/deploy.sh; deployApp'
                 } catch (error) {
                     echo "Deployment failed"
                     throw error
@@ -50,24 +49,26 @@ def call(service, deployContext) {
     }
 }
 
-private String getEnvironmentConfig() {
-    def jobName = "${env.JOB_NAME}"
-    def targetEnv = jobName.substring(jobName.lastIndexOf('-') + 1)
-    return "config/${targetEnv}.json"
+private def buildTokens(service, deployContext) {
+    return service?.tokens ?: [:]
 }
 
-private String deployAppScript(String task) {
+private String deployAppScript() {
     return """
         #!/bin/bash
         source ~/.bashrc
         set -ex
         export HOME=\$WORKSPACE
-        unset http_proxy https_proxy        
+        unset http_proxy https_proxy
+        export PATH=\$APIC_PATH:\$PATH  
+        env      
         function deployApp() {
             cd \$deployable
+            rm -rf .apiconnect/
+            rm -rf ~/.apiconnect/
             apic config:set log-level=debug --disable-analytics --accept-license
             apic login --server \$APIC_SERVER --username \$APIC_USER --password \$APIC_PASS            
-            npm $task
+            npm \$NPM_RUN_TASK
             apic catalogs --server \$APIC_SERVER --organization \$APIC_ORG
             apic logout --server \$APIC_SERVER
         }

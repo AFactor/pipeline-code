@@ -1,3 +1,4 @@
+import com.lbg.workflow.global.GlobalUtils
 import com.lbg.workflow.sandbox.deploy.ManifestBuilder
 import com.lbg.workflow.sandbox.deploy.UtilsBluemix
 
@@ -54,7 +55,10 @@ private void libertyBuildPack(service, deployContext) {
 	def manifestBuilder = new ManifestBuilder()
 	def manifest = manifestBuilder.build(appName, service, deployContext)
 	manifest = manifestBuilder.buildEnvs(manifest, buildAnalyticsEnvs(deployContext))
-	manifest = manifestBuilder.buildEnvs(manifest, ["ARTIFACT_VERSION": getArtifactVersion(service.runtime.binary.artifact)])
+	manifest = manifestBuilder.buildEnvs(manifest,
+			["ARTIFACT_VERSION": getArtifactVersion(service.runtime.binary.artifact),
+			"TOKENS_DIGEST": getTokensDigest(service, deployContext)])
+
 	sh "mkdir -p ${service.name}/pipelines/conf"
 	writeFile file: "${service.name}/pipelines/conf/manifest.yml", text: manifest
 
@@ -100,7 +104,10 @@ private void javaBuildPack(service, deployContext) {
 	def appName = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
 	def manifestBuilder = new ManifestBuilder()
 	def manifest = manifestBuilder.build(appName, service, deployContext)
-	manifest = manifestBuilder.buildEnvs(manifest, ["ARTIFACT_VERSION": getArtifactVersion(service.runtime.binary.artifact)])
+	manifest = manifestBuilder.buildEnvs(manifest,
+			["ARTIFACT_VERSION": getArtifactVersion(service.runtime.binary.artifact),
+			"TOKENS_DIGEST":getTokensDigest(service, deployContext)])
+
 	sh "mkdir -p ${service.name}/pipelines/conf"
 	writeFile file: "${service.name}/pipelines/conf/manifest.yml", text: manifest
 
@@ -142,7 +149,9 @@ private void nodeBuildPack(service, deployContext) {
 	def manifestBuilder = new ManifestBuilder()
 	def manifest = manifestBuilder.build(appName, service, deployContext)
 	manifest = manifestBuilder.buildEnvs(manifest, buildAnalyticsEnvs(deployContext))
-	manifest = manifestBuilder.buildEnvs(manifest, ["ARTIFACT_VERSION": getArtifactVersion(service.runtime.binary.artifact)])
+	manifest = manifestBuilder.buildEnvs(manifest,
+			["ARTIFACT_VERSION": getArtifactVersion(service.runtime.binary.artifact),
+			"TOKENS_DIGEST": getTokensDigest(service, deployContext)])
 	sh "mkdir -p ${service.name}/pipelines/conf"
 	writeFile file: "${service.name}/pipelines/conf/manifest.yml", text: manifest
 
@@ -193,8 +202,9 @@ private void staticfileBuildPack(service, deployContext) {
 	def manifestBuilder = new ManifestBuilder()
 	def manifest = manifestBuilder.build(appName, service, deployContext)
 	manifest = manifestBuilder.buildEnvs(manifest, buildAnalyticsEnvs(deployContext))
-	manifest = manifestBuilder.buildEnvs(manifest, ["ARTIFACT_VERSION": getArtifactVersion(service.runtime.binary.artifact)])
-
+	manifest = manifestBuilder.buildEnvs(manifest,
+			["ARTIFACT_VERSION": getArtifactVersion(service.runtime.binary.artifact),
+			"TOKENS_DIGEST": getTokensDigest(service, deployContext)])
 	sh "mkdir -p ${service.name}/pipelines/conf"
 	writeFile file: "${service.name}/pipelines/conf/manifest.yml", text: manifest
 
@@ -258,26 +268,26 @@ private def buildAnalyticsEnvs(deployContext) {
 }
 
 
-private def buildTokens(service, deployContext) {
+def buildTokens(service, deployContext) {
 	def tokens = deployContext?.platforms?.bluemix?.types?."$service.type"?.tokens ?: [:]
 	tokens.putAll(service?.platforms?.bluemix?.tokens ?: [:])
 	tokens.putAll(service?.tokens ?: [:])
 	return tokens
 }
 
-private String deployLibertyAppScript() {
+def deployLibertyAppScript() {
 	libraryResource "com/lbg/workflow/sandbox/bluemix/deploy-liberty-app.sh"
 }
 
-private String deployJavaAppScript() {
+def deployJavaAppScript() {
 	libraryResource "com/lbg/workflow/sandbox/bluemix/deploy-java-app.sh"
 }
 
-private def deployNodeAppScript() {
+def deployNodeAppScript() {
 	libraryResource "com/lbg/workflow/sandbox/bluemix/deploy-nodejs-app.sh"
 }
 
-private def deployStaticfileAppScript() {
+def deployStaticfileAppScript() {
 	libraryResource "com/lbg/workflow/sandbox/bluemix/deploy-staticfile-app.sh"
 }
 
@@ -297,6 +307,7 @@ def needsDeployment(service, deployContext) {
 		def bluemixEnvs = utils.buildServiceBluemixEnv(service.platforms.bluemix, deployContext.platforms.bluemix)
 		def appName = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
 		String artifactVersion = "ARTIFACT_VERSION: ${getArtifactVersion(service.runtime.binary.artifact)}"
+		String tokensDigest = "TOKENS_DIGEST: ${getTokensDigest(service, deployContext)}"
 		withCredentials([
 				usernamePassword(credentialsId: deployContext.platforms.bluemix.credentials,
 						passwordVariable: 'BM_PASS',
@@ -304,15 +315,30 @@ def needsDeployment(service, deployContext) {
 		]) {
 			withEnv(utils.toWithEnv(bluemixEnvs)) {
 				String result = sh(script: "export HTTP_PROXY=\"http://10.113.140.187:3128\";export HTTPS_PROXY=\"http://10.113.140.187:3128\";export http_proxy=\"http://10.113.140.187:3128\";export https_proxy=\"http://10.113.140.187:3128\";export no_proxy=localhost,127.0.0.1,sandbox.local,lbg.eu-gb.mybluemix.net,lbg.eu-gb.bluemix.net; cf login -a \$BM_API -u \$BM_USER -p \$BM_PASS -o \$BM_ORG -s \$BM_ENV 1>/dev/null && cf app ${appName} && cf env ${appName}", returnStdout: true, returnStatus: false).trim()
-				def resultStatus = (result ==~ /(?s)(.*)(requested state:(\s+)started)(.*)/)
-				def resultVersion = (result ==~ /(?s)(.*)($artifactVersion)(.*)/)
-				echo "app started: <$resultStatus>,  version match: <$resultVersion>"
-				return !(resultStatus && resultVersion)
 
+				if ((result ==~ /(?s)(.*)(0\\/[1-9])(.*)/) ||
+						result.contains("CRASHED") ||
+						result.contains("starting") ||
+						result.contains("flapping") ||
+						!(result ==~ /(?s)(.*)($artifactVersion)(.*)/) ||
+						!(result ==~ /(?s)(.*)($tokensDigest)(.*)/)) {
+
+					echo "app check - deploy app ${appName}"
+					return true
+				}
+				echo "app check - skip deployment - token digest match ${tokensDigest}"
+				return false
 			}
 		}
 	} catch (error) {
-		echo "needsDeployment failed, error $error.message"
+		echo "app check - deploy app ${appName}"
 		return true
 	}
+}
+
+def getTokensDigest(service, deployContext) {
+	def tokens = buildTokens(service, deployContext)
+	GlobalUtils utils = new GlobalUtils()
+	def sortedTokens = utils.sortMap(tokens)
+	return utils.generateDigest("SHA-512", sortedTokens.toString())
 }

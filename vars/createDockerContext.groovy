@@ -24,6 +24,12 @@ def call(String name){
 			composeFile = 'com/lbg/workflow/sandbox/docker/docker-compose.node610.yml'
 			dockerIgnore = 'com/lbg/workflow/sandbox/docker/dockerignore.node'
 			break
+		case 'node894':
+			dockerFiles['Dockerfile.node.allmodules'] = 'com/lbg/workflow/sandbox/docker/Dockerfile.node.allmodules.894'
+			dockerFiles['Dockerfile.node.base'] = 'com/lbg/workflow/sandbox/docker/Dockerfile.node.base.894'
+			composeFile = 'com/lbg/workflow/sandbox/docker/docker-compose.node894.yml'
+			dockerIgnore = 'com/lbg/workflow/sandbox/docker/dockerignore.node'
+			break
 		default :
 			error "createDockerContext: Invalid argument  ${name}"
 			break

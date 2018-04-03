@@ -1,0 +1,33 @@
+FROM 10.112.159.88:40007/node:8.9.4
+
+RUN 	useradd -u 1500 --create-home jenkins2 && umask 002 && mkdir -p workspace;
+WORKDIR /home/jenkins2
+
+ADD 	https://nexus.sandbox.extranet.group/nexus/content/repositories/binaries/node-sass/v4.5.1/linux-x64-46_binding.node   linux-x64-46_binding.node
+
+ADD	https://nexus.sandbox.extranet.group/nexus/content/repositories/binaries/oracle/instantclient/122010/instantclient_12_2.tar.gz instantclient_12_2.tar.gz
+
+
+ENV 	SASS_BINARY_PATH=/home/jenkins2/linux-x64-46_binding.node \
+        NVM_NODEJS_ORG_MIRROR=https://nexus.sandbox.extranet.group/nexus/content/sites/binaries/node \
+        NODE_TLS_REJECT_UNAUTHORIZED="0" \
+        HTTP_PROXY=http://10.113.140.187:3128 \
+        HTTPS_PROXY=http://10.113.140.187:3128 \
+        http_proxy=http://10.113.140.187:3128 \
+        https_proxy=http://10.113.140.187:3128 \
+        no_proxy=localhost,127.0.0.1,sandbox.local,lbg.eu-gb.mybluemix.net,lbg.eu-gb.bluemix.net,10.113.140.170,10.113.140.179,10.113.140.187,10.113.140.168,jenkins.sandbox.extranet.group,nexus.sandbox.extranet.group,gerrit.sandbox.extranet.group,sonar.sandbox.extranet.group,extranet.group \
+        OCI_INC_DIR=/home/jenkins2/instantclient_12_2/sdk/include/ \
+        OCI_LIB_DIR=/home/jenkins2/instantclient_12_2/ \
+        LD_LIBRARY_PATH=/home/jenkins2/instantclient_12_2/:$LD_LIBRARY_PATH
+
+RUN 	chown jenkins2:jenkins2  * -R && \
+        tar -xvzf instantclient_12_2.tar.gz && \
+        ln -s /home/jenkins2/instantclient_12_2/libclntsh.so.12.1 /home/jenkins2/instantclient_12_2/libclntsh.so  && \
+        ls -l /home/jenkins2/instantclient_12_2 && \
+        npm config set registry https://nexus.sandbox.extranet.group/nexus/content/groups/npm-master/ && \
+        npm config set strict-ssl false && \
+        npm install npm5 gulp eslint -g && \
+        rm -rf ~/.npm
+
+USER 	jenkins2
+WORKDIR /home/jenkins2/workspace
