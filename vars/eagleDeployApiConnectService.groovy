@@ -61,7 +61,6 @@ private String deployAppScript() {
         export HOME=\$WORKSPACE
         unset http_proxy https_proxy
         export PATH=\$APIC_PATH:\$PATH  
-        env      
         function deployApp() {
             cd \$deployable
             rm -rf .apiconnect/
