@@ -33,7 +33,11 @@ def call(String appName, pathToConfig)
 
       stage('Splunk'){
         node(){
-          deployer.publishSplunk(targetBranch, epoch, context)
+          try {
+              deployer.publishSplunk(targetBranch, epoch, context)
+          } catch (error) {
+              print "Failed publishing reports to splunk. Continuing."
+          }
         }
       }
       milestone(label:'Splunk')
