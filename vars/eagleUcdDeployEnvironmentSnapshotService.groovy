@@ -3,7 +3,7 @@ import com.lbg.workflow.sandbox.deploy.UtilsUCD
 def call(deployContext) {
     def snapshotName
     def outcome
-    def snapshotFilter = "${deployContext.release.environment}.OB-R-"
+    def snapshotFilter = deployContext?.release?.deploySnapshotFilter ?: deployContext.release.environment
     def snapshots = eagleUcdGetSnapshotsService(deployContext, snapshotFilter, true, true)
     timeout(time: 300, unit: 'SECONDS') {
         outcome = input id: 'environmentSnapshot',
