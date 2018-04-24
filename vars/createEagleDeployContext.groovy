@@ -92,7 +92,7 @@ private def validate(deployContext) {
         for (def service : deployContext.services) {
             def artifact = service.runtime.binary.artifact
             if (artifact.contains("-rc.") || artifact.contains("-de.")) {
-                error "Invalid artifact configuration for service ${service.name}. Only artifacts from bugfix/* branches are allowed"
+                error "Invalid artifact configuration for service ${service.name}. Artifacts from master branches are not allowed"
             }
         }
     }

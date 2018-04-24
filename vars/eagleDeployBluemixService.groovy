@@ -267,9 +267,9 @@ private def buildAnalyticsEnvs(deployContext) {
 	return envs
 }
 
-
 def buildTokens(service, deployContext) {
-	def tokens = deployContext?.platforms?.bluemix?.types?."$service.type"?.tokens ?: [:]
+	def tokens = [:]
+	tokens.putAll(deployContext?.platforms?.bluemix?.types?."$service.type"?.tokens ?: [:])
 	tokens.putAll(service?.platforms?.bluemix?.tokens ?: [:])
 	tokens.putAll(service?.tokens ?: [:])
 	return tokens
@@ -340,5 +340,8 @@ def getTokensDigest(service, deployContext) {
 	def tokens = buildTokens(service, deployContext)
 	GlobalUtils utils = new GlobalUtils()
 	def sortedTokens = utils.sortMap(tokens)
-	return utils.generateDigest("SHA-512", sortedTokens.toString())
+	echo "sorted tokens: ${sortedTokens.toString()}"
+	def digest = utils.generateDigest("SHA-512", sortedTokens.toString())
+	echo "digest: ${digest}"
+	return digest
 }
