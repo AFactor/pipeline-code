@@ -11,12 +11,12 @@ def call(deployContext) {
                 ok: 'Deploy',
                 parameters: [
                         [
-                                $class     : 'ChoiceParameterDefinition', choices: "${snapshots.join("\n")}",
+                                $class     : 'hudson.model.ChoiceParameterDefinition', choices: "${snapshots.join("\n")}",
                                 name       : 'Environment Snapshot',
                                 description: ''
                         ],
                         [
-                                $class      : 'BooleanParameterDefinition',
+                                $class      : 'hudson.model.BooleanParameterDefinition',
                                 defaultValue: false,
                                 name        : 'Confirm Deployment',
                                 description : ''
