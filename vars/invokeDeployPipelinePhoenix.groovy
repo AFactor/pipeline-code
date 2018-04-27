@@ -62,7 +62,7 @@ def call(String configuration) {
         }
     }
 
-    lock(inversePrecedence: true, quantity: 1, resource: "j2-${deployContext.journey}-${deployContext.env}-deploy") {
+    lock(inversePrecedence: true, quantity: 1, resource: "${env.JOB_NAME}") {
         testStage = new phoenixTestStage()
         deployStage = new phoenixDeployStage()
         notifyStage = new phoenixNotifyStage()
