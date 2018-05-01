@@ -123,17 +123,15 @@ String ucdApplicationEnvironments(ucdToken, name) {
  * @return
  **/
 @NonCPS
-def cwaCreateVersion(service, deployContext, ucdToken, name, date) {
+def cwaCreateVersion(service, comp, deployContext, ucdToken, name, date) {
     println "********************************"
     println " UCD Create Version for ${name} "
     println "********************************"
 
     def version = service.runtime.binary.version
-    def revision = ''
-    if (service.runtime.binary.revision.size() > 9) {
-        revision = service.runtime.binary.revision[0..9]
-    } else {
-        revision = service.runtime.binary.revision
+    def revision = comp.revision ? comp.revision : service.runtime.binary.revision
+    if (revision.size() > 9) {
+        revision = revision[0..9]
     }
     def ucdUrl = deployContext.deployment.ucd_url
     def udClient = "./udclient/udclient"
@@ -161,17 +159,15 @@ def cwaCreateVersion(service, deployContext, ucdToken, name, date) {
  * @return
  **/
 @NonCPS
-def cwaAddVersion(service, deployContext, ucdToken, baseDir, name, date) {
+def cwaAddVersion(service, comp, deployContext, ucdToken, baseDir, name, date) {
     println "*****************************"
     println " UCD Add Version for ${name} "
     println "*****************************"
 
     def version = service.runtime.binary.version
-    def revision = ''
-    if (service.runtime.binary.revision.size() > 9) {
-        revision = service.runtime.binary.revision[0..9]
-    } else {
-        revision = service.runtime.binary.revision
+    def revision = comp.revision ? comp.revision : service.runtime.binary.revision
+    if (revision.size() > 9) {
+        revision = revision[0..9]
     }
     def ucdUrl = deployContext.deployment.ucd_url
     def udClient = "./udclient/udclient"
@@ -261,21 +257,21 @@ def apiAddVersion(service, deployContext, ucdToken, baseDir, name, date) {
  * @return
  */
 @NonCPS
-def ucdSetVersionProperty(service, deployContext, ucdToken, name, date) {
+def ucdSetVersionProperty(service, comp, deployContext, ucdToken, name, date) {
     println "**************************************"
     println " UCD Set Version Property for ${name} "
     println "**************************************"
 
     def version = service.runtime.binary.version
-    def revision = service.runtime.binary.revision
     def revisionTrunc = ''
-    if (service.runtime.binary.revision.size() > 9) {
-        revisionTrunc = service.runtime.binary.revision[0..9]
+    def revision = comp.revision ? comp.revision : service.runtime.binary.revision
+    if (revision.size() > 9) {
+        revisionTrunc = revision[0..9]
     } else {
-        revisionTrunc = service.runtime.binary.revision
+        revisionTrunc = revision
     }
     def ucdUrl = deployContext.deployment.ucd_url
-    def versionPath = "${version}-${revision}"
+    def versionPath = comp.versionPath ? comp.versionPath : "${version}-${revision}"
     def udClient = "./udclient/udclient"
     def componentSet = "-component '${name}'"
     def versionSet = "-version ${version}-${revisionTrunc}"
@@ -338,18 +334,16 @@ def install_by_url(ucdUrl) {
  * @return
  */
 @NonCPS
-def ucdAddVersionLink(service, deployContext, ucdToken, name, date) {
+def ucdAddVersionLink(service, comp, deployContext, ucdToken, name, date) {
 
     println "**********************************"
     println " UCD Add Version Link for ${name} "
     println "**********************************"
 
     def version = service.runtime.binary.version
-    def revision = ''
-    if (service.runtime.binary.revision.size() > 9) {
-        revision = service.runtime.binary.revision[0..9]
-    } else {
-        revision = service.runtime.binary.revision
+    def revision = comp.revision ? comp.revision : service.runtime.binary.revision
+    if (revision.size() > 9) {
+        revision = revision[0..9]
     }
     def ucdUrl = deployContext.deployment.ucd_url
     def udClient = "./udclient/udclient"
@@ -508,16 +502,14 @@ def ucdLockSnapshotVersions(deployContext, ucdToken, userInput) {
  * @param name
  * @return
  */
-boolean getVersionsJson(getVersion, service, name) {
+boolean getVersionsJson(getVersion, service, comp, name) {
     println "**************************"
     println " Parsing UCD Version Info "
     println "**************************"
     def cfgVersion = service.runtime.binary.version
-    def cfgRevision = ''
-    if (service.runtime.binary.revision.size() > 9) {
-        cfgRevision = service.runtime.binary.revision[0..9]
-    } else {
-        cfgRevision = service.runtime.binary.revision
+    def cfgRevision = comp.revision ? comp.revision : service.runtime.binary.revision
+    if (cfgRevision.size() > 9) {
+        cfgRevision = cfgRevision[0..9]
     }
     def versionName = "${cfgVersion}-${cfgRevision}"
 

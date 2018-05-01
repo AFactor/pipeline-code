@@ -33,20 +33,19 @@ private def cwaUpload(service, deployContext, ucdToken) {
         phoenixLogger(5,"Base Dir: ${baseDir} :: Name: ${name}", "dash")
         def getVersion = utils.ucdComponentVersion(deployContext, ucdToken, name)
 
-        def versionStatus = utils.getVersionsJson(getVersion, service, name)
+        def versionStatus = utils.getVersionsJson(getVersion, service, comp, name)
         if (!versionStatus) {
-            def createVersion = utils.cwaCreateVersion(service, deployContext, ucdToken, name, date)
+            def createVersion = utils.cwaCreateVersion(service, comp, deployContext, ucdToken, name, date)
             phoenixLogger(3, "Create Version Output: ${createVersion}", 'dash')
 
-            def addVersion = utils.cwaAddVersion(service, deployContext, ucdToken, baseDir, name, date)
+            def addVersion = utils.cwaAddVersion(service, comp, deployContext, ucdToken, baseDir, name, date)
             phoenixLogger(3, "Add Version Output: ${addVersion}", 'dash')
 
-            def setVersion = utils.ucdSetVersionProperty(service, deployContext, ucdToken, name, date)
+            def setVersion = utils.ucdSetVersionProperty(service, comp, deployContext, ucdToken, name, date)
             phoenixLogger(3, "Set Version Property Output: ${setVersion}", 'dash')
 
-            def addLink = utils.ucdAddVersionLink(service, deployContext, ucdToken, name, date)
+            def addLink = utils.ucdAddVersionLink(service, comp, deployContext, ucdToken, name, date)
             phoenixLogger(3, "Add Version Link Output: ${addLink}", 'dash')
-
         }
     }
 }
@@ -62,7 +61,7 @@ private def apiUpload(service, deployContext, ucdToken) {
 
         def getVersion = utils.ucdComponentVersion(deployContext, ucdToken, name)
         println ("Version Information: " + getVersion.toString())
-        def versionStatus = utils.getVersionsJson(getVersion, service, name)
+        def versionStatus = utils.getVersionsJson(getVersion, service, comp, name)
         if (!versionStatus) {
             def createVersion = utils.apiCreateVersion(service, deployContext, ucdToken, name, date)
             phoenixLogger(3, "Create Version Output: ${createVersion}", 'dash')
@@ -85,7 +84,7 @@ private def obaispUpload(service, deployContext, ucdToken) {
 
         def getVersion = utils.ucdComponentVersion(deployContext, ucdToken, name)
         println ("Version Information: " + getVersion.toString())
-        def versionStatus = utils.getVersionsJson(getVersion, service, name)
+        def versionStatus = utils.getVersionsJson(getVersion, service, comp, name)
         if (!versionStatus) {
             def createVersion = utils.apiCreateVersion(service, deployContext, ucdToken, name, date)
             phoenixLogger(3, "Create Version Output: ${createVersion}", 'dash')

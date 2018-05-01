@@ -21,6 +21,16 @@ class Components implements Serializable {
      */
     String version
 
+    /**
+     * component revision
+     */
+    String revision
+
+    /**
+     * component version path
+     */
+    String versionPath
+
     Components() {
     }
 
@@ -31,6 +41,8 @@ class Components implements Serializable {
                 ", description='" + description + '\'' +
                 ", baseDir='" + description + '\'' +
                 ", version='" + version + '\'' +
+                ", revision='" + revision + '\'' +
+                ", versionPath='" + versionPath + '\'' +
                 '}'
     }
 }

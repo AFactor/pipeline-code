@@ -279,9 +279,15 @@ private def apiGerritRevision(deployContext) {
 
 private def cwaSetComponentPaths(service) {
     def version = service.runtime.binary.version
-    def revision = service.runtime.binary.revision
-    def versionPath = "${version}-${revision}"
+
     for (def comp in service.components) {
+        def verScript = "find ${comp.baseDir} -name version.txt -exec cat '{}' \\; -quit"
+        def revision = sh(returnStdout:true, script: verScript).trim().split('-').last().trim()
+        if (revision.length() == 0) {
+            revision = service.runtime.binary.version
+        }
+        def versionPath = "${version}-${revision}"
+
         def baseVersion = comp.baseDir + "/" + versionPath
         def baseVerPath = comp.baseDir + "/" + version
         def baseRevPath = comp.baseDir + "/" + revision
@@ -300,12 +306,16 @@ private def cwaSetComponentPaths(service) {
         phoenixLogger(4, "baseVersion: ${baseVersion} :: Exists: ${bvExists}", 'star')
         phoenixLogger(4, "baseRevPath: ${baseRevPath} :: Exists: ${brExists}", 'star')
 
+        comp.revision = revision
         if (bvpExists == 'yes') {
             comp.baseDir = baseVerPath
+            comp.versionPath = version
         } else if (bvExists == 'yes') {
             comp.baseDir = baseVersion
+            comp.versionPath = versionPath
         } else if (brExists == 'yes') {
             comp.baseDir = baseRevPath
+            comp.versionPath = revision
         }
     }
     phoenixLogger(3, "Components : Updated Configuration ::  ${service}", 'dash' )
