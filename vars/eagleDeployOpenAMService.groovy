@@ -84,7 +84,8 @@ def getArtifactVersion(artifact) {
 
 
 private def buildTokens(service, deployContext) {
-	def tokens = deployContext?.platforms?.openam?.tokens ?: [:]
+	def tokens = [:]
+	tokens.putAll(deployContext?.platforms?.openam?.tokens ?: [:])
 	tokens.putAll(service?.platforms?.openam?.tokens ?: [:])
 	tokens.putAll(service?.tokens ?: [:])
 	return tokens
