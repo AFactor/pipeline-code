@@ -284,7 +284,7 @@ private def cwaSetComponentPaths(service) {
         def verScript = "find ${comp.baseDir} -name version.txt -exec cat '{}' \\; -quit"
         def revision = sh(returnStdout:true, script: verScript).trim().split('-').last().trim()
         if (revision.length() == 0) {
-            revision = service.runtime.binary.version
+            revision = service.runtime.binary.revision
         }
         def versionPath = "${version}-${revision}"
 
