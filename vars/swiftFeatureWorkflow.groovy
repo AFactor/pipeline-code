@@ -52,7 +52,7 @@ def call(BuildContext context, handlers, String targetBranch) {
     }
     try {
         // Basic Qualification -----------------------------------//
-        if (!unitTests.empty) {
+        if (unitTests) {
             stage("Unit Tests") {
                 for (Object testClass : unitTests) {
                     def currentTest = testClass
@@ -63,7 +63,7 @@ def call(BuildContext context, handlers, String targetBranch) {
         }
 
         // Sonar/Checkstyle et al -----------------------------------//
-        if (!sanityTests.empty) {
+        if (sanityTests) {
             stage("Static Analysis") {
                 def codeSanitySchedule = [:]
                 for (Object testClass : sanityTests) {
@@ -83,7 +83,7 @@ def call(BuildContext context, handlers, String targetBranch) {
         }
 
         // Build--------only if we are going to deploy---------------------------//
-        if (!integrationTests.empty) {
+        if (integrationTests) {
             stage("Package") {
                 builder.pack(targetBranch, targetEnv, context)
             }
@@ -93,7 +93,7 @@ def call(BuildContext context, handlers, String targetBranch) {
         // Concurrency Controlled Deploy/IntegrationTest Cycle-----------------//
         lock(inversePrecedence: true, quantity: 1, resource: integrationEnvironment) {
             // Integration Tests--------------------------------------//
-            if (!integrationTests.empty) {
+            if (integrationTests) {
                 stage("Deploy") {
                     appDeployer.deploy(targetBranch, context)
                 }

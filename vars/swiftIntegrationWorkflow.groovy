@@ -54,7 +54,7 @@ def call(BuildContext context, handlers, String targetBranch) {
     }
     try {
         // Basic Qualification -----------------------------------//
-        if (!unitTests.empty) {
+        if (unitTests) {
             stage("Unit Tests") {
                 for (Object testClass : unitTests) {
                     def currentTest = testClass
@@ -65,7 +65,7 @@ def call(BuildContext context, handlers, String targetBranch) {
         }
 
         // Sonar/Checkstyle et al -----------------------------------//
-        if (!sanityTests.empty) {
+        if (sanityTests) {
             stage("Static Analysis") {
                 def codeSanitySchedule = [:]
                 for (Object testClass : sanityTests) {
@@ -93,7 +93,7 @@ def call(BuildContext context, handlers, String targetBranch) {
         // Concurrency Controlled Deploy/IntegrationTest Cycle-----------------//
         lock(inversePrecedence: true, quantity: 1, resource: integrationEnvironment) {
             // Integration Tests--------------------------------------//
-            if (!integrationTests.empty) {
+            if (integrationTests) {
                 stage("Deploy") {
                     appDeployer.deploy(targetBranch, context)  //Hardcoded to DEV as current practice
                 }
@@ -149,7 +149,7 @@ def call(BuildContext context, handlers, String targetBranch) {
                 echo "Build has failed. Not publishing to nexus"
             }
             //Publish what you can to splunk regardless of success.
-            if (!allTests.empty) {
+            if (allTests) {
                 try {
                     splunkPublisher {
                         tests = allTests

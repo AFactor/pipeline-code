@@ -56,7 +56,7 @@ def call(String application, handlers, configuration, String notifyList) {
 
     try {
         // Basic Qualification -----------------------------------//
-        if(!unitTests.empty){
+        if(unitTests){
             stage("Unit Tests"){
                 for (Object testClass: unitTests) {
                     def currentTest = testClass

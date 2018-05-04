@@ -76,8 +76,9 @@ def call(BuildContext context, handlers, String targetCommit) {
 		milestone (label: 'Ready')
 	}
 	try{
+		echo "Trying..."
 		// Basic Qualification -----------------------------------//
-		if(!unitTests.empty){
+		if(unitTests){
 			stage("Unit Tests"){
 				try {
 					for (Object testClass: unitTests) {
@@ -86,6 +87,8 @@ def call(BuildContext context, handlers, String targetCommit) {
 					}
 					milestone (label: 'UnitTests')
 				}catch(error){
+					echo "failed unit tests."
+					echo error.message
 					gerritHandler.failTests(changeID, revision)
 					throw error
 				}finally{ }
@@ -95,7 +98,7 @@ def call(BuildContext context, handlers, String targetCommit) {
 
 
 		// Sonar/Checkstyle etal -----------------------------------//
-		if(!sanityTests.empty){
+		if(sanityTests){
 			stage("Static Analysis"){
 				def codeSanitySchedule = [:]
 				for (Object testClass: sanityTests) {
@@ -118,7 +121,7 @@ def call(BuildContext context, handlers, String targetCommit) {
 
 
 		// Build------only if deployment needed---------------------------//
-		if(!integrationTests.empty){
+		if(integrationTests){
 			stage("Package"){
 				try {
 					builder.pack(targetBranch, targetEnv, context)
@@ -138,7 +141,7 @@ def call(BuildContext context, handlers, String targetCommit) {
 		// Concurrency Controlled Deploy/IntegrationTest Cycle-----------------//
 		lock(inversePrecedence: true, quantity: 1, resource: integrationEnvironment ) {
 			// Integration Tests--------------------------------------//
-			if(!integrationTests.empty){
+			if(integrationTests){
 				stage("Deploy"){
 					try{
 						appDeployer.deploy(targetBranch, context)  //Hardcoded to DEV as current practice
@@ -172,6 +175,7 @@ def call(BuildContext context, handlers, String targetCommit) {
 
 	} catch(error) {
 		echo "Mandatory Steps have failed. Aborting"
+		echo error.message
 		throw error
 	} finally {
 		// Clean up environments/workspaces ----------------------//

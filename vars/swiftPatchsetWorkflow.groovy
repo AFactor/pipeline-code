@@ -67,7 +67,7 @@ def call(BuildContext context, handlers, String targetCommit) {
     }
     try {
         // Basic Qualification -----------------------------------//
-        if (!unitTests.empty) {
+        if (unitTests) {
             stage("Unit Tests") {
                 try {
                     for (Object testClass : unitTests) {
@@ -84,7 +84,7 @@ def call(BuildContext context, handlers, String targetCommit) {
         }
 
         // Sonar/Checkstyle etal -----------------------------------//
-        if (!sanityTests.empty) {
+        if (sanityTests) {
             stage("Static Analysis") {
                 def codeSanitySchedule = [:]
                 for (Object testClass : sanityTests) {
@@ -105,7 +105,7 @@ def call(BuildContext context, handlers, String targetCommit) {
         }
 
         // Build------only if deployment needed---------------------------//
-        if (!integrationTests.empty) {
+        if (integrationTests) {
             stage("Package") {
                 try {
                     builder.pack(targetBranch, targetEnv, context)
@@ -122,7 +122,7 @@ def call(BuildContext context, handlers, String targetCommit) {
         // Concurrency Controlled Deploy/IntegrationTest Cycle-----------------//
         lock(inversePrecedence: true, quantity: 1, resource: integrationEnvironment) {
             // Integration Tests--------------------------------------//
-            if (!integrationTests.empty) {
+            if (integrationTests) {
                 stage("Deploy") {
                     try {
                         appDeployer.deploy(targetBranch, context)  //Hardcoded to DEV as current practice
