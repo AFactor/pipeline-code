@@ -29,7 +29,8 @@ def buildServiceBluemixEnv(HashMap serviceBluemix, HashMap globalBluemix) {
 
 @NonCPS
 def buildServiceBluemix(HashMap serviceBluemix, HashMap globalBluemix) {
-    def envs = globalBluemix
+    def envs = [:]
+    envs.putAll(globalBluemix)
     if (serviceBluemix != null) {
         for (e in serviceBluemix) {
             envs[e.key] = e.value
