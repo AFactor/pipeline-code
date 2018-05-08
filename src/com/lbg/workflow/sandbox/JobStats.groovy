@@ -28,7 +28,7 @@ def toSplunk(String jobTag, String buildUrl, String credentialsId, String jobSta
         try {
             withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: credentialsId,
                               usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]){
-                sh "curl --insecure -f -s --user ${USERNAME}:${PASSWORD} ${buildUrl}/wfapi/describe | \
+                sh "curl --insecure -f -s --user '${USERNAME}:${PASSWORD}' '${buildUrl}/wfapi/describe' | \
               python -c \'import json,sys; s=json.load(sys.stdin); s[\"status\"]=\"${jobStatus}\"; \
                           print json.dumps(s)\' > '${filename}'"
             }
