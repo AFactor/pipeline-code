@@ -13,9 +13,15 @@
 
 package com.lbg.workflow.sandbox
 
+// Replaces "weird" characters (spaces, brackets, slashes)
+// so that output can be safely used as a file name in shell scripts
+def safeFileName(String name){
+    name.replaceAll('[/!()\\ ]','_')
+}
+
 def toSplunk(String jobTag, String buildUrl, String credentialsId, String jobStatus, String endPoint){
     node('framework'){
-        filename = "${jobTag}-stats.json"
+        filename = safeFileName("${jobTag}-stats.json")
         if (!endPoint) {
             endPoint = "/apps/splunkreports/jenkinsstats/all/"
         }
@@ -24,7 +30,7 @@ def toSplunk(String jobTag, String buildUrl, String credentialsId, String jobSta
                               usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]){
                 sh "curl --insecure -f -s --user ${USERNAME}:${PASSWORD} ${buildUrl}/wfapi/describe | \
               python -c \'import json,sys; s=json.load(sys.stdin); s[\"status\"]=\"${jobStatus}\"; \
-                          print json.dumps(s)\' > ${filename}"
+                          print json.dumps(s)\' > '${filename}'"
             }
             splunkPublisher.SCP(filename, endPoint)
         } catch (error) {
