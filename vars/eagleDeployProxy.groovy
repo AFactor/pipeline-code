@@ -5,9 +5,10 @@ def call(DeployContext deployContext) {
     node() {
         checkout scm
         def proxyName = "${deployContext.release.journey}-proxy-${deployContext.release.environment}"
-        def confHeader = readFile('nginx/nginx.conf.head')
+
+        def confHeader = libraryResource "com/lbg/workflow/sandbox/bluemix/nginx.conf.head"
         def confBody = buildProxyBody(deployContext)
-        def confTail = readFile('nginx/nginx.conf.tail')
+        def confTail = libraryResource "com/lbg/workflow/sandbox/bluemix/nginx.conf.tail"
 
         echo "create proxy directory"
         sh "mkdir -p ${proxyName}"
@@ -15,9 +16,7 @@ def call(DeployContext deployContext) {
             writeFile file: 'nginx.conf', text: confHeader + confBody + confTail
             archiveArtifacts 'nginx.conf'
         }
-        if (deployContext.platforms.target == "bluemix") {
-            eagleDeployBluemixProxy(proxyName, deployContext)
-        }
+        eagleDeployBluemixProxy(proxyName, deployContext)
     }
 }
 
@@ -29,17 +28,20 @@ private def buildProxyBody(DeployContext deployContext) {
                     return 200 '${deployContext.release.journey} ${deployContext.release.environment} proxy';
                 }
                  """
-    for (Service service : deployContext.services) {
-        for (proxyItem in service.platforms.proxy) {
-            def appName = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
-            proxyBody = proxyBody + """
 
-						location ${proxyItem.value} {				
-							proxy_pass https://${appName}.${lbgDomain}${proxyItem.key} ;
-						}
-									
-					"""
-        }
+    def proxyPassToken = deployContext?.platforms?.proxy?.proxy_pass_token ?: "API_CONTEXT_ROOT"
+    for (Service service : deployContext.services) {
+            if (service.tokens[proxyPassToken]) {
+                def appName = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
+                proxyBody = proxyBody + """
+
+                    location /${service.tokens[proxyPassToken]} {				
+                        proxy_pass https://${appName}.${lbgDomain}/${service.tokens[proxyPassToken]} ;
+                    }
+                                
+                """
+            }
+
     }
     return proxyBody
 }

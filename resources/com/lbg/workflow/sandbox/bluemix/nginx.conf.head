@@ -1,0 +1,8 @@
+worker_processes 2;
+daemon off;
+error_log /home/vcap/app/nginx/logs/error.log;
+events { worker_connections 1024; }
+http {
+  server {
+        listen <%= ENV["PORT"] %>;
+

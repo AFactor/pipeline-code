@@ -319,9 +319,9 @@ def needsDeployment(service, deployContext) {
 				if ((result ==~ /(?s)(.*)(0\\/[1-9])(.*)/) ||
 						result.contains("CRASHED") ||
 						result.contains("starting") ||
-						result.contains("flapping") ||
-						!(result ==~ /(?s)(.*)($artifactVersion)(.*)/) ||
-						!(result ==~ /(?s)(.*)($tokensDigest)(.*)/)) {
+					result.contains("flapping") ||
+					!(result ==~ /(?s)(.*)($artifactVersion)(.*)/) ||
+					!(result ==~ /(?s)(.*)($tokensDigest)(.*)/)) {
 
 					echo "app check - deploy app ${appName}"
 					return true
