@@ -692,8 +692,13 @@ def setComponentEnvironmentProperty(ucdUrl, ucdToken, applicationName, component
     println "*****************************"
 
     def udClient = "./udclient/udclient"
-    def command = "setComponentEnvironmentProperty -application '${applicationName}' -component '${componentName}' -environment '${environment}' -name '${name}' -value '${value}'"
-    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+    def requestJson = UDClient.jsonFromMap(["application": applicationName,
+                                            "component": componentName,
+                                            "environment": environment,
+                                            "name": name,
+                                            "value": value])
+
+    def ucdCmd = "echo '${requestJson}' | ${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} setComponentEnvironmentProperty -"
 
     def responseJson = sh(returnStdout: true, script: ucdCmd).trim()
     echo("Response json: ${responseJson}")
