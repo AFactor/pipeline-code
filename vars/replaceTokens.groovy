@@ -1,6 +1,6 @@
 def call(targetDir, envConfig) {
     try {
-        echo "replaceTokens: targetDir:$targetDir, envConfig: ${envConfig.toString()}"
+        echo "replaceTokens: targetDir:${targetDir}"
         String envConfigArray = "("
         if (envConfig != null) {
             for (e in envConfig) {
@@ -23,6 +23,7 @@ private String replaceTokensScript(targetDir, envConfigArray) {
     return """
 #!/usr/bin/env bash
 set -e
+set +x
 targetDir="$targetDir"
 declare -A envConfig=$envConfigArray
 function replaceTokens() {

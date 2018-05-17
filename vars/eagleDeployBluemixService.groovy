@@ -1,6 +1,8 @@
 import com.lbg.workflow.global.GlobalUtils
 import com.lbg.workflow.sandbox.deploy.ManifestBuilder
 import com.lbg.workflow.sandbox.deploy.UtilsBluemix
+import com.lbg.workflow.sandbox.ServiceDiscovery
+import com.lbg.workflow.sandbox.SecureKeyStore
 
 def call(service, deployContext) {
 	if (needsDeployment(service, deployContext)) {
@@ -272,6 +274,9 @@ def buildTokens(service, deployContext) {
 	tokens.putAll(deployContext?.platforms?.bluemix?.types?."$service.type"?.tokens ?: [:])
 	tokens.putAll(service?.platforms?.bluemix?.tokens ?: [:])
 	tokens.putAll(service?.tokens ?: [:])
+	echo "Fetching credentials from Vault for tokens: ${tokens}"
+	SecureKeyStore secureKeyStore = new SecureKeyStore(tokens, 'vault', this)
+	tokens = secureKeyStore.fillWithCredentials(['appRole': 'jenkins-ob-vault-approle'])
 	return tokens
 }
 
@@ -340,7 +345,7 @@ def getTokensDigest(service, deployContext) {
 	def tokens = buildTokens(service, deployContext)
 	GlobalUtils utils = new GlobalUtils()
 	def sortedTokens = utils.sortMap(tokens)
-	echo "sorted tokens: ${sortedTokens.toString()}"
+	echo "Sorted tokens successfully"
 	def digest = utils.generateDigest("SHA-512", sortedTokens.toString())
 	echo "digest: ${digest}"
 	return digest
