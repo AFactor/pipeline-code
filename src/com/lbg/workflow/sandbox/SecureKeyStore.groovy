@@ -41,10 +41,10 @@ class SecureKeyStore {
      *
      * @return Map
      */
-    def fillWithCredentials(serviceConfig) {
+    def fillWithCredentials(Map<String, String> serviceConfig) {
         switch (this.service) {
             case 'vault':
-                return this.getSecretFromVault('jenkins-ob-vault-approle')
+                return this.getSecretFromVault(serviceConfig['appRole'])
                 break
             /** more services can be added later */
             default:
