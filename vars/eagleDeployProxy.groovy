@@ -36,7 +36,7 @@ private def buildProxyBody(DeployContext deployContext) {
                 proxyBody = proxyBody + """
 
                     location /${service.tokens[proxyPassToken]} {				
-                        proxy_pass https://${appName}.${lbgDomain}/${service.tokens[proxyPassToken]} ;
+                        proxy_pass https://${appName.replace(".", "")}.${lbgDomain}/${service.tokens[proxyPassToken]} ;
                     }
                                 
                 """
