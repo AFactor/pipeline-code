@@ -149,14 +149,22 @@ private void nodeBuildPack(service, deployContext) {
 	echo "build service manifest"
 	def appName = "${deployContext.release.journey}-${service.name}-${deployContext.release.environment}"
 	def manifestBuilder = new ManifestBuilder()
+
 	def manifest = manifestBuilder.build(appName, service, deployContext)
 	manifest = manifestBuilder.buildEnvs(manifest, buildAnalyticsEnvs(deployContext))
 	manifest = manifestBuilder.buildEnvs(manifest,
 			["ARTIFACT_VERSION": getArtifactVersion(service.runtime.binary.artifact),
 			"TOKENS_DIGEST": getTokensDigest(service, deployContext)])
+	if(null != deployContext.platforms?.proxy?.addRouteToManifest) {
+		manifest = manifestBuilder.buildRoute(
+			manifest, 
+			"${deployContext.release.journey}-${deployContext.release.environment}.${deployContext.platforms.bluemix.domain}/${service.tokens.API_CONTEXT_ROOT}",
+			appName.replace('.','')+".${deployContext.platforms.bluemix.domain}/${service.tokens.API_CONTEXT_ROOT}"
+			)
+	}
 	sh "mkdir -p ${service.name}/pipelines/conf"
 	writeFile file: "${service.name}/pipelines/conf/manifest.yml", text: manifest
-
+	archiveArtifacts "${service.name}/pipelines/conf/manifest.yml"
 	// deploy service
 	echo "deploy service"
 	def utils = new UtilsBluemix()

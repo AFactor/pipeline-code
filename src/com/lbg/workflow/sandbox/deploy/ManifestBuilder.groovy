@@ -50,6 +50,11 @@ class ManifestBuilder implements Serializable {
 		return manifest
 	}
 
+	String buildRoute(manifest, String route, String appName) {
+		manifest += "\n          routes:\n            - route: \"${route}\"\n            - route: \"${appName}\"\n"
+		return manifest
+	}
+
 	String defaultManifest(appName, bluemix) {
 		return """
         applications:
