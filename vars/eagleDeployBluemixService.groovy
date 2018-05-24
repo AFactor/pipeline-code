@@ -156,11 +156,13 @@ private void nodeBuildPack(service, deployContext) {
 			["ARTIFACT_VERSION": getArtifactVersion(service.runtime.binary.artifact),
 			"TOKENS_DIGEST": getTokensDigest(service, deployContext)])
 	if(null != deployContext.platforms?.proxy?.addRouteToManifest) {
-		manifest = manifestBuilder.buildRoute(
-			manifest, 
-			"${deployContext.release.journey}-${deployContext.release.environment}.${deployContext.platforms.bluemix.domain}/${service.tokens.API_CONTEXT_ROOT}",
-			appName.replace('.','')+".${deployContext.platforms.bluemix.domain}/${service.tokens.API_CONTEXT_ROOT}"
-			)
+		if(null != service.tokens?.API_CONTEXT_ROOT) {
+			manifest = manifestBuilder.buildRoute(
+				manifest, 
+				"${deployContext.release.journey}-${deployContext.release.environment}.${deployContext.platforms.bluemix.domain}/${service.tokens.API_CONTEXT_ROOT}",
+				appName.replace('.','')+".${deployContext.platforms.bluemix.domain}/${service.tokens.API_CONTEXT_ROOT}"
+				)
+		}
 	}
 	sh "mkdir -p ${service.name}/pipelines/conf"
 	writeFile file: "${service.name}/pipelines/conf/manifest.yml", text: manifest
