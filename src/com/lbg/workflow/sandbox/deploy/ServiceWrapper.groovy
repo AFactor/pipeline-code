@@ -38,12 +38,12 @@ class ServiceWrapper implements Serializable {
     private String artifactVersion() {
         def artifactName = artifactName()
 
-        def m = artifactName =~ /^([\w|-]+)(.*)(\.zip|\.tar\.gz)$/
+        def m = artifactName =~ /^([\w|-]+)(.*)(\.zip|\.tar\.gz|\.tgz)$/
         if (m) {
-            return m[0][2]
+            return m[0][1][-1] + m[0][2]
         } else {
             // this should never happen
-            throw new RuntimeException("artifact name property has a wrong format, should match: ^([\\w|-]+)(.*)(\\.zip|\\.tar\\.gz)\$")
+            throw new RuntimeException("artifact name property has a wrong format, should match: ^([\\w|-]+)(.*)(\\.zip|\\.tar\\.gz|\.tgz)\$")
         }
     }
 
@@ -52,4 +52,3 @@ class ServiceWrapper implements Serializable {
         nexusUrl.substring(nexusUrl.lastIndexOf('/') + 1, nexusUrl.length())
     }
 }
-
