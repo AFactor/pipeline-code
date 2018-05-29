@@ -706,6 +706,18 @@ def setComponentEnvironmentProperty(ucdUrl, ucdToken, applicationName, component
     response
 }
 
+def createComponentEnvironmentProperty(ucdUrl, ucdToken, componentName, name, defaultValue) {
+    println "*****************************"
+    println " UCD create component property: ${componentName} property: ${name} value: ${defaultValue}"
+    println "*****************************"
+
+    def udClient = "./udclient/udclient"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} addEnvironmentProperty -component ${componentName} -name ${name} -default '${defaultValue}'"
+    def response = sh(returnStdout: true, script: ucdCmd).trim()
+    echo("Response: ${response}")
+    response
+}
+
 def createSnapshot(ucdUrl, ucdToken, requestJson) {
     println "**********************"
     println " Running UCD create snapshot, request: ${requestJson}"

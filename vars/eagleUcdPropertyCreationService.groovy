@@ -4,7 +4,7 @@ import com.lbg.workflow.sandbox.deploy.UtilsUCD
 import com.lbg.workflow.ucd.UDClient
 
 def call(deployContext) {
-    echo "Updating UCD Properties"
+    echo "Creating UCD Properties"
 
     // make sure ucd client is installed before starting parallel tasks
     if (!fileExists('./udclient/udclient'))
@@ -13,7 +13,7 @@ def call(deployContext) {
     def parallelJobs = [failFast: false]
     for (Service service : deployContext.services) {
         def localService = service
-        parallelJobs[localService.name] = { updateUcdComponentEnvironmentProperties(localService, deployContext) }
+        parallelJobs[localService.name] = { createUcdComponentEnvironmentProperties(localService, deployContext) }
     }
 
     try {
@@ -26,10 +26,10 @@ def call(deployContext) {
 }
 
 def call(service, deployContext) {
-    updateUcdComponentEnvironmentProperties(service, deployContext)
+    createUcdComponentEnvironmentProperties(service, deployContext)
 }
 
-private updateUcdComponentEnvironmentProperties(service, deployContext) {
+private createUcdComponentEnvironmentProperties(service, deployContext) {
 
     if (!service.platforms.ucd.component_name.trim()) {
         error("Missing UCD component name, service: ${service.name}")
@@ -40,7 +40,6 @@ private updateUcdComponentEnvironmentProperties(service, deployContext) {
     def ucdUrl = deployContext.platforms.ucd.ucd_url
     def ucdCredentialsTokenName = deployContext.platforms.ucd.credentials
     def componentName = service.platforms.ucd.component_name
-    def configPropertiesMap = service.tokens
     def utils = new UtilsUCD()
 
     echo("Checking ${componentName} ${environment} properties")
@@ -49,19 +48,12 @@ private updateUcdComponentEnvironmentProperties(service, deployContext) {
         utils.getComponentEnvironmentProperties(ucdUrl, ucdToken, applicationName, componentName, environment)
     }
 
-    def entries = GlobalUtils.mapAsList(ucdPropertiesMap)
-    for (def entry in entries) {
-        def propertyName = entry.get(0)
-        def ucdPropertyValue = entry.get(1).value
-        def isPropertySecure = entry.get(1).secure
-        def configPropertyValue = configPropertiesMap[propertyName]
-
-        if (isPropertySecure || ucdPropertyValue == configPropertyValue)
-            continue
-
-        echo("Setting property: ${propertyName}, actual value: ${ucdPropertyValue}, expected value: ${configPropertyValue}")
-        withUcdClientAndCredentials(ucdUrl, ucdCredentialsTokenName) { ucdToken ->
-            utils.setComponentEnvironmentProperty(ucdUrl, ucdToken, applicationName, componentName, environment, propertyName, configPropertyValue)
+    service.tokens.each {k,v ->
+        if (! ucdPropertiesMap.containsKey(k)){
+            echo("Creating property: ${k}, default value: ${v}")
+            withUcdClientAndCredentials(ucdUrl, ucdCredentialsTokenName) { ucdToken ->
+                utils.createComponentEnvironmentProperty("${ucdUrl}", "${ucdToken}", "${componentName}", "${k}", "${v}")
+            }
         }
     }
 }

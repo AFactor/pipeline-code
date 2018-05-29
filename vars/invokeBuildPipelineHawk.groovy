@@ -84,11 +84,11 @@ def callHandler(String application, handlers, String configuration) {
     context = new BuildContext(application, readFile(configuration))
     step([$class: 'WsCleanup', notFailBuild: true])
 
-}
+  }
 
   if (isPatchsetBranch(branch) ) {
 
-    echo "PatchsetWorkflow for ${targetCommit}.."
+    echo "PatchsetWorkFlow for ${targetCommit}.."
     hawkPatchsetWorkflow(context, handlers, targetCommit)
 
   } else if (isFeatureBranch(branch) ) {
@@ -112,6 +112,7 @@ def callHandler(String application, handlers, String configuration) {
   } else {
     error "No known git-workflow rule for branch called ${branch}"
   }
+
   echo "End BuildPipelineHawk for ${branch}"
 }
 
