@@ -7,8 +7,8 @@ def call() {
         checkout scm
 
         def _envs = "$env.JOB_NAME".split("/")
-        def environment = _envs[1]
-        def target = _envs[2].substring(_envs[2].lastIndexOf('-') + 1)
+        def environment = "$env.RELEASE_ENVIRONMENT" ?: _envs[1]
+        def target = "$env.RELEASE_TARGET" ?: _envs[2].substring(_envs[2].lastIndexOf('-') + 1)
 
         def release
         def services
