@@ -314,10 +314,7 @@ def ucdSetVersionTarProperty(service, deployContext, ucdToken, name, date) {
 
 
 def install(deployContext) {
-    def ucdUrl = deployContext.deployment.ucd_url
-    def wgetCmd = 'wget --no-check-certificate --quiet'
-    sh """${wgetCmd} ${ucdUrl}/tools/udclient.zip ; \\
-                                  unzip -o udclient.zip """
+    install_by_url(deployContext.deployment.ucd_url)
 }
 
 def install_by_url(ucdUrl) {
@@ -712,7 +709,77 @@ def createComponentEnvironmentProperty(ucdUrl, ucdToken, componentName, name, de
     println "*****************************"
 
     def udClient = "./udclient/udclient"
-    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} addEnvironmentProperty -component ${componentName} -name ${name} -default '${defaultValue}'"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} addEnvironmentProperty -component '${componentName}' -name '${name}' -default '${defaultValue}'"
+    def response = sh(returnStdout: true, script: ucdCmd).trim()
+    echo("Response: ${response}")
+    response
+}
+
+def getComponentsInApplication(ucdUrl, ucdToken, appName){
+    println "*****************************"
+    println " UCD components in app: ${appName}"
+    println "*****************************"
+
+    def udClient = "./udclient/udclient"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} getComponentsInApplication -application '${appName}'"
+    def responseJson = sh(returnStdout: true, script: ucdCmd).trim()
+    echo("Response json: ${responseJson}")
+    def response = UDClient.mapFromJson(responseJson)
+    response
+}
+
+def getEnvironmentBaseResources(ucdUrl, ucdToken, appName, environment){
+    println "*****************************"
+    println " UCD get environment base resources for app ${appName}, environment ${environment}"
+    println "*****************************"
+
+    def udClient = "./udclient/udclient"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} getEnvironmentBaseResources -application '${appName}' -environment '${environment}'"
+    def responseJson = sh(returnStdout: true, script: ucdCmd).trim()
+    echo("Response json: ${responseJson}")
+    def response = UDClient.mapFromJson(responseJson)
+    response
+}
+
+def getResources(ucdUrl, ucdToken, parent){
+    println "*****************************"
+    println " UCD get resources for path: ${parent}"
+    println "*****************************"
+
+    def udClient = "./udclient/udclient"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} getResources -parent '${parent}'"
+    def responseJson = sh(returnStdout: true, script: ucdCmd).trim()
+    echo("Response json: ${responseJson}")
+    def response = UDClient.mapFromJson(responseJson)
+    response
+}
+
+def addComponentToEnv(ucdUrl, ucdToken, parentPath, componentName) {
+    println "*****************************"
+    println " UCD add component to env: ${parentPath} component: ${componentName}"
+    println "*****************************"
+
+    def udClient = "./udclient/udclient"
+    def requestJson = UDClient.jsonFromMap(["description": componentName,
+                                            "role": componentName,
+                                            "parent": parentPath,
+                                            "name": ""])
+
+    def ucdCmd = "echo '${requestJson}' | ${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} createResource -"
+
+    def responseJson = sh(returnStdout: true, script: ucdCmd).trim()
+    echo("Response json: ${responseJson}")
+    def response = UDClient.mapFromJson(responseJson)
+    response
+}
+
+def addComponentToApplication(ucdUrl, ucdToken, appName, componentName){
+    println "*****************************"
+    println " UCD add component ${componentName} to app ${appName}"
+    println "*****************************"
+
+    def udClient = "./udclient/udclient"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} addComponentToApplication -application '${appName}' -component '${componentName}'"
     def response = sh(returnStdout: true, script: ucdCmd).trim()
     echo("Response: ${response}")
     response
