@@ -212,7 +212,7 @@ private void nodeBuildPack(service, deployContext) {
 					}
 					sh "mkdir -p pipelines/scripts/"
 					writeFile file: "pipelines/scripts/deploy.sh", text: deployNodeAppScript()
-					sh 'source pipelines/scripts/deploy.sh; deployApp'
+					sh "source pipelines/scripts/deploy.sh ${deployContext.release.is_public}; deployApp"
 				}
 			} catch (error) {
 				echo "Deployment failed"
@@ -301,7 +301,7 @@ def buildTokens(service, deployContext) {
 	tokens.putAll(deployContext?.platforms?.bluemix?.types?."$service.type"?.tokens ?: [:])
 	tokens.putAll(service?.platforms?.bluemix?.tokens ?: [:])
 	tokens.putAll(service?.tokens ?: [:])
-	echo "Fetching credentials from Vault for tokens: ${tokens}"
+	echo "Fetching credentials from Vault"
 	SecureKeyStore secureKeyStore = new SecureKeyStore(tokens, 'vault', this)
 	tokens = secureKeyStore.fillWithCredentials(['appRole': 'jenkins-ob-vault-approle'])
 	return tokens

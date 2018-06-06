@@ -1,6 +1,7 @@
 def call(targetDir, envConfig) {
     try {
         echo "replaceTokens: targetDir:${targetDir}"
+        echo "replaceTokens envConfigArray:${envConfig}"
         String envConfigArray = "("
         if (envConfig != null) {
             for (e in envConfig) {
@@ -10,16 +11,15 @@ def call(targetDir, envConfig) {
         envConfigArray += "\n)"
         sh "mkdir -p pipelines/scripts/"
         writeFile file: "pipelines/scripts/replaceTokens.sh", text: replaceTokensScript(targetDir, envConfigArray)
-        sh "source pipelines/scripts/replaceTokens.sh; replaceTokens"
-    }catch (error) {
+        sh(script: "source pipelines/scripts/replaceTokens.sh; replaceTokens", returnStdout: true)
+    } catch (error) {
         echo "Failed to replace tokens $error.message"
         throw error
     }
-
-
 }
 
 private String replaceTokensScript(targetDir, envConfigArray) {
+    echo "Creating replace token shell script."
     return """
 #!/usr/bin/env bash
 set -e
@@ -35,6 +35,9 @@ function replaceTokens() {
         find \${targetDir} -type f -exec sed -i "s~%%\$key%%~\${val}~g;s~&&\$key&&~\${val}~g;s~##\$key##~\${val}~g;" {} +
     done
 }
+
+set -x
     """
 }
+
 return this;

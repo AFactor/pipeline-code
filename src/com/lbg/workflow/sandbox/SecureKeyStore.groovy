@@ -41,7 +41,7 @@ class SecureKeyStore {
      *
      * @return Map
      */
-    def fillWithCredentials(Map<String, String> serviceConfig) {
+    def fillWithCredentials(serviceConfig) {
         switch (this.service) {
             case 'vault':
                 return this.getSecretFromVault(serviceConfig['appRole'])
@@ -68,15 +68,18 @@ class SecureKeyStore {
                 def vaultKey = credentials[0]
 
                 try {
-                    vaultCredentials = callVault(vaultPath, vaultKey, envVar, appRole)
+                    vaultCredentials = callVault(
+                            "${vaultPath}",
+                            "${vaultKey}",
+                            "${envVar}",
+                            "${appRole}"
+                    )
+                    this.tokensMap[envVar] = vaultCredentials
                 } catch ( Exception ex ) {
                     this.step.echo "vaultpath: ${vaultPath} vaultKey ${vaultKey} appRole ${appRole}. error: ${ex.message}"
                     throw ex
-                } finally {
-                    this.step.step([$class: 'WsCleanup', notFailBuild: true])
                 }
 
-                this.tokensMap[envVar] = vaultCredentials
             }
 
             return this.tokensMap
@@ -91,8 +94,8 @@ class SecureKeyStore {
      *
      * @return String
      */
-    private def callVault(path, vaultKey, envVar, appRole) {
-        def vaultCredentials
+    private def callVault(String path, String vaultKey, String envVar, String appRole) {
+        def vaultCredentials = ""
         // define the secrets and the env variables
         def secrets = [
                 [$class: 'VaultSecret', path: "${path}", secretValues: [
@@ -111,6 +114,11 @@ class SecureKeyStore {
         this.step.wrap([$class: 'VaultBuildWrapper', configuration: configuration, vaultSecrets: secrets]) {
 
             vaultCredentials = this.step.sh(script: "echo \$${envVar}", returnStdout: true).trim()
+        }
+
+        /** throw an exceptions when credential from Vault is empty  */
+        if ("" == vaultCredentials) {
+            throw new Exception("Vault value for `key:` {${envVar}} is empty.")
         }
 
         return vaultCredentials
