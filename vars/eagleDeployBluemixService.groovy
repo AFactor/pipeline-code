@@ -95,7 +95,7 @@ private void libertyBuildPack(service, deployContext) {
 						replaceTokens('wlp/usr/servers', tokens)
 						if(service.deployment?.bluemix?.add_keytab) {
 							sh '''
-								for m in $(find wlp/usr/servers -name 'kerberos');do 
+								for m in $(find wlp/usr/servers -d -name 'kerberos');do 
 									cp /etc/security/keytabs/ob-aisp-dev.keytab $m;
 									cp /etc/krb5.conf $m;
 								done
