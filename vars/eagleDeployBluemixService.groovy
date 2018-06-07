@@ -94,8 +94,12 @@ private void libertyBuildPack(service, deployContext) {
 						sh "unzip ${artifactName} wlp/usr/servers/* "
 						replaceTokens('wlp/usr/servers', tokens)
 						if(service.deployment?.bluemix?.add_keytab) {
-							sh "cp   /etc/krb5.conf wlp/usr/servers/dre/kerberos/"
-							sh "cp   /etc/security/keytabs/ob-aisp-dev.keytab wlp/usr/servers/dre/kerberos/"
+							sh '''
+								for m in $(find wlp/usr/servers -name 'kerberos');do 
+									cp /etc/security/keytabs/ob-aisp-dev.keytab $m;
+									cp /etc/krb5.conf $m;
+								done
+							'''
 						}
 						sh "zip ${artifactName}  wlp -r"
 					}
