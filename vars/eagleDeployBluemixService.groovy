@@ -93,7 +93,7 @@ private void libertyBuildPack(service, deployContext) {
 					if (tokens.size() > 0) {
 						sh "unzip ${artifactName} wlp/usr/servers/* "
 						replaceTokens('wlp/usr/servers', tokens)
-						if(service.deployment?.bluemix?.add_keytab) {
+						if(service.platforms?.bluemix?.add_keytab) {
 							sh '''
 								for m in $(find wlp/usr/servers -d -name 'kerberos');do 
 									cp /etc/security/keytabs/ob-aisp-dev.keytab $m;
