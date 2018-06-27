@@ -71,8 +71,8 @@ private createEnvironmentSnapshotJson(artifactVersions, appName, snapshotName, c
 }
 
 private environmentSnapshotName(sourceSnapshotName, environment, buildNumber) {
-    def sourceSnapshotNameWithoutBuildNumber = sourceSnapshotName.substring(0, sourceSnapshotName.lastIndexOf("."))
-    "${environment}.${sourceSnapshotNameWithoutBuildNumber}.${buildNumber}"
+    def sourceSnapshotNameWithoutBuildNumberAndWithoutPriorEnv = sourceSnapshotName.substring(sourceSnapshotName.indexOf(".")+1, sourceSnapshotName.lastIndexOf("."))
+    "${environment}.${sourceSnapshotNameWithoutBuildNumberAndWithoutPriorEnv}.${buildNumber}"
 }
 
 private printSummary(snapshotName) {
