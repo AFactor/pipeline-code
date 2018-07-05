@@ -95,7 +95,10 @@ private def validate(deployContext) {
     if (deployContext.release.environment != "test"
             && deployContext.release.environment != "testm"
             && deployContext.release.environment != "oipe"
-            && deployContext.release.environment != "dev") {
+            && deployContext.release.environment != "dev"
+            && deployContext.release.environment != "DEV"
+            && deployContext.release.environment != "TEST"
+            && deployContext.release.environment != "SIT") {
         for (def service : deployContext.services) {
             def artifact = service.runtime.binary.artifact
             if (artifact.contains("-rc.") || artifact.contains("-de.")) {
