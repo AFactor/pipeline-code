@@ -90,7 +90,7 @@ def email(String targetBranch, context) {
   def notificationList = context.config.veracode.notificationList ?: 'LloydsCJTDevOps@sapient.com'
 
   def emailSender = new EmailManager()
-  def imagefile = 'VeracodeReport.zip'
+  def imagefile = 'VeracodeReports.zip'
   def headline  = 'Veracode reports'
   def appName = appName(context.application, targetBranch)
   unstash "veracodezip"
