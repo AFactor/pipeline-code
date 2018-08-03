@@ -1,6 +1,6 @@
 #!/bin/bash
 source ${WORKSPACE}/pipelines/scripts/veracode_functions.sh
-set -x
+# set -x
 
 echo "Init - `date`"
 check_state

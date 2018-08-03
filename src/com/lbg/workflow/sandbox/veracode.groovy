@@ -11,7 +11,7 @@ def build(String targetBranch, context, String pathToBuildScript) {
   }
 }
 
-def uploadVeracode(String targetBranch, context) {
+def upload(String targetBranch, context) {
   def veracodeCredentials = context.config.veracode.credentials ?: 'veracode-creds'
   def veracodeID = context.config.veracode.id
   def artifacts = context.config.veracode.artifacts ?: 'artifacts'
@@ -45,7 +45,7 @@ def uploadVeracode(String targetBranch, context) {
   } //withCreentials
 }
 
-def downloadVeracode(String targetBranch, context) {
+def download(String targetBranch, context) {
   def veracodeCredentials = context.config.veracode.credentials ?: 'veracode-creds'
   def notificationList = context.config.veracode.notificationList ?: 'LloydsCJTDevOps@sapient.com'
   def veracodeID =  context.config.veracode.id
@@ -73,7 +73,7 @@ def downloadVeracode(String targetBranch, context) {
                     fingerprint: true,
                     onlyIfSuccessful: false
 
-            sh "zip -rq VeracodeReport.zip veracodeResults"
+            sh "zip -rq VeracodeReports.zip veracodeResults"
 
             stash name: "veracodezip", includes: 'VeracodeReport.zip'
 
@@ -88,7 +88,7 @@ def downloadVeracode(String targetBranch, context) {
   } //withCreentials
 }
 
-def emailVeracode(String targetBranch, context) {
+def email(String targetBranch, context) {
   def notificationList = context.config.veracode.notificationList ?: 'LloydsCJTDevOps@sapient.com'
 
   def emailSender = new EmailManager()
@@ -106,7 +106,7 @@ def emailVeracode(String targetBranch, context) {
   echo "SUCCESS: Email Notification to ${notificationList}"
 }
 
-def emailVeracodeFail(String targetBranch, context) {
+def emailFail(String targetBranch, context) {
   def notificationList = context.config.veracode.notificationList ?: 'LloydsCJTDevOps@sapient.com'
 
   def emailSender = new EmailManager()

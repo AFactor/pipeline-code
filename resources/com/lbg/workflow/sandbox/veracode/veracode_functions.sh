@@ -23,7 +23,7 @@ PRESCAN_SLEEP_TIME=300
 SCAN_SLEEP_TIME=300
 
 function check_xml {
-  local response="$1"
+	local response="$1"
 
 	# Check if response is XML
 	if ! [[ "$response" =~ (\<\?xml version=\"1\.0\" encoding=\"UTF-8\"\?\>) ]]; then
@@ -34,9 +34,9 @@ function check_xml {
 }
 
 function check_error {
-  local response="$1"
+	local response="$1"
 
-  # Check for an error element
+	# Check for an error element
 	if [[ "$response" =~ (\<error\>.+\</error\>) ]]; then
 		local error=$(echo $response | sed -n 's/.*<error>\(.*\)<\/error>.*/\1/p')
 		echo "[-] Error: $error"
@@ -46,16 +46,16 @@ function check_error {
 
 # Validate HTTP response
 function validate_response {
-  check_xml "$1"
-  check_error "$1"
+	check_xml "$1"
+	check_error "$1"
 }
 
 # To verify that downloaded report is really PDF and not some other format or error
 function validate_pdf {
-  if ! $(file $1 | grep -q "PDF document") ; then
-    echo "$1 is not a PDF document: `file $1`"
-    exit 1
-  fi
+	if ! $(file $1 | grep -q "PDF document") ; then
+		echo "$1 is not a PDF document: `file $1`"
+		exit 1
+	fi
 }
 
 # Checks the state of the application prior to attempting to create a new build and download the previous build if available
@@ -68,7 +68,11 @@ function check_state {
 		VC_BUILD_ID=$(echo $build_info_response | sed -n 's/.* build_id=\"\([0-9]*\)\" .*/\1/p')
 
 		echo "[+] Previous scan build id -  $VC_BUILD_ID"
-    export VC_BUILD_ID
+		export VC_BUILD_ID
+	else
+		echo "[+] Scan results not ready:"
+		echo "$build_info_response"
+		exit 1
 	fi
 }
 
@@ -78,12 +82,14 @@ function reset_state {
 	local build_info_response=`curl ${LOG_LEVEL} --compressed -u "$API_USERNAME:$API_PASSWORD" https://analysiscenter.veracode.com/api/5.0/getbuildinfo.do -F "app_id=$APP_ID"`
 	check_xml "$build_info_response"
 
-	if  [[ "$build_info_response" =~ (status=\"Incomplete\") ]]; then
-    local reset_response=`curl ${LOG_LEVEL} --compressed -u "$API_USERNAME:$API_PASSWORD" https://analysiscenter.veracode.com/api/4.0/deletebuild.do --data "app_id=$APP_ID"`
+	# TODO: Figure out why was there custom logic for Incomplete state only
+	#       as in this function we want to reset state regardless of current one
+	# if  [[ "$build_info_response" =~ (status=\"Incomplete\") ]]; then
+		local reset_response=`curl ${LOG_LEVEL} --compressed -u "$API_USERNAME:$API_PASSWORD" https://analysiscenter.veracode.com/api/4.0/deletebuild.do --data "app_id=$APP_ID"`
 
 		echo "[+] Reset app build state:"
-    echo "${reset_response}"
-	fi
+		echo "${reset_response}"
+	# fi
 }
 
 # Download reports
@@ -94,14 +100,14 @@ function download {
 
 	echo "[+] Downloading detailed report PDF"
 	curl --compressed -o "$DETAILED_REPORT_PDF_FILE" -u "$API_USERNAME:$API_PASSWORD" https://analysiscenter.veracode.com/api/4.0/detailedreportpdf.do?build_id=$VC_BUILD_ID
-  validate_pdf "$DETAILED_REPORT_PDF_FILE"
+	validate_pdf "$DETAILED_REPORT_PDF_FILE"
 
 	echo "[+] Downloading detailed report XML"
 	curl --compressed -o "$DETAILED_REPORT_XML_FILE" -u "$API_USERNAME:$API_PASSWORD" https://analysiscenter.veracode.com/api/4.0/detailedreport.do?build_id=$VC_BUILD_ID
 
 	echo "[+] Downloading summary report PDF"
 	curl --compressed -o "$SUMMARY_REPORT_PDF_FILE" -u "$API_USERNAME:$API_PASSWORD" https://analysiscenter.veracode.com/api/4.0/summaryreportpdf.do?build_id=$VC_BUILD_ID
-  # Don't validate pdf here, as even if this fails we still want to send out mail with already validated detailed report
+	# Don't validate pdf here, as even if this fails we still want to send out mail with already validated detailed report
 
 	# Validate files were downloaded
 	if ! [[ -f $DETAILED_REPORT_PDF_FILE ]]; then

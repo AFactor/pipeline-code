@@ -3,11 +3,11 @@ import com.lbg.workflow.sandbox.*
 
 def call(String appName, pathToConfig, pathToBuildScript)
 {
-  def deployer
+  def vcd
   def context
   def epoch
   def targetBranch
-  def veracodeApiLock
+  def veracodeCredentials
 
   try {
     stage('Initialize'){
@@ -17,8 +17,8 @@ def call(String appName, pathToConfig, pathToBuildScript)
             targetBranch = sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim()
             context = new BuildContext(appName, readFile(pathToConfig))
             epoch = sh(returnStdout: true, script: "date +%d%m%Y%H%M").trim()
-            veracodeAppId = context.config.veracode.id
-            deployer = new veracode()
+            veracodeCredentials = context.config.veracode.credentials
+            vcd = new veracode()
             echo "Loaded"
         }
     }
@@ -30,7 +30,7 @@ def call(String appName, pathToConfig, pathToBuildScript)
             echo "re-using existing stash"
         } else {
             echo "building new stash"
-            deployer.build("${targetBranch}", context, pathToBuildScript)
+            vcd.build("${targetBranch}", context, pathToBuildScript)
         }
       } catch(error) {
           echo error.message
@@ -40,10 +40,10 @@ def call(String appName, pathToConfig, pathToBuildScript)
     }
     milestone(label:'packaged')
 
-    lock(inversePrecedence: true, quantity: 1, resource: veracodeApiLock){
+    lock(inversePrecedence: true, quantity: 1, resource: veracodeCredentials){
         stage('Veracode'){
           node(){
-              deployer.uploadVeracode("${targetBranch}", context)
+              vcd.upload("${targetBranch}", context)
           }
         }
         milestone(label:'uploaded')
@@ -51,7 +51,7 @@ def call(String appName, pathToConfig, pathToBuildScript)
 
   } catch (error) {
     currentBuild.result = 'FAILURE'
-    deployer.emailVeracodeFail("${targetBranch}", context)
+    vcd.emailFail("${targetBranch}", context)
     throw error
   }
 }

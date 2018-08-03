@@ -1,6 +1,6 @@
 #!/bin/bash
 source ${WORKSPACE}/pipelines/scripts/veracode_functions.sh
-set -x
+# set -x
 
 # Directory argument
 if [[ "$1" != "" ]]; then
