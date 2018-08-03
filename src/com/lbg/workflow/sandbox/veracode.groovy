@@ -74,9 +74,7 @@ def download(String targetBranch, context) {
                     onlyIfSuccessful: false
 
             sh "zip -rq VeracodeReports.zip veracodeResults"
-
-            stash name: "veracodezip", includes: 'VeracodeReport.zip'
-
+            stash name: "veracodezip", includes: 'VeracodeReports.zip'
         } catch (error) {
             echo "FAILURE: veracode failed"
             echo error.message
