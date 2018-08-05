@@ -662,6 +662,22 @@ def addFilesToVersion(ucdUrl, ucdToken, componentName, artifactVersion, artifact
     response
 }
 
+def setComponentVersionProperty(ucdUrl, ucdToken, componentName, artifactVersion, name, value) {
+    println "*****************************"
+    println " UCD set component: ${componentName} version: ${artifactVersion} property: ${name} value: ${value}"
+    println "*****************************"
+
+    def udClient = "./udclient/udclient"
+    def componentSet = "-component '${componentName}'"
+    def versionSet = "-version ${artifactVersion}"
+    def propertySet = "-name ${name} -value ${value}"
+    def command = "setVersionProperty ${componentSet} ${versionSet} ${propertySet}"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+
+    def response = sh(returnStdout: true, script: ucdCmd).trim()
+    response
+}
+
 /**
  *  returns a map of component env properties: ["property_name": "property_value", ...]
  */
@@ -753,6 +769,80 @@ def getResources(ucdUrl, ucdToken, parent){
     def response = UDClient.mapFromJson(responseJson)
     response
 }
+
+/**
+ *  returns a map of resource properties: ["property_name": "property_value", ...]
+ */
+def getResourceProperties(ucdUrl, ucdToken, resourceName) {
+    println "*****************************"
+    println " UCD get resource: ${resourceName} properties"
+    println "*****************************"
+
+    def udClient = "./udclient/udclient"
+    def command = "getResourceProperties -resource '${resourceName}'"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+
+    def response = sh(returnStdout: true, script: ucdCmd).trim()
+    def parsedResponse = UDClient.mapFromJson(response)
+    def result = [:]
+    for (def property in parsedResponse) {
+        result[property.name] = ["value": property.value, "secure": property.secure]
+    }
+    result
+}
+
+def setResourceProperty(ucdUrl, ucdToken, resourceName, name, value) {
+    println "*****************************"
+    println " UCD set resource: ${resourceName} property: ${name} value: ${value}"
+    println "*****************************"
+
+    def udClient = "./udclient/udclient"
+    def resourceSet = "-resource '${resourceName}'"
+    def propertySet = "-name ${name} -value ${value}"
+    def command = "setResourceProperty ${resourceSet} ${propertySet}"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+
+    def response = sh(returnStdout: true, script: ucdCmd).trim()
+    response
+}
+
+/**
+ *  returns a map of environment properties: ["property_name": "property_value", ...]
+ */
+def getEnvironmentProperties(ucdUrl, ucdToken,  applicationName, environmentName) {
+    println "*****************************"
+    println " UCD get application: ${applicationName} environment: ${environmentName} properties"
+    println "*****************************"
+
+    def udClient = "./udclient/udclient"
+    def command = "getEnvironmentProperties -application '${applicationName}' -environment '${environmentName}'"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+
+    def response = sh(returnStdout: true, script: ucdCmd).trim()
+    def parsedResponse = UDClient.mapFromJson(response)
+    def result = [:]
+    for (def property in parsedResponse) {
+        result[property.name] = ["value": property.value, "secure": property.secure]
+    }
+    result
+}
+
+def setEnvironmentProperty(ucdUrl, ucdToken, applicationName, environmentName, name, value) {
+    println "*****************************"
+    println " UCD set application: ${applicationName} environment: ${environmentName} property: ${name} value: ${value}"
+    println "*****************************"
+
+    def udClient = "./udclient/udclient"
+    def applicationSet = "-application '${applicationName}'"
+    def environmentSet = "-environment '${environmentName}'"
+    def propertySet = "-name '${name}' -value '${value}'"
+    def command = "setEnvironmentProperty ${applicationSet} ${environmentSet} ${propertySet}"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+
+    def response = sh(returnStdout: true, script: ucdCmd).trim()
+    response
+}
+
 
 def addComponentToEnv(ucdUrl, ucdToken, parentPath, componentName) {
     println "*****************************"
