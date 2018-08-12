@@ -120,7 +120,7 @@ def emailFail(String targetBranch, context) {
 
 def publishSplunk(String targetBranch, String epoch, context){
    def appname = appName(context.application, targetBranch)
-   def splunkReportDir = "${context.config.splunk.reportdir}"
+   def splunkReportDir = "${context.config.veracode.splunkreportdir}"
    echo "PUBLISH: ${this.name()} ${appname} reports to Splunk"
    dir ("j2/${appname}") {
        unstash "veracodereport"
