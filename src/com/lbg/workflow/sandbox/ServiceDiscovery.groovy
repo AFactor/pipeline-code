@@ -5,11 +5,8 @@
 
 package com.lbg.workflow.sandbox
 
-class ServiceDiscovery implements Serializable{
-
-
+class ServiceDiscovery implements Serializable {
 	private String vaultUrl= 'http://10.113.140.168:8200';
-
 
 	public CWABuildHandlers() {
 		initialize()
@@ -19,7 +16,6 @@ class ServiceDiscovery implements Serializable{
 	}
 
 	public String locate(String service){
-
 		switch(service){
 			case 'vault': return this.vaultUrl; break;
 			default: return fail(service)

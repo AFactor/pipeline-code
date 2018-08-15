@@ -1,28 +1,18 @@
-/*
- * Author: Abhay Chrungoo <achrungoo@sapient.com>
- * Contributing HOWTO: TODO
- */
-
 package com.lbg.workflow.sandbox
 
-class ConfigurableBuildHandlers implements Serializable,BuildHandlers {
+class JavaBuildHandlers implements Serializable,BuildHandlers {
 	String builder
 	String deployer
 	List<String> unitTests
 	List<String> staticAnalysis
 	List<String> integrationTests
 
-	public ConfigurableBuildHandlers(String builder,
-						String deployer,
-						List<String> unitTests,
-						List<String> staticAnalysis,
-						List<String> integrationTests) {
-
-		this.builder = builder
-		this.deployer = deployer
-		this.unitTests = unitTests
-		this.staticAnalysis = staticAnalysis
-		this.integrationTests = integrationTests
+	public JavaBuildHandlers() {
+		deployer  = 'pipelines/deploy/application.groovy'
+		builder   = 'pipelines/build/package.groovy'
+		unitTests = ['pipelines/tests/unit.groovy']
+		staticAnalysis   = [ 'pipelines/tests/sonar.groovy']
+		integrationTests = [ 'pipelines/tests/bdd.groovy', 'pipelines/tests/nexusIQ.groovy']
 	}
 
 /* Do not implement these methods. Accessors are expected to be auto generated.
@@ -34,5 +24,4 @@ class ConfigurableBuildHandlers implements Serializable,BuildHandlers {
 	public List<String> getStaticAnalysis() {return staticAnalysis}
 	public List<String> getIntegrationTests() {return integrationTests}
 */
-
 }

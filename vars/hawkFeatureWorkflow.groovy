@@ -1,64 +1,16 @@
-/*
- * Author: Abhay Chrungoo <achrungoo@sapient.com>
- * Contributing HOWTO: TODO
- */
-import com.lbg.workflow.sandbox.BuildContext
-import com.lbg.workflow.sandbox.BuildHandlers
+import com.lbg.workflow.sandbox.*
 
 def call(BuildContext context, handlers, String targetBranch) {
-	def unitTests = []
-	def sanityTests = []
-	def integrationTests = []
-	def allTests = []
-
-	def builder
-	def appDeployer
+	def builder          = handlers.builder
+	def appDeployer      = handlers.appDeployer
+	def unitTests        = handlers.unitTests
+	def sanityTests      = handlers.sanityTests
+	def integrationTests = handlers.integrationTests
 
 	def targetEnv="feature"
-
-	def epoch
-
 	String integrationEnvironment = "${context.application}-${targetBranch}"
+	print "FeatureWorkFlow for ${targetBranch}..."
 
-	stage("Initialize"){
-		node('framework'){
-			try{
-				echo "TARGET_BRANCH: ${targetBranch}"
-				epoch =	sh(returnStdout: true, script: 'date +%d%m%Y%H%M').trim()
-				checkout scm
-
-				echo "Loading all handlers"
-				echo "Loading Builder: ${handlers.builder}"
-				builder = load("${handlers.builder}")
-
-				echo "Loading Deployer: ${handlers.deployer}"
-				appDeployer = load(handlers.deployer)
-
-				for (String test: handlers.getUnitTests()) {
-					echo "Loading ${test}"
-					unitTests.add( load("${test}"))
-				}
-				for (String test: handlers.getStaticAnalysis()) {
-					echo "Loading ${test}"
-					sanityTests.add( load("${test}"))
-				}
-				for (String test: handlers.getIntegrationTests()) {
-					echo "Loading ${test}"
-					integrationTests.add( load("${test}"))
-				}
-
-				allTests.addAll(unitTests)
-				allTests.addAll(sanityTests)
-				allTests.addAll(integrationTests)
-			} catch(error) {
-				echo error.message
-				throw error
-			} finally{
-				step([$class: 'WsCleanup', notFailBuild: true])
-			}
-		}
-		milestone (label: 'Ready')
-	}
 	try {
 		// Basic Qualification -----------------------------------//
 		if(unitTests){
@@ -72,41 +24,35 @@ def call(BuildContext context, handlers, String targetBranch) {
 		}
 
 		// Sonar/Checkstyle et al -----------------------------------//
-		if(sanityTests){
+		if (sanityTests){
 			stage("Static Analysis"){
 				def codeSanitySchedule = [:]
-				for (Object testClass: sanityTests) {
+				for (Object testClass: sanityTests){
 					def currentTest = testClass
 					codeSanitySchedule[currentTest.name()] = { currentTest.runTest(targetBranch, context) }
 				}
-				try{
+				try {
 					parallel codeSanitySchedule
 					milestone (label: 'StaticAnalysis')
-				} catch(error) {
+				} catch(error){
 					echo "Static Analysis has failed."
 					throw error
-				} finally {
-					//Make a decision
 				}
 			}
 		}
 
-
-
 		// Build--------only if we are going to deploy---------------------------//
-		if(integrationTests){
+		if (integrationTests){
 			stage("Package"){
 				builder.pack(targetBranch, targetEnv, context)
 			}
 			milestone (label: 'Build')
 		}
 
-
-
 		// Concurrency Controlled Deploy/IntegrationTest Cycle-----------------//
-		lock(inversePrecedence: true, quantity: 1, resource: integrationEnvironment ) {
+		lock(inversePrecedence: true, quantity: 1, resource: integrationEnvironment){
 			// Integration Tests--------------------------------------//
-			if(integrationTests){
+			if (integrationTests){
 				stage("Deploy"){
 					appDeployer.deploy(targetBranch, context)
 				}
@@ -114,7 +60,7 @@ def call(BuildContext context, handlers, String targetBranch) {
 				stage("Integration Tests"){
 					def integrationTestSchedule = [:]
 
-					for (Object testClass: integrationTests) {
+					for (Object testClass: integrationTests){
 						def currentTest = testClass
 						integrationTestSchedule[currentTest.name()] = { currentTest.runTest(targetBranch, context) }
 					}
@@ -124,26 +70,25 @@ def call(BuildContext context, handlers, String targetBranch) {
 					} catch(error) {
 						echo "Integration tests failed"
 						throw error
-					} finally {
-						//Make a decision
 					}
 				}
 			}
 		}
-	} catch(error) {
-		echo "Mandatory Tests have failed. Aborting"
+	} catch(error){
+		echo "Aborting build - some mandatory steps have failed:"
+		echo error.message
 		throw error
 	} finally {
 		// Clean up environments/workspaces ----------------------//
 		stage("Cleanup"){
 			try {
 				appDeployer.purge(targetBranch, context)
-			} catch(error) {
+			} catch(error){
 				echo "Notice: Cleanup failed. Onwards!"
-			} finally{}
+			}
 		}
 		stage("End"){ echo "Phew! Finally finished." }
 	}
-
 }
+
 return this;

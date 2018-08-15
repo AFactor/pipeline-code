@@ -1,10 +1,4 @@
-/*
- * Author: Abhay Chrungoo <achrungoo@sapient.com>
- * Contributing HOWTO: TODO
- */
-import com.lbg.workflow.sandbox.BuildContext
-import com.lbg.workflow.sandbox.BuildHandlers
-import com.lbg.workflow.sandbox.Utils
+import com.lbg.workflow.sandbox.*
 
 def call(BuildContext context, handlers, String targetCommit) {
 	def branchID = env.BRANCH_NAME.split('/')
@@ -12,7 +6,7 @@ def call(BuildContext context, handlers, String targetCommit) {
 	def changeID = branchID[2]
 
 	// Target Branch Construction
-	Utils  utils = new Utils()
+	Utils utils = new Utils()
 	def gerritBranch = gerritHandler.findTargetBranch(targetCommit)
 
 	def discriminator = ''
@@ -21,91 +15,47 @@ def call(BuildContext context, handlers, String targetCommit) {
 	}
 
 	def friendlyGerritBranch = utils.friendlyName(gerritBranch)
-
 	def targetBranch = "patchset-${discriminator}${friendlyGerritBranch}"
 	// End Target Branch Construction
 
+	def builder          = handlers.builder
+	def appDeployer      = handlers.appDeployer
+	def unitTests        = handlers.unitTests
+	def sanityTests      = handlers.sanityTests
+	def integrationTests = handlers.integrationTests
+
 	def targetEnv="patchset"
-
-	def unitTests = []
-	def sanityTests = []
-	def integrationTests = []
-
-	def builder
-	def appDeployer
-
 	String integrationEnvironment = "${context.application}-${targetBranch}"
+	print "PatchsetWorkFlow for ${targetCommit}, TARGET_BRANCH: ${targetBranch}..."
 
-	stage("Initialize"){
-		node('framework'){
-			try {
-				echo "TARGET_BRANCH: ${targetBranch}"
-
-				checkout scm
-
-				echo "Loading all handlers"
-				echo "Loading Builder: ${handlers.builder}"
-				builder = load("${handlers.builder}")
-
-				echo "Loading Deployer: ${handlers.deployer}"
-				appDeployer = load(handlers.deployer)
-
-				for (String test: handlers.getUnitTests()) {
-					echo "Loading ${test}"
-					unitTests.add( load("${test}"))
-				}
-				for (String test: handlers.getStaticAnalysis()) {
-					echo "Loading ${test}"
-					sanityTests.add( load("${test}"))
-				}
-				for (String test: handlers.getIntegrationTests()) {
-					def testClass = load("${test}")
-					if (!test.toLowerCase().contains("fullbdd") && !testClass.name().toLowerCase().contains('fullbdd')) {
-						echo "Loading ${test}"
-						integrationTests.add(testClass)
-					}
-				}
-			} catch(error) {
-				echo error.message
-				throw error
-			} finally{
-				step([$class: 'WsCleanup', notFailBuild: true])
-			}
-		}
-		gerritHandler.buildStarted(changeID,revision)
-		milestone (label: 'Ready')
-	}
-	try{
-		echo "Trying..."
+	try {
 		// Basic Qualification -----------------------------------//
-		if(unitTests){
+		if (unitTests){
 			stage("Unit Tests"){
 				try {
-					for (Object testClass: unitTests) {
+					for (Object testClass: unitTests){
 						def currentTest = testClass
 						currentTest.runTest(targetBranch, context)
 					}
 					milestone (label: 'UnitTests')
-				}catch(error){
+				} catch(error){
 					echo "failed unit tests."
 					echo error.message
 					gerritHandler.failTests(changeID, revision)
 					throw error
-				}finally{ }
+				}
 			}
 		}
 
-
-
 		// Sonar/Checkstyle etal -----------------------------------//
-		if(sanityTests){
+		if (sanityTests){
 			stage("Static Analysis"){
 				def codeSanitySchedule = [:]
-				for (Object testClass: sanityTests) {
+				for (Object testClass: sanityTests){
 					def currentTest = testClass
 					codeSanitySchedule[currentTest.name()] = { currentTest.runTest(targetBranch, context) }
 				}
-				try{
+				try {
 					parallel codeSanitySchedule
 					gerritHandler.passCodeReview(changeID, revision)
 					milestone (label: 'StaticAnalysis')
@@ -113,15 +63,12 @@ def call(BuildContext context, handlers, String targetCommit) {
 					echo "Static Analysis has failed."
 					gerritHandler.failCodeReview(changeID, revision)
 					throw error
-				} finally {	}
+				}
 			}
 		}
 
-
-
-
 		// Build------only if deployment needed---------------------------//
-		if(integrationTests){
+		if (integrationTests){
 			stage("Package"){
 				try {
 					builder.pack(targetBranch, targetEnv, context)
@@ -130,51 +77,45 @@ def call(BuildContext context, handlers, String targetCommit) {
 					gerritHandler.failTests(changeID, revision)
 					echo "BUilding Distribution failed"
 					throw error
-				} finally{
 				}
 			}
 		}
 
-
-
-
 		// Concurrency Controlled Deploy/IntegrationTest Cycle-----------------//
-		lock(inversePrecedence: true, quantity: 1, resource: integrationEnvironment ) {
+		lock(inversePrecedence: true, quantity: 1, resource: integrationEnvironment){
 			// Integration Tests--------------------------------------//
 			if(integrationTests){
 				stage("Deploy"){
-					try{
-						appDeployer.deploy(targetBranch, context)  //Hardcoded to DEV as current practice
-					} catch(error) {
+					try {
+						appDeployer.deploy(targetBranch, context)
+					} catch(error){
 						gerritHandler.failTests(changeID, revision)
 						echo "Deployment failed"
 						throw error
-					} finally{
 					}
 				}
 				// Integration Tests--------------------------------------//
 				stage("Integration Tests"){
 					def integrationTestSchedule = [:]
 
-					for (Object testClass: integrationTests) {
+					for (Object testClass: integrationTests){
 						def currentTest = testClass
 						integrationTestSchedule[currentTest.name()] = { currentTest.runTest(targetBranch, context) }
 					}
-					try{
+					try {
 						parallel integrationTestSchedule
 						milestone (label: 'IntegrationTests')
-					} catch(error) {
+					} catch(error){
 						gerritHandler.failTests(changeID, revision)
 						echo "Integration tests failed"
 						throw error
-					} finally { }
+					}
 				}
 			}
 		}
 		gerritHandler.passTests(changeID, revision)
-
 	} catch(error) {
-		echo "Mandatory Steps have failed. Aborting"
+		echo "Aborting build - some mandatory steps have failed:"
 		echo error.message
 		throw error
 	} finally {
@@ -182,13 +123,12 @@ def call(BuildContext context, handlers, String targetCommit) {
 		stage("Cleanup"){
 			try {
 				appDeployer.purge(targetBranch, context)
-			}catch(error) {
+			} catch(error){
 				echo "Notice: Cleanup failed. Onwards!"
-			} finally{}
+			}
 		}
-
 		stage("End"){ echo "Phew! Finally finished." }
 	}
-
 }
+
 return this;

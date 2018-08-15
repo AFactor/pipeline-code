@@ -1,66 +1,18 @@
-/*
- * Author: Abhay Chrungoo <achrungoo@sapient.com>
- * Contributing HOWTO: TODO
- */
-import com.lbg.workflow.sandbox.BuildContext
-import com.lbg.workflow.sandbox.BuildHandlers
-import com.lbg.workflow.sandbox.CWABuildHandlers
+import com.lbg.workflow.sandbox.*
 
 def call(BuildContext context, handlers, String targetBranch) {
-	def unitTests = []
-	def sanityTests = []
-	def integrationTests = []
-	def allTests = []
-
-	def builder
-	def appDeployer
-
+	def builder          = handlers.builder
+	def appDeployer      = handlers.appDeployer
+	def unitTests        = handlers.unitTests
+	def sanityTests      = handlers.sanityTests
+	def integrationTests = handlers.integrationTests
+	def allTests = unitTests + sanityTests + integrationTests
 	def success = false
 
 	def targetEnv="integration"
-
-	def epoch
-
 	String integrationEnvironment = "${context.application}-${targetBranch}"
+	print "IntegrationWorkFlow for ${targetBranch}..."
 
-	stage("Initialize"){
-		node('framework'){
-			try {
-				echo "TARGET_BRANCH: ${targetBranch}"
-				epoch =	sh(returnStdout: true, script: 'date +%d%m%Y%H%M').trim()
-				checkout scm
-
-				echo "Loading all handlers"
-				echo "Loading Builder: ${handlers.builder}"
-				builder = load("${handlers.builder}")
-
-				echo "Loading Deployer: ${handlers.deployer}"
-				appDeployer = load(handlers.deployer)
-
-				for (String test: handlers.getUnitTests()) {
-					echo "Loading ${test}"
-					unitTests.add( load("${test}"))
-				}
-				for (String test: handlers.getStaticAnalysis()) {
-					echo "Loading ${test}"
-					sanityTests.add( load("${test}"))
-				}
-				for (String test: handlers.getIntegrationTests()) {
-					echo "Loading ${test}"
-					integrationTests.add( load("${test}"))
-				}
-				allTests.addAll(unitTests)
-				allTests.addAll(sanityTests)
-				allTests.addAll(integrationTests)
-			} catch(error) {
-				echo error.message
-				throw error
-			} finally{
-				step([$class: 'WsCleanup', notFailBuild: true])
-			}
-		}
-		milestone (label: 'Ready')
-	}
 	// Try to test, and perform
 	// post-build cleanup/publication regardless of failure
 	try {
@@ -76,27 +28,22 @@ def call(BuildContext context, handlers, String targetBranch) {
 		}
 
 		// Sonar/Checkstyle etal -----------------------------------//
-		if(sanityTests){
+		if (sanityTests){
 			stage("Static Analysis"){
 				def codeSanitySchedule = [:]
-				for (Object testClass: sanityTests) {
+				for (Object testClass: sanityTests){
 					def currentTest = testClass
 					codeSanitySchedule[currentTest.name()] = { currentTest.runTest(targetBranch, context) }
 				}
-				try{
+				try {
 					parallel codeSanitySchedule
 					milestone (label: 'StaticAnalysis')
-				} catch(error) {
+				} catch(error){
 					echo "Static Analysis has failed."
 					throw error
-				} finally {
-					//Make a decision
 				}
 			}
 		}
-
-
-
 
 		// Build--------------------------------------------------//
 		stage("Package"){
@@ -104,41 +51,35 @@ def call(BuildContext context, handlers, String targetBranch) {
 		}
 		milestone (label: 'Build')
 
-
-
 		// Concurrency Controlled Deploy/IntegrationTest Cycle-----------------//
-		lock(inversePrecedence: true, quantity: 1, resource: integrationEnvironment ) {
+		lock(inversePrecedence: true, quantity: 1, resource: integrationEnvironment){
 			// Integration Tests--------------------------------------//
-			if(integrationTests){
+			if (integrationTests){
 				stage("Deploy"){
-					appDeployer.deploy(targetBranch, context)  //Hardcoded to DEV as current practice
+					appDeployer.deploy(targetBranch, context)
 				}
 				// Integration Tests--------------------------------------//
-
 				stage("Integration Tests"){
 					def integrationTestSchedule = [:]
 
-					for (Object testClass: integrationTests) {
+					for (Object testClass: integrationTests){
 						def currentTest = testClass
 						integrationTestSchedule[currentTest.name()] = { currentTest.runTest(targetBranch, context) }
 					}
-					try{
+					try {
 						parallel integrationTestSchedule
 						milestone (label: 'IntegrationTests')
 					} catch(error) {
 						echo "Integration tests failed"
 						throw error
-					} finally {
-						//Make a decision
 					}
 				}
 			}
-
 			success = true
 		}
-
 	} catch(error) {
-		echo "Some Mandatory Steps have failed. Aborting Build"
+		echo "Aborting build - some mandatory steps have failed:"
+		echo error.message
 		throw error
 	} finally {
 
@@ -146,45 +87,42 @@ def call(BuildContext context, handlers, String targetBranch) {
 		stage("Cleanup"){
 			try{
 				appDeployer.purge(targetBranch, context)
-			}catch(error) {
+			} catch(error){
 				echo "Notice: Cleanup failed. Onwards!"
-			} finally {}
+			}
 		}
-
-
 
 		// Publish to 3rd Party Stacks----------------------------//
 		stage("Publish"){
 			if (success){
-				try{
+				try {
 					builder.publishNexus(targetBranch, targetEnv, context)
-				}catch(error){
+				} catch(error){
+					echo "Nexus publication failed:"
 					echo error.message
-					echo "Nexus publication did not complete normally. Continuing"
 					throw error
-				} finally{
-
 				}
 			} else {
-				echo "Build has failed. Not publishing to nexus"
+				echo "Build has failed. Not publishing to nexus."
 			}
+
 			//Publish what you can to splunk regardless of success.
-			if(allTests){
+			if (allTests){
 				try {
-					splunkPublisher{
+					splunkPublisher {
 						tests = allTests
-						timestamp = epoch
+						int timestamp = new Date().time / 1000
 						buildContext = context
 						branchName = targetBranch
 					}
 				} catch(error){
+					echo "Splunk report publication did not complete normally:"
 					echo error.message
-					echo "Splunk report publication did not complete normally. Continuing"
-				} finally{}
+				}
 			}
-
 		}
 		stage("End"){ echo "Phew! Finally finished." }
 	}
 }
+
 return this;

@@ -5,7 +5,7 @@
 
 package com.lbg.workflow.sandbox
 
-class CWABuildHandlers implements Serializable,BuildHandlers{
+class CWABuildHandlers implements Serializable,BuildHandlers {
 	String builder
 	String deployer
 	List<String> unitTests
@@ -13,9 +13,8 @@ class CWABuildHandlers implements Serializable,BuildHandlers{
 	List<String> integrationTests
 
 	public CWABuildHandlers() {
-		deployer = 'pipelines/deploy/application.groovy'
-		builder = 'pipelines/build/package.groovy'
-
+		deployer  = 'pipelines/deploy/application.groovy'
+		builder   = 'pipelines/build/package.groovy'
 		unitTests = ['pipelines/tests/unit.groovy']
 
 		staticAnalysis =  [	'pipelines/tests/sonar.groovy',
@@ -26,7 +25,7 @@ class CWABuildHandlers implements Serializable,BuildHandlers{
 								'pipelines/tests/bdd.groovy']
 	}
 
-/* Do not implement these methods. Accessors are xpected to be auto generated.
+/* Do not implement these methods. Accessors are expected to be auto generated.
  * If we implement them, the build hangs
 
 	public String getBuilder() { return builder}
