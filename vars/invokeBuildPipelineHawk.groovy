@@ -123,7 +123,7 @@ def callHandler(String application, handlers, String configuration){
  * Default handler is handler with same name, but located in this library
  * in reseources/com/lbg/workflow/sandbox/handlers. If this fails, uncaught
  * error is propagated upwards, where it will handled.
-*/
+ */
 def loadHandler(String handler){
     print "Loading ${handler}..."
     if (! fileExists(handler)){
