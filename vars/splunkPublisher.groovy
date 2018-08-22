@@ -1,10 +1,4 @@
-/*
- * Author: Abhay Chrungoo <achrungoo@sapient.com>
- * Contributing HOWTO: TODO
- */
-
 def call(Closure body) {
-
 	def config = [:]
 
 	body.resolveStrategy = Closure.DELEGATE_FIRST
@@ -16,6 +10,11 @@ def call(Closure body) {
 	def context = config.buildContext
 	def targetBranch = config.branchName
 	def success = true
+
+	if (epoch == null){
+		int now = new Date().time / 1000
+		epoch = "${now}"
+	}
 
 	node('framework'){
 		unstash 'pipelines'
@@ -29,7 +28,6 @@ def call(Closure body) {
 				echo error.message
 				echo "FAILURE: Splunk publication for ${testClass.name()} "
 				success = false
-			} finally {
 			}
 		}
 		if (!success) {

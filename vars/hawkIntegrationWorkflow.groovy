@@ -111,7 +111,6 @@ def call(BuildContext context, handlers, String targetBranch) {
 				try {
 					splunkPublisher {
 						tests = allTests
-						int timestamp = new Date().format("ddMMHHMMss", TimeZone.getTimeZone('UTC')).toInteger()
 						buildContext = context
 						branchName = targetBranch
 					}

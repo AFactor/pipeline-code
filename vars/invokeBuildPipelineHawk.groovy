@@ -65,7 +65,7 @@ def callHandler(String application, handlers, String configuration){
     targetCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
 
     // Create BuildContext
-    context = new BuildContext(application, readFile(configuration))
+    context = new BuildContext(application, readFile(configuration), getBranchType(branch), branch)
     loadedHandlers.unitTests = []
     loadedHandlers.sanityTests = []
     loadedHandlers.integrationTests = []
@@ -97,23 +97,24 @@ def callHandler(String application, handlers, String configuration){
 	}
   } // node('framework')
 
-  if (isPatchsetBranch(branch)){
-      hawkPatchsetWorkflow(context, loadedHandlers, targetCommit)
+  switch (context.branchType){
+      case "patchset":
+        hawkPatchsetWorkflow(context, loadedHandlers, targetCommit); break
 
-  } else if (isFeatureBranch(branch)){
-      branch1 = "ft-" + utils.friendlyName(branch, 20)
-      hawkFeatureWorkflow(context, loadedHandlers, branch1)
+      case "feature":
+        branch1 = "ft-" + utils.friendlyName(branch, 20)
+        hawkFeatureWorkflow(context, loadedHandlers, branch1); break
 
-  } else if (isPullRequestBranch(branch)){
-      branch1 = utils.friendlyName(branch, 20)
-      hawkFeatureWorkflow(context, loadedHandlers, branch1)
+      case "PR":
+        branch1 = utils.friendlyName(branch, 20)
+        hawkFeatureWorkflow(context, loadedHandlers, branch1); break
 
-  } else if (isIntegrationBranch(branch)){
-      branch1 = utils.friendlyName(branch, 40)
-      hawkIntegrationWorkflow(context, loadedHandlers, branch1)
+      case "integration":
+        branch1 = utils.friendlyName(branch, 40)
+        hawkIntegrationWorkflow(context, loadedHandlers, branch1); break
 
-  } else {
-      error "No known git-workflow rule for branch called ${branch}"
+      default:
+        error "No known git-workflow rule for branch called ${branch}"
   }
 
   echo "End BuildPipelineHawk for ${branch}"
@@ -134,6 +135,13 @@ def loadHandler(String handler){
         writeFile file: handler, text: defaultHandler
     }
     return load(handler)
+}
+
+def getBranchType(String branch){
+    if (isPatchsetBranch(branch))   { return "patchset" }
+    if (isFeatureBranch(branch))    { return "feature" }
+    if (isPullRequestBranch(branch)){ return "PR" }
+    if (isIntegrationBranch(branch)){ return "integration" }
 }
 
 return this;

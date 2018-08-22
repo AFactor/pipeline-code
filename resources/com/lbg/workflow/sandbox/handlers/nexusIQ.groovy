@@ -12,25 +12,26 @@ import groovy.json.JsonSlurperClassic
  */
 
 def runTest(String targetBranch, context){
-	def cfg = getConfig(context)
+	def cfg = getConfig(targetBranch, context)
 
-	if (targetBranch =~ cfg.branchName){
-		createApp(cfg)
-		runScan(cfg)
-		getReport(cfg)
+	if (cfg.runScan){
+		// lock so that we can retrieve report for current branch before next scan begins
+		lock(quantity: 1, resource: cfg.iqApp){
+			createApp(cfg)
+			runScan(cfg)
+			getReport(cfg)
+		}
 	} else {
-		print "Not a ${cfg.branchName} branch, skipping nexusIQ analysis..."
+		print "Scan not enabled for ${targetBranch}, skipping nexusIQ analysis..."
 	}
 }
 
-def publishSplunk(String targetBranch, String epoch, context, handler){
-	String branchName   = context.config.nexusIQ.branch?: 'master'
-	def splunkReportDir = context.config.splunk.reportdir
-	def cfg = getConfig(context)
+def publishSplunk(targetBranch, epoch, context, handler){
+	def cfg = getConfig(targetBranch, context)
 
-	if (targetBranch =~ branchName){
+	if (cfg.runScan){
 		unstash "nexusIqReport"
-		handler.SCP(cfg.report, "${splunkReportDir}")
+		handler.SCP(cfg.report, "${cfg.splunkDir}/${epoch}_${cfg.report}")
 	} else {
 		print "No nexusIQ scan was run, nothing to publish."
 	}
@@ -41,24 +42,36 @@ String name(){
 }
 
 // Prepare configuration for nexusIQ api and scan. Use defaults where value is not specified.
-def getConfig(context){
+def getConfig(String targetBranch, context){
 	def nxIQctx=context.config.nexusIQ
 	def cfg=[:]
 
 	cfg.iqApp         = context.application
-	cfg.report        = nxIQctx.reportFile?:  "${cfg.iqApp}-nexusIQ-report.json"
+	cfg.report        = nxIQctx.reportFile?:  "${cfg.iqApp}-nexusIQ.json"
 	cfg.iqStage       = nxIQctx.stage?:       'build'
-	cfg.branchName    = nxIQctx.branch?:      'master'
 	cfg.credsId       = nxIQctx.credentials?: 'NexusIQ-SRVAPPOSSJNKOB01'
 	cfg.scanPattern   = nxIQctx.scanPattern?: '*'
 	cfg.artifactStash = nxIQctx.stash?:       'artifactStash'
 	cfg.nodeLabel     = nxIQctx.nodeLabel?:   'nexusIQ'
 	cfg.apiNode       = nxIQctx.apiLabel?:    'lbg_slave'
+	cfg.splunkDir	  = nxIQctx.reportdir?:   context.config.splunk.reportdir
 
 	cfg.nexusIqApi    = nxIQctx.api?:   "https://nexusiqapp.service.group:8070/api/v2"
 	cfg.orgID         = nxIQctx.orgID?: "d101c545f626458f849403cfed83d709"  // ENGR Open Banking
 	cfg.contact       = nxIQctx.lbgID?: "9209598"
 	// LBG id of an existing user. Doesn't matter who it is, actual owner will be set to certificate user
+
+	cfg.branchType	  = nxIQctx.branchType?: ['integration', 'patchset', 'PR', 'feature']
+	cfg.runScan 	  = context.branchType in cfg.branchType
+
+	// If branch is specified with regex, it overrides branchType config
+	if (nxIQctx.branch?.trim()){
+		if (targetBranch =~ nxIQctx.branch){
+			cfg.runScan = true
+		} else {
+			cfg.runScan = false
+		}
+	}
 
 	print "Loaded nexusIQ config..."
 	return cfg

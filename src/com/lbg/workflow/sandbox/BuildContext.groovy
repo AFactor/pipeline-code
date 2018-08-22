@@ -1,13 +1,10 @@
-/*
- * Author: Abhay Chrungoo <achrungoo@sapient.com>
- * Contributing HOWTO: TODO
- */
-
 package com.lbg.workflow.sandbox
 
 class BuildContext implements Serializable{
-	final HashMap config
-	final String application
+	final HashMap config		// usually pipelines/config/job-config.json
+	final String application	// app name as specified in invocation
+	final String branchType		// integration, PR, patchset, feature
+	final String branchName		// name of the branch, to avoid scm checkouts to get it
 
 	BuildContext(String configuration) {
 		this.application = 'default'
@@ -17,6 +14,7 @@ class BuildContext implements Serializable{
 					)
 				).asImmutable()
 	}
+
 	BuildContext(String application, String configuration) {
 		this.application = application
 		this.config = (new HashMap(
@@ -24,5 +22,16 @@ class BuildContext implements Serializable{
 						parseText(configuration)
 					)
 				).asImmutable()
+	}
+
+	BuildContext(String application, String configuration, String branchType, String branchName) {
+		this.application = application
+		this.config = (new HashMap(
+						new groovy.json.JsonSlurperClassic().
+						parseText(configuration)
+					)
+				).asImmutable()
+		this.branchType = branchType
+		this.branchName = branchName
 	}
 }
