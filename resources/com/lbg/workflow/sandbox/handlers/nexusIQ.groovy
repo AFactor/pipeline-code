@@ -47,25 +47,25 @@ def getConfig(String targetBranch, context){
 	def cfg=[:]
 
 	cfg.iqApp         = context.application
-	cfg.report        = nxIQctx.reportFile?:  "${cfg.iqApp}-nexusIQ.json"
-	cfg.iqStage       = nxIQctx.stage?:       'build'
-	cfg.credsId       = nxIQctx.credentials?: 'NexusIQ-SRVAPPOSSJNKOB01'
-	cfg.scanPattern   = nxIQctx.scanPattern?: '*'
-	cfg.artifactStash = nxIQctx.stash?:       'artifactStash'
-	cfg.nodeLabel     = nxIQctx.nodeLabel?:   'nexusIQ'
-	cfg.apiNode       = nxIQctx.apiLabel?:    'lbg_slave'
-	cfg.splunkDir	  = nxIQctx.reportdir?:   context.config.splunk.reportdir
+	cfg.report        = nxIQctx?.reportFile?:  "${cfg.iqApp}-nexusIQ.json"
+	cfg.iqStage       = nxIQctx?.stage?:       'build'
+	cfg.credsId       = nxIQctx?.credentials?: 'NexusIQ-SRVAPPOSSJNKOB01'
+	cfg.scanPattern   = nxIQctx?.scanPattern?: '*'
+	cfg.artifactStash = nxIQctx?.stash?:       'artifactStash'
+	cfg.nodeLabel     = nxIQctx?.nodeLabel?:   'nexusIQ'
+	cfg.apiNode       = nxIQctx?.apiLabel?:    'lbg_slave'
+	cfg.splunkDir	  = nxIQctx?.reportdir?:   context.config.splunk.reportdir
 
-	cfg.nexusIqApi    = nxIQctx.api?:   "https://nexusiqapp.service.group:8070/api/v2"
-	cfg.orgID         = nxIQctx.orgID?: "d101c545f626458f849403cfed83d709"  // ENGR Open Banking
-	cfg.contact       = nxIQctx.lbgID?: "9209598"
+	cfg.nexusIqApi    = nxIQctx?.api?:   "https://nexusiqapp.service.group:8070/api/v2"
+	cfg.orgID         = nxIQctx?.orgID?: "d101c545f626458f849403cfed83d709"  // ENGR Open Banking
+	cfg.contact       = nxIQctx?.lbgID?: "9209598"
 	// LBG id of an existing user. Doesn't matter who it is, actual owner will be set to certificate user
 
-	cfg.branchType	  = nxIQctx.branchType?: ['integration', 'patchset', 'PR', 'feature']
+	cfg.branchType	  = nxIQctx?.branchType?: ['integration', 'patchset', 'PR', 'feature']
 	cfg.runScan 	  = context.branchType in cfg.branchType
 
 	// If branch is specified with regex, it overrides branchType config
-	if (nxIQctx.branch?.trim()){
+	if (nxIQctx?.branch?.trim()){
 		if (targetBranch =~ nxIQctx.branch){
 			cfg.runScan = true
 		} else {
