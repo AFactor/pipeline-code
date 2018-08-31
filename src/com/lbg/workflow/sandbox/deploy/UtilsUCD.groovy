@@ -807,6 +807,42 @@ def setResourceProperty(ucdUrl, ucdToken, resourceName, name, value) {
 }
 
 /**
+ *  returns a map of application properties: ["property_name": "property_value", ...]
+ */
+def getApplicationProperties(ucdUrl, ucdToken,  applicationName) {
+    println "*****************************"
+    println " UCD get application: ${applicationName} properties"
+    println "*****************************"
+
+    def udClient = "./udclient/udclient"
+    def command = "getApplicationProperties -application '${applicationName}'"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+
+    def response = sh(returnStdout: true, script: ucdCmd).trim()
+    def parsedResponse = UDClient.mapFromJson(response)
+    def result = [:]
+    for (def property in parsedResponse) {
+        result[property.name] = ["value": property.value, "secure": property.secure]
+    }
+    result
+}
+
+def setApplicationProperty(ucdUrl, ucdToken, applicationName, name, value) {
+    println "*****************************"
+    println " UCD set application: ${applicationName} property: ${name} value: ${value}"
+    println "*****************************"
+
+    def udClient = "./udclient/udclient"
+    def applicationSet = "-application '${applicationName}'"
+    def propertySet = "-name '${name}' -value '${value}'"
+    def command = "setApplicationProperty ${applicationSet} ${propertySet}"
+    def ucdCmd = "${udClient} -authtoken ${ucdToken} -weburl ${ucdUrl} ${command}"
+
+    def response = sh(returnStdout: true, script: ucdCmd).trim()
+    response
+}
+
+/**
  *  returns a map of environment properties: ["property_name": "property_value", ...]
  */
 def getEnvironmentProperties(ucdUrl, ucdToken,  applicationName, environmentName) {
