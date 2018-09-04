@@ -63,7 +63,7 @@ def getConfig(String targetBranch, context){
 	cfg.artifactStash = nxIQctx?.stash?:       'artifactStash'
 	cfg.nodeLabel     = nxIQctx?.nodeLabel?:   'nexusIQ'
 	cfg.apiNode       = nxIQctx?.apiLabel?:    'lbg_slave'
-	cfg.splunkDir     = nxIQctx?.reportdir?:   context.config.splunk.reportdir
+	cfg.splunkDir     = nxIQctx?.reportdir?:   "/apps/splunkreports/${cfg.iqApp}"
 
 	// Generous default build breakers before we adopt any standards
 	cfg.affected      = nxIQctx?.affected?:    100000
