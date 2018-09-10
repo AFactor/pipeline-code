@@ -19,7 +19,7 @@ function deployApp() {
     -e TOKENS_DIGEST="${TOKENS_DIGEST}" \
     --name ${APP} 10.112.159.88:40007/${APP}
 
-    sleep 200
+    sleep 400
 
     docker exec -i ${APP} sh -c 'find /app -name bootstrap.properties | xargs cat' >  bootstrap.properties
     docker exec -i ${APP} sh -c 'set' >  environment.properties
